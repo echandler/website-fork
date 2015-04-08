@@ -1,0 +1,7 @@
+<svg style="fill: rgba(0, 0, 0, 0);" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://web.resource.org/cc/" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="0 0 90 53">
+    <g>
+        <path stroke="red" stroke-width="6" d="M20 53 L20 35 L5 35 L20 10 L33 33"></path>
+        <path stroke="blue" stroke-width="6" d="M45 53 L45 35 L30 35 L45 10 L58 33"></path>
+        <path stroke="green" stroke-width="6" d="M70 53 L70 35 L55 35 L70 10 L85 35 L75 35"></path>
+    </g>
+    </svg>

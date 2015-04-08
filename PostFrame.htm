@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SnoCo Interactive Map Welcome!</title>
+    <meta charset='UTF-8'>
+    <link rel='stylesheet' type='text/css' href='css/styles.css'>
+    <script type='text/javascript' src='javascript/helium.js'></script>
+</head>
+<body>
+<div id='zoom_control'>
+    <div id='zoom_in_button'></div>
+    <div id='zoom_slider_container'>
+        <div id='zoom_slider' style='top:200px '>
+            <div id='zoom_slider_decoration'></div>
+         </div>
+    </div>
+    <div id='zoom_out_button'></div>
+    <div title='Zoom all the way out' id='full_zoom_out_button'></div>
+</div>
+
+<div id='loading_div'>
+    <center style=''>
+        <svg style='width: 85px; fill: transparent; height: 50px; padding-right: 10px;' viewBox='0 0 90 53'>
+        <g>
+        <path stroke='red' stroke-width='6' d='M20 53 L20 35 L5 35 L20 10 L33 33'></path>
+        <path stroke='blue' stroke-width='6' d='M45 53 L45 35 L30 35 L45 10 L58 33'></path>
+        <path stroke='green' stroke-width='6' d='M70 53 L70 35 L55 35 L70 10 L85 35 L75 35'></path>
+        </g>
+        </svg>
+        <!-- A css media query will make this (#loading_div) font size smaller (25px) at 1050px -->
+        <span>Snohomish County</span><div id='inner_loading_div'> Interactive Map</div>
+    </center>
+</div>
+
+<div id='theMap_container'>
+    <div id='theMap_drag_div' style='position: absolute;'>
+        <img id='test_img'>
+        <div id='theMap_misc_container'>
+            <svg id='theMap_svg_container' style='position: absolute; top: 0px; left: 0px; width: 10000000px; height: 100000px; overflow: hidden;' xmlns:xlink="http://www.w3.org/1999/xlink">
+                <g id='svg_cities_group'></g>
+                <g id='svg_property_highlight_group'></g>
+            </svg>
+        </div>
+        <div id='theMap_marker_container'></div>
+</div>
+</div>
+<div id='options_container'>
+    <div id='options_div' >
+    <div id='options_body'>
+        <center id='options_title'>Options</center>
+        <table id='options_table' style='margin-top: 5px;'>
+            <tr class='checkboxRow'>
+                <td class='checkboxTd'>
+                    <div id='showSatelliteView_CheckBox' class='checkBox'>
+                        <div id='showSatelliteView_CheckMark' class='checkMark'> 
+                            &#10003;
+                        </div>
+                    </div>
+                </td>
+                <td class='labelTd' id='showSatelliteView_Label'>Satellite View</td>
+                <td class='checkboxTd'>
+                    <div id='showParcelBoundary_CheckBox' class='checkBox'>
+                        <div id='showParcelBoundary_CheckMark' class='checkMark'> 
+                            &#10003;
+                        </div>
+                    </div>
+                </td>
+                <td class='labelTd' id='showParcelBoundary_Label'>Parcel Boundary</td>
+            </tr>
+             <tr class='checkboxRow'>
+                <td class='checkboxTd'>
+                    <div id='' class='checkBox'>
+                        <div id='' class='checkMark'> 
+                            &#10003;
+                        </div>
+                    </div>
+                </td>
+                <td class='labelTd' >
+                    <table style='width: 70%'>
+                        <tr>
+                            <td class='checkboxTd'>
+                                <div id='aSatelliteYearMap_CheckBox' class='checkBox'>
+                                    <div id='aSatelliteYearMap_CheckMark' class='checkMark'> 
+                                        &#10003;
+                                    </div>
+                                </div>
+                            </td>
+                            <td class='labelTd' id='aSatelliteYearMap_Label' >2007</td>
+                            <td class='checkboxTd'>
+                                <div id='bSatelliteYearMap_CheckBox' class='checkBox'>
+                                    <div id='bSatelliteYearMap_CheckMark' class='checkMark'> 
+                                        &#10003;
+                                    </div>
+                                </div>
+                            </td>
+                            <td class='labelTd' id='bSatelliteYearMap_Label'>2012</td>
+                        <tr>
+                    </table>
+                </td>
+                <td class='checkboxTd'>
+                    <div id='showParcelNumbers_CheckBox' class='checkBox'>
+                        <div id='showParcelNumbers_CheckMark' class='checkMark'> 
+                            &#10003;
+                        </div>
+                    </div>
+                </td>
+                <td class='labelTd' id='showParcelNumbers_Label'>Parcel Numbers</td>
+            </tr>
+             <tr class='checkboxRow'>
+                <td class='checkboxTd'>
+                    <div id='showCities_CheckBox' class='checkBox'>
+                        <div id='showCities_CheckMark' class='checkMark'> 
+                            &#10003;
+                        </div>
+                    </div>
+                </td>
+                <td class='labelTd' id='showCities_Label'>Cities & Towns</td>
+                <td class='checkboxTd'>
+                <div id='showBenchMark_CheckBox' class='checkBox'>
+                        <div id='showBenchMark_CheckMark' class='checkMark'> 
+                            &#10003;
+                        </div>
+                    </div>
+                </td>
+                <td class='labelTd' id='showBenchMark_Label'>BenchMark Areas</td>
+            </tr>
+             <tr class='checkboxRow'>
+                <td class='checkboxTd'>
+                    <div id='showAddresses_CheckBox' class='checkBox'>
+                        <div id='showAddresses_CheckMark' class='checkMark'> 
+                            &#10003;
+                        </div>
+                    </div>
+                </td>
+                <td class='labelTd' id='showAddresses_Label'>Addresses</td>
+                <td class='checkboxTd'>
+                    <div id='0SaleRecord_CheckBox' class='checkBox'>
+                        <div id='0SaleRecord_CheckMark' class='checkMark'> 
+                            &#10003;
+                        </div>
+                    </div>
+                </td>
+                <td class='labelTd saleRecordLabel' style='background-color: rgba(255, 0, 0, 0.5)' id='0SaleRecord_Label'></td>
+            </tr>
+            <tr class='checkboxRow'>
+                <td class='checkboxTd'>
+                    <div id='showPropertyImage_CheckBox' class='checkBox'>
+                        <div id='showPropertyImage_CheckMark' class='checkMark'> 
+                            &#10003;
+                        </div>
+                    </div>
+                </td>
+                <td class='labelTd' id='showPropertyImage_Label' title='Display an image of the property on the maker'>Property Image</td>
+                <td class='checkboxTd'>
+                    <div id='1SaleRecord_CheckBox' class='checkBox'>
+                        <div id='1SaleRecord_CheckMark' class='checkMark'> 
+                            &#10003;
+                        </div>
+                    </div>
+                </td>
+                <td class='labelTd saleRecordLabel' style='background-color: rgba(255, 255, 0, 0.5)' id='1SaleRecord_Label'></td>
+            </tr>
+             <tr class='checkboxRow'>
+                <td class='checkboxTd'>
+                    <div id='deleteAllMarkers_CheckBox' class='checkBox'>
+                        <div id='deleteAllMarkers_CheckMark' class='checkMark'> 
+                            &#10003;
+                        </div>
+                    </div>
+                </td>
+                <td class='labelTd' id='deleteAllMarkers_Label'>Delete All Markers</td>
+                <td class='checkboxTd'>
+                    <div id='2SaleRecord_CheckBox' class='checkBox'>
+                        <div id='2SaleRecord_CheckMark' class='checkMark'>
+                            &#10003;
+                        </div>
+                    </div>
+                </td>
+                <td class='labelTd saleRecordLabel' style='background-color: rgba(173, 216, 230, 0.5)' id='2SaleRecord_Label'></td>
+            </tr>
+             <tr>
+                <td colspan='2' >
+                    <button id='save_button'>Save</button>
+                </td>
+                <td colspan='2' >
+                    <button id='update_button'>Save and Update</button>
+                </td>
+            </tr>
+            <tr>
+            <td colspan= '4' rowspan='1'>
+                   <button id='search_for_parcel_information'>Search for Parcel Information</button>
+                </td>
+            </tr>
+            <tr class='checkboxRow'>
+                <td class='checkboxTd'>
+                    <div id='drawLine_CheckBox' class='checkBox'>
+                        <div id='drawLine_CheckMark' class='checkMark dontChangeState'> 
+                            &#10003;
+                        </div>
+                    </div>
+                </td>
+                <td class='labelTd' id='drawLine_Label'>Draw a line
+                    <svg xmlns='http://www.w3.org/2000/svg' style='margin-left: 5px;display: inline;height: 18px;width: 70px;stroke-width: 2px;'>
+                        <circle cx='5' cy='5' r='2' style='fill: rgb(93, 141, 195);'></circle>
+                        <polyline points='5,5 20,15 40,5 60,15 65,10' style='fill: transparent;stroke: rgb(93, 141, 195);'></polyline>
+                        <circle cx='65' cy='10' r='2' style='fill: rgb(93, 141, 195);'></circle>
+                    </svg>
+                </td>
+                <td class='checkboxTd'>
+                    <div id='measureLine_CheckBox' class='checkBox'>
+                        <div id='measureLine_CheckMark' class='checkMark dontChangeState'> 
+                            &#10003;
+                        </div>
+                    </div>
+                </td>
+                <td class='labelTd' id='measureLine_Label'>Measure Distance</td>
+            </tr>
+            <tr>
+             <tr>
+                <td colspan= '4' rowspan='1'>
+                    <table style='background-color: rgba(220, 220, 220, 0.4); padding: 0px 5px 0px 5px;'>
+                        <tr>
+                            <td style='width: 40%; padding-left: 5px;'><a id='make_url_anchor' href='javascript: return void(0)' style='text-decoration: none;color: rgb(17, 85, 204);'>Share this map</a></td>
+                            <td style='padding-right: 5px;'><input id='make_url_text_input' style='' type='text' ></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr id='panning_control_row'>
+                <td colspan= '4' rowspan='1'>
+                    <table style='background-color: rgba(220, 220, 220, 0.4); padding: 0px 5px 0px 5px;'>
+                        <tr>
+                            <td style='width: 50%; padding-left: 5px; color: rgba(0, 0, 0, 0.7); '>Panning Sensitivity</td>
+                            <td style='padding-right: 5px;'>
+                                <div id='panning_control'>
+                                    <!-- TODO: two should be renamed -->
+                                    <div id='panning_control_slider_rail'>
+                                        <div id='panning_control_slider' >
+                                            <div id='panning_control_slider_decoration'>
+                                            </div>
+                                         </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
+    </div>
+    <!-- snoco_trees has to be before optionsSVG for the css hover to work correctly or else would have to use javascript mouseover mouseout to control hover action -->
+    <svg id='snoco_trees' viewBox='0 0 90 53'>
+    <g>
+        <path stroke='red' stroke-width='6' d='M20 53 L20 35 L5 35 L20 10 L33 33'></path>
+        <path stroke='blue' stroke-width='6' d='M45 53 L45 35 L30 35 L45 10 L58 33'></path>
+        <path stroke='green' stroke-width='6' d='M70 53 L70 35 L55 35 L70 10 L85 35 L75 35'></path>
+    </g>
+    </svg>
+    <svg  id='options_svg_gear'  class='spinGear' viewBox='0 0 82 82' version='1.0'>
+        <g>
+            <path stroke-linejoin='round' d='m41 1.5c-2.74 0-5.41 0.2872-8 0.8125v6.1875c-3.47 0.8389-6.72 2.1847-9.68 4l-4.38-4.375c-2.24 1.4862-4.29 3.2298-6.19 5.125-1.89 1.8948-3.64 3.9448-5.12 6.1878l4.37 4.375c-1.81 2.967-3.16 6.212-4 9.687h-6.18c-0.53 2.585-0.82 5.261-0.82 8s0.29 5.415 0.82 8h6.18c0.84 3.475 2.19 6.72 4 9.688l-4.37 4.375c1.48 2.242 3.23 4.292 5.12 6.187 1.9 1.895 3.95 3.639 6.19 5.125l4.38-4.375c2.96 1.816 6.21 3.161 9.68 4v6.188c2.59 0.525 5.26 0.812 8 0.812s5.42-0.287 8-0.812v-6.188c3.48-0.839 6.72-2.184 9.69-4l4.38 4.375c2.24-1.486 4.29-3.23 6.18-5.125 1.9-1.895 3.64-3.945 5.13-6.187l-4.38-4.375c1.82-2.968 3.16-6.213 4-9.688h6.19c0.53-2.585 0.81-5.261 0.81-8s-0.28-5.415-0.81-8h-6.19c-0.84-3.475-2.18-6.72-4-9.687l4.38-4.375c-1.49-2.243-3.23-4.293-5.13-6.1878-1.89-1.8952-3.94-3.6388-6.18-5.125l-4.38 4.375c-2.97-1.8153-6.21-3.1611-9.69-4v-6.1875c-2.58-0.5253-5.26-0.8125-8-0.8125z'  stroke='rgb( 120, 120, 120 )' stroke-linecap='round' stroke-width='1' fill='rgb(255,255,255)'/>
+        </g>
+    </svg>
+</div>
+    <svg id='small_county_svg' viewBox='0 0 1680 927'>
+        <g style='transition: fill-opacity 70ms ease-out;'>
+        <path d='m 52.742513,878.5983 c -7.936487,-3.9546 0.02659,-10.54542 0.831295,-12.35817 4.468531,-10.06615 -2.558458,-23.69946 3.134515,-30.70847 10.216698,-12.57847 17.872664,-27.98876 27.035363,-41.08414 5.642707,-8.06459 12.245939,-14.33852 20.377934,-18.78682 17.4313,-9.53512 10.48342,-24.01139 17.62973,-35.2099 6.47381,-10.14467 1.08541,-19.41081 2.1272,-30.70561 2.08807,-22.63855 10.15777,-41.35636 12.33,-45.61298 4.30915,-8.44401 12.03916,-14.01392 12.29091,-24.26341 0.25388,-10.33642 4.1731,-35.73361 8.1629,-37.67196 18.04513,-8.76679 30.32568,-14.14994 62.86171,-19.55653 13.67612,-2.27259 20.20749,-21.93287 28.18648,-32.07339 14.40312,-18.30496 5.92532,-57.97438 4.6065,-66.04034 -1.47147,-8.99956 -18.0016,-9.09464 -23.49817,-10.25005 -5.89026,-1.23817 -23.80294,-20.0459 -30.09688,-26.71216 -6.92758,-7.33738 -7.78017,-10.07157 -5.16745,-15.86782 1.99984,-4.43661 -4.68844,-8.14104 -7.696,-10.82078 -5.23714,-4.6663 -3.73571,-2.39736 -7.81439,-3.06139 -3.73996,-0.60889 -3.16835,3.43982 -3.96331,5.54934 -2.06228,5.47252 -7.95579,-4.94589 -8.62967,-8.24944 -3.13117,-15.34977 -25.38766,-22.34473 -24.67686,-26.08799 3.51895,-18.53184 -18.19521,-21.88672 -23.71307,-30.38161 -5.73486,-8.82898 -2.73274,-20.29039 -6.8841,-23.76503 -4.61209,-2.59819 -13.932664,-13.20509 -13.226797,-15.93014 1.090139,-3.73878 2.446015,-9.10576 -0.309079,-11.7281 -4.053414,-3.8581 -6.908619,-9.00736 0.238316,-17.91015 3.57099,-4.4483 0.570885,-16.04176 -1.403116,-20.05399 -4.631253,-9.41321 -4.106761,-31.99322 5.485376,-38.07133 8.45038,-5.35464 14.70121,-15.78877 2.46573,-22.94566 -12.55011,-7.34093 -13.670854,-16.52818 -11.095024,-24.5333 4.439416,-13.79674 -1.754719,-25.92383 -8.78457,-28.31637 -19.473103,-6.62748 -14.16343,-22.86058 -14.665665,-25.45946 0.837295,-6.5566 -1.154658,-4.40669 -3.943913,-8.76079 -1.434057,-9.20513 4.931414,-16.45845 6.259856,-28.891432 1.26891,-8.090978 12.262441,-23.729555 16.184258,-28.30019 3.881312,-4.436486 12.725528,-26.852046 16.208888,-27.455567 94.1415,-0.665993 349.46815,6.542054 450.95837,6.610157 101.85987,0.06835 203.04354,2.780343 294.52409,4.073751 91.48358,1.293451 173.23963,4.440632 236.36433,5.211511 130.2057,1.590075 178.2347,0.240486 231.3743,1.351088 55.3515,1.156829 114.5513,-1.228957 259.5656,-0.38628 4.9975,0.02904 3.8278,12.758929 0.5897,17.691485 -17.1115,11.144759 -7.632,9.567485 -2.2682,18.756702 0.3226,4.64114 0.3924,9.594437 2.379,13.588355 5.0498,4.39863 9.4373,8.37947 10.8044,13.34904 1.3439,4.88537 7.9732,6.5421 10.655,10.84102 1.396,7.69888 6.5458,13.56632 9.2344,19.9705 0.069,8.66548 7.7329,10.18728 12.6396,14.74207 6.3884,5.14819 -0.7647,12.12327 -1.9454,17.38368 -4.6756,20.51313 3.7013,10.64361 11.0904,16.25624 5.1034,15.27209 16.4936,14.30701 25.3035,21.5566 1.7003,1.4694 2.2973,4.01017 4.1005,5.35126 2.5249,1.87782 6.7808,0.95353 8.8282,3.34295 3.56,4.15469 2.005,10.76703 3.3916,16.05972 2.3159,8.83967 10.0261,17.77917 8.2148,26.15427 -0.8278,3.82734 -4.5726,7.0202 -8.2546,8.35857 -5.4106,-0.91804 -19.5025,-8.79655 -19.1176,-1.59771 0.312,5.83591 -3.4437,10.20394 -13.5575,8.70912 -3.8939,-0.57552 -8.1518,2.40772 -10.3607,5.66571 1.1685,8.32541 -7.3489,9.30224 -10.0695,13.94084 -2.6551,4.94805 -0.8061,11.29128 -0.264,16.35507 0.4262,3.98154 6.6637,4.97318 8.4125,8.5754 1.5861,3.26714 -0.196,7.53986 1.3919,10.8061 1.8298,3.76371 7.0353,5.15869 8.8022,8.95235 0.7151,1.53541 1.438,3.66103 0.481,5.05851 -1.0621,1.55093 -3.9398,0.3823 -5.4273,1.53162 -1.3702,1.05873 -1.089,3.68571 -2.6268,4.4817 -3.1371,1.62385 -7.027,-0.83989 -10.5589,-0.90347 -2.5229,-0.0454 -5.7583,-1.39247 -7.5607,0.37349 -2.0608,2.01911 1.3005,11.40408 -6.9309,10.51761 -3.4133,-0.36759 -1.3189,5.29238 -2.6887,6.63714 -1.0839,9.96143 -0.7133,5.63629 -7.7348,10.00204 -3.5453,7.02541 -7.1636,3.51244 -10.9413,4.93548 -7.1146,5.02424 -3.8252,11.77275 -8.8503,13.61349 -7.6935,2.81825 -9.4563,9.14101 -12.477,9.95875 -6.0773,1.35007 -12.1449,-6.92502 -17.9772,-5.06277 -3.414,1.20538 -4.1925,6.20217 -7.3222,8.02233 -6.8095,-0.0617 -7.8602,3.51011 -10.5711,4.56516 -4.5348,1.35122 -9.5464,-0.19177 -14.1728,0.80137 -7.9144,0.73958 -12.7343,5.10774 -17.2365,9.19399 -1.7877,2.63649 -3.355,4.3864 -6.683,3.26914 -17.2216,-12.34644 -12.9149,0.88803 -21.2288,6.40512 -19.2592,2.89872 -11.2666,-4.02817 -18.1623,9.00883 -2.3667,2.91476 -5.8147,4.77601 -8.4332,7.46686 -2.4167,4.55217 -4.0069,3.56862 -7.7937,4.19486 -3.0486,0.60377 -5.4074,3.62689 -8.5098,3.80874 -16.1416,0.94611 -8.7351,8.47543 -5.7643,12.79136 1.4113,2.05034 -1.0194,5.23569 0.084,7.46686 2.7244,5.50892 9.5454,7.75412 14.5258,11.35506 2.0116,1.45443 4.9912,1.96269 6.194,4.13411 1.4758,2.66428 -0.8316,6.29334 0.2691,9.13324 2.0684,5.33684 9.0537,7.7126 11.193,13.02143 1.8328,4.54826 2.657,10.13939 0.8246,14.68782 -1.434,3.55954 -6.1598,4.74551 -8.4332,7.83716 -2.0802,2.82896 -2.1265,6.95764 -4.5449,9.50354 -1.1873,1.24986 -3.459,1.1289 -4.5449,2.46774 -2.7843,9.13252 -1.987,3.30498 -7.6086,4.00971 -15.6596,3.17039 -5.2558,13.85419 -8.3493,21.04376 -7.3449,5.30533 -3.6917,7.17295 -5.5719,10.86035 -6.407,7.91543 -10.2358,4.97759 -12.0523,15.67433 6.9797,15.25454 4.1409,19.1511 -1.9211,23.56199 -13.4687,9.80011 -1.6493,18.40107 -4.9469,23.40314 -7.8089,11.84505 -11.1185,8.11446 -0.4266,18.95178 6.0557,6.13802 -14.8972,11.15526 -6.4414,28.38366 5.1499,10.4928 -2.3404,8.39442 8.9713,20.79784 4.704,5.15799 2.1545,7.97163 10.4523,0.98652 1.3763,-1.15854 5.2095,-0.62638 5.2682,1.17166 0.1411,4.32162 -0.8489,10.40246 2.6761,14.68782 2.2497,2.735 -0.2653,7.14693 0.4542,10.61446 0.8908,4.29323 5.3778,7.94689 4.7127,12.28082 -1.2787,8.33211 -15.6077,20.03582 0.084,23.7603 4.662,1.10655 11.9744,-3.17993 14.3406,0.98651 1.4669,2.5829 -0.5575,9.05661 5.8236,6.9114 2.6753,-0.8994 5.5109,1.93674 7.4901,3.94897 2.2473,2.2848 1.8054,6.61975 4.3424,8.57777 18.4221,6.76594 21.2111,-6.32012 40.3356,-3.65063 11.1182,1.55191 12.8327,8.13032 7.8706,13.83113 -9.0645,6.22361 -10.6047,19.71754 -11.5807,26.90789 -0.6637,4.88982 -9.2927,3.24294 -9.9143,13.02143 -9.7588,7.07786 -17.1517,7.13516 -19.0881,18.63677 -2.3117,3.49725 -7.5145,4.42765 -9.7003,8.00496 -1.2506,2.04669 2.1956,4.36073 -1.543,7.02818 -0,-0.0109 -241.0655,-3.84587 -520.30509,-0.21032 -63.9429,0.8325 -130.01931,-1.8546 -195.86116,-2.18635 -88.08803,-0.44383 -175.76499,-0.2232 -257.39541,-0.94195 -75.4216,-0.66408 -145.68148,-3.98949 -206.33472,-4.73267 C 140.05574,883.24229 55.342911,879.89403 52.742513,878.5983 z' id='snohomish_county'/>
+        <path d='m 136.64266,482.17076 c 3.72616,0.92014 4.19763,7.32879 7.36539,7.35551 3.36322,0.0284 2.49655,6.1227 4.78886,6.24656 6.68484,0.36118 7.58119,6.21139 8.16806,8.34291 0.80785,2.93409 3.36155,3.72533 6.33966,6.66111 1.56746,2.55868 -7.49868,2.68471 -7.49868,2.68471 0,0 -6.52331,1.01494 -9.53536,0 -1.74898,-0.58933 -4.40769,-3.35087 -4.40769,-3.35087 l -5.21738,-3.96643 c -2.23508,-2.2185 -5.21686,-2.31467 -6.20548,-4.71762 -1.39097,-3.3809 -4.31945,-7.68462 -5.30106,-8.96898 -0.69433,-1.31265 -1.43241,-2.14181 -1.36443,-3.34368 0.12711,-2.2474 1.36705,-4.6765 3.24017,-5.92488 2.68545,-1.78977 9.62794,-1.01834 9.62794,-1.01834 z' id='getty_island'/>
+        </g>
+
+       <!-- The small opaque box that indicates where the person is in the county -->
+        <rect x='1' y='1' width='1' height='1' style='1' id='svg_rect'/>
+    </svg>
+    <div id='mini_footer' >
+        <svg style='position: relative; height: 18px; width: 30px; fill: rgba(0, 0, 0, 0);' viewBox='0 0 90 53'>
+            <g>
+                <path stroke='red' stroke-width='6' d='M20 53 L20 35 L5 35 L20 10 L33 33'/>
+                <path stroke='blue' stroke-width='6' d='M45 53 L45 35 L30 35 L45 10 L58 33'/>
+                <path stroke='green' stroke-width='6' d='M70 53 L70 35 L55 35 L70 10 L85 35 L75 35'/>
+            </g>
+        </svg> 
+        <span id='mini_footer_contents'>
+            <span id='mini_footer_span'>2014 Snohomish County | </span>
+            <a href='http://gis.snoco.org/maps/property/disclaimer.htm'>Disclaimer
+            </a>
+             | 
+            <a href='http://www.snohomishcountywa.gov/175/Assessor'>Assessor Home
+            </a>
+        </span>
+    </div>
+    <div id='search_container'>
+    <div id='search_div'>
+        <div id='search_body'>
+            <div id='search_name_div'>
+                <div id='search_first_name_div'>
+                    <label>
+                        First Name
+                        <input></input>
+                    </label>
+                </div><div id='search_last_name_div'>
+                    <label>
+                        Last Name
+                        <input></input>
+                    </label>
+                </div>
+            </div>
+            <div id='search_address_line1_div'>
+                 <div id='search_unit_number_div'>
+                    <label>
+                        Unit
+                        <input></input>
+                    </label>
+                </div><div id='search_street_number_div'>
+                    <label>
+                        Street num.
+                        <input></input>
+                    </label>
+                </div><div id='search_street_name_div'>
+                    <label>
+                        Street name
+                        <input></input>
+                    </label>
+                </div>
+            </div>
+            <div id='search_address_line2_div' style='position: relative'>
+             <div id='search_city_name_div'>
+                    <label>
+                        City
+                        <input></input>
+                    </label>
+                </div><div id='search_wa_div'>
+                , Wa
+                </div><div id='search_zip_code_div'>
+                    <label>
+                        Zip Code
+                        <input></input>
+                    </label>
+                </div>
+            </div>
+            <div id='search_apn_number_div'>
+                 <div id='search_apn_div'>
+                    <label>
+                        Assessor Parcel Number
+                        <input></input>
+                    </label>
+                </div>
+            </div>
+                <button id='search_div_button' style='margin-bottom: 5px;'>
+                     Search
+                </button>
+            <div id='search_results_container'>
+                <div id='search_results_arrow_up_container'>
+                    <div id='search_results_arrow_up'></div>
+                </div>
+                <div id='search_results_div'>
+                </div>
+                <div id='search_footer_container'>
+                    <div id='search_counter_div'></div><div id='search_results_arrow_down_container'>
+                        <div id='search_results_arrow_down'></div>
+                    </div>
+                </div>
+            </div>
+                </div>
+            </div>
+            <div id='search_close_div'>
+                  ×
+            </div>
+        </div>
+    </div>
+    <script type='text/javascript' src='javascript/globals.js'></script>
+    <script type='text/javascript' src='javascript/marker_module.js'></script>
+    <script type='text/javascript' src='javascript/zoom_module.js'></script>
+    <script type='text/javascript' src='javascript/boxZoom_module.js'></script>
+    <script type='text/javascript' src='javascript/options_module.js'></script>
+    <script type='text/javascript' src='javascript/panning_module.js'></script>
+    <script type='text/javascript' src='javascript/mapControl_module.js'></script>
+    <script type='text/javascript' src='javascript/utilities_module.js'></script>
+    <script type='text/javascript' src='javascript/citiesTownsSvg_module.js'></script>
+    <script type='text/javascript' src='javascript/smallCountySvg_module.js'></script>
+    <script type='text/javascript' src='javascript/overLayMap_module.js'></script>
+    <script type='text/javascript' src='javascript/drawSvgLine_module.js'></script>
+    <script type='text/javascript' src='javascript/measureSvgLine_module2.js'></script>
+    <script type='text/javascript' src='javascript/infoSearch_module.js'></script>
+    <script type='text/javascript' src='javascript/ArcXML_module.js'></script>
+    <script type='text/javascript' src='javascript/svgFeatures.js'></script>
+    <script type='text/javascript' src='javascript/main.js'></script>
+</body>
+</html>
