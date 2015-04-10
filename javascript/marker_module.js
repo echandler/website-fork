@@ -621,7 +621,12 @@ theMap.marker_module = function(){
             for( var n = 0; n < fullNames.length; ++n ){
                 if( fullNames[n].replace(/FULLNAME="(.*?)"/, '$1' ) !== '' ){
                     fullNames[n] = fullNames[n].replace(/FULLNAME="(.*?)"/, '$1' );
-                    if( fullNames[n] == "I 5" || fullNames[n] == "I 405" || fullNames[n] == 'SR 9' || fullNames[n] == 'SR 530' || fullNames[n] == 'US 2' || fullNames[n] == 'SR 526' ){
+                    if( fullNames[n] == "I 5"    || 
+                        fullNames[n] == "I 405"  || 
+                        fullNames[n] == 'SR 9'   || 
+                        fullNames[n] == 'SR 530' || 
+                        fullNames[n] == 'US 2'   || 
+                        fullNames[n] == 'SR 526' ){
                         
                         // Display an SVG highway/interstate sign in the place of words.
                         message = '<img src="css/images/'+ fullNames[n].replace(/ /,'_' ) +'.svg" height="50" width="50" title="'+ fullNames[n] +'"/><br>';
@@ -890,7 +895,7 @@ theMap.marker_module = function(){
             j = q.charAt( 0 ).toUpperCase();
             pieces[i] = j + q.substr( 1 ).toLowerCase();
         }
-        return pieces.join( " " ).replace( /llc/i, "LLC" );
+        return pieces.join( " " ).replace( /llc/i, "LLC" ).replace(/(\d)(th|rd|nd|st) /, '$1<font style="vertical-align:30%;font-size:65%;margin-left:1px;">$2</font> ');
     }
 
     var isSimpleMarkerOnImage = function(){

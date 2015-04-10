@@ -27,7 +27,7 @@ theMap.ArcXML_module = function () {
                 nameCase                : ( ( sliderPositionNumber <= 5 )? '': 'titlecaps' ), //Title caps = first letter capitalized the rest lowercase.
                 textSize                : ( ( sliderPositionNumber >= 8 )? ( pageIsSmall? '15': '19' ): '24' ),
                 textStyle               : ( ( sliderPositionNumber >= 7 )? 'bold': '' ),
-                textColor               : ( ( sliderPositionNumber <= 5 )? '120,120,120' : '60,60,43' ),
+                textColor               : ( ( sliderPositionNumber <= 5 )? '51, 153, 51' : '60,60,43' ),
                 textOutlineClr          : '255,255,255',
                 boundaryWidth           : ( ( sliderPositionNumber > 5 )? ( pageIsSmall? '1': '2' ): ( pageIsSmall? '2': '3' ) ),
                 boundaryColor           : ( ( this.clickedOnASvgCity )? '210,20,40': '255, 102, 0' ),
