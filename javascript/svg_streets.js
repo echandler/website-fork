@@ -1,9 +1,45 @@
 
-var svgFeatures = function () {
-  var layers = {};
-  var streetNameGroup = document.createElementNS( "http://www.w3.org/2000/svg", "g" );
-  var streetsGroup    = document.createElementNS( "http://www.w3.org/2000/svg", "g" );
-  var streetsContainer = document.createElementNS( "http://www.w3.org/2000/svg", "g" );
+var svg_streets = function () {
+  var glob = {
+    streetLayers      : {},
+    streetNameGroup   : document.createElementNS( "http://www.w3.org/2000/svg", "g" ),
+    streetsGroup      : document.createElementNS( "http://www.w3.org/2000/svg", "g" ),
+    streetsContainer  : document.createElementNS( "http://www.w3.org/2000/svg", "g" ),
+    streetInfoAjax    : new XMLHttpRequest()
+  };
+
+  glob.streetInfoAjax.onload = function () {
+
+    if (/\d\d\d\.\d\d\d/.test(glob.streetInfoAjax.responseText)) {
+
+      if (theMap.state.waitingForAjax) {
+      
+        theMap.addMapLoadListener("street loader" , theMap, 
+          function streetLoader() { // function to run.
+            theMap.removeMapLoadListener(streetLoader);
+            createStreets(theMap.utils.arcXmlDOM(glob.streetInfoAjax.responseText));
+
+            
+          });
+      } else {
+
+       createStreets(theMap.utils.arcXmlDOM(glob.streetInfoAjax.responseText));       
+      }
+    } else {
+
+      glob.streetInfoAjax.onerror();
+    }
+  };
+
+  glob.streetInfoAjax.onerror = function () {
+    
+    resetSvgGroups();
+
+    if (!/<FEATURECOUNT count="0" hasmore="false" \/>/.test(glob.streetInfoAjax.responseText)) {
+     
+      alert('There was an error loading the road/highway information.');
+    }
+  };
 
   (function init() {
     var svg_container = document.getElementById('theMap_svg_container');
@@ -23,32 +59,26 @@ var svgFeatures = function () {
 
     svg_container.appendChild(filter);
 
-    // Make the layers for the different roads
+    // Make the glob.streetLayers for the different roads
     var layerOrderArray = [0,9,8,7,6,5,4,3,2,1];
     
-    for (var n = 0; n < layerOrderArray.length; ++n) {
+    var n = 0;
+    while (n < layerOrderArray.length) {
+      
+      glob.streetLayers[layerOrderArray[n]] = document.createElementNS( "http://www.w3.org/2000/svg", "g" );
+      glob.streetLayers[layerOrderArray[n]].id = 'layer_'+ layerOrderArray[n];
 
-      layers[layerOrderArray[n]] = document.createElementNS( "http://www.w3.org/2000/svg", "g" );
-      layers[layerOrderArray[n]].id = 'layer_'+ layerOrderArray[n];
-
-      streetsGroup.appendChild(layers[layerOrderArray[n]]);
+      glob.streetsGroup.appendChild(glob.streetLayers[layerOrderArray[n]]);
+      ++n;
     }
 
-    streetsContainer.appendChild(streetsGroup);
-    streetsContainer.appendChild(streetNameGroup);
+    glob.streetsContainer.appendChild(glob.streetsGroup);
+    glob.streetsContainer.appendChild(glob.streetNameGroup);
 
-    svg_container.appendChild(streetsContainer);
+    svg_container.appendChild(glob.streetsContainer);
   })();
 
-  var convertSPtoScreenPoints = function (x,y) {
-    var xMultiplier = ( this.presentMaxX - this.presentMinX ) / this.resizedMapWidth, // For paths.
-        yMultiplier = ( this.presentMaxY - this.presentMinY ) / this.resizedMapHeight; // For paths.
-    
-    return ( ( x - this.presentMinX  ) / xMultiplier + this.currentMapImg._left ) +','+ ( ( this.presentMaxY - y ) / yMultiplier + this.currentMapImg._top ) +' ';
-  }.bind(theMap)
-
   function getMapInfo (arg_coords) {
-    
 
    // parcelInfo(arg_coords);
     streetInfo(arg_coords);
@@ -56,141 +86,97 @@ var svgFeatures = function () {
   }
 
   var streetInfo = function ( arg_coords ) {
+    var SLIDER_POSITION_NUMBER = theMap.ZOOM_POWER_NUMBER[theMap.sliderPosition];
 
-    // 'this' equals the marker body.
-    var minX = arg_coords.x, maxX = arg_coords.X, minY = arg_coords.y, maxY = arg_coords.Y,
-        scale  = (((maxX - minX) / theMap.mapContainer.offsetWidth) * 96 * 12),
-        sliderPositionNumber = theMap.ZOOM_POWER_NUMBER[theMap.sliderPosition],
-        streetXML = '<?xml version="1.0" encoding="UTF-8" ?>'
+    var streetXML = '<?xml version="1.0" encoding="UTF-8" ?>'
                   + '<ARCXML version="1.1">'
                   + '<REQUEST>'
-                  + '<GET_FEATURES outputmode="newxml" envelope="false" geometry="true" compact="true" featurelimit="100000">'
+                  + '<GET_FEATURES outputmode="newxml" envelope="false" geometry="true" '
+                  +                'compact="true" featurelimit="100000">'
                   + '<LAYER id="6" />'
                   + '<SPATIALQUERY subfields="#SHAPE# MAJRD_TYPE FULLNAME">' // FULLNAME
                   + '<SPATIALFILTER relation="area_intersection">'
-                  + '<ENVELOPE maxy="' + maxY + '" maxx="' + maxX + '" miny="' + minY + '" minx="' + minX + '"/>'
+                  + '<ENVELOPE maxy="' + arg_coords.Y + '" maxx="' + arg_coords.X
+                  +         '" miny="' + arg_coords.y + '" minx="' + arg_coords.x + '"/>'
                   + '</SPATIALFILTER>'
                   + '</SPATIALQUERY>'
                   + '</GET_FEATURES>'
                   + '</REQUEST>'
-                  + '</ARCXML>',
+                  + '</ARCXML>';
     
-        streetXMLPostRequest = window.encodeURIComponent( "ArcXMLRequest" )
-                                + "=" + encodeURIComponent( streetXML ),
+    var XMLPostRequest = window.encodeURIComponent( "ArcXMLRequest" )
+                         +"="+ window.encodeURIComponent( streetXML );
 
-        streetUrl = theMap.parameters.URL_PREFIX + theMap.parameters.PROPERTY_INFO_URL,
-        streetInfoAjax = new XMLHttpRequest();
+    var url = theMap.parameters.URL_PREFIX + theMap.parameters.PROPERTY_INFO_URL;
 
-    if (sliderPositionNumber >= 6) {
+    if (SLIDER_POSITION_NUMBER >= 6) {
+      
       resetSvgGroups();
 
       return; // Don't load the street information.
     }
 
-    var obj = { // TODO get rid of this object.
-                info: streetInfoAjax,
-                color: 'rgb(210,210,210)',
-                width: Math.round((170 / ( scale / 96 /*dpi*/))+(sliderPositionNumber < 5? 2: 1)) + 2,
-                textSize: Math.round((40 / (scale / 96 /*dpi*/))) + 9,
-                street: true,
-              };
+    // Clear the last request.
+    glob.streetInfoAjax.abort(); 
 
-    streetInfoAjax.onload = function () {
+    glob.streetInfoAjax.open("POST", url, true);
+    glob.streetInfoAjax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    glob.streetInfoAjax.send(XMLPostRequest);
+  };
 
-      if (/\d\d\d\.\d\d\d/.test(streetInfoAjax.responseText)) {
+  function createStreets(arg_DOM) {
+    var FEATURES = arg_DOM.querySelectorAll('FEATURE');
+    var SATELLITE_VIEW = theMap.optionsReference.showSatelliteView_CheckMark;
+    var SCALE = ((((theMap.presentMaxX - theMap.presentMinX) / theMap.mapContainer.offsetWidth) * 96) * 12);
+    var SLIDER_POSITION_NUMBER = theMap.ZOOM_POWER_NUMBER[theMap.sliderPosition];
 
-        if (theMap.state.waitingForAjax) {
-        
-          theMap.addMapLoadListener("street loader" , theMap, 
-            function streetLoader() { // function to run.
-              private_ajaxOnload( obj );
+    var STREET_WIDTH = Math.round((170 / ( SCALE / 96 /*dpi*/))+(SLIDER_POSITION_NUMBER < 5? 2: 1)) + 2;
+    var TEXT_SIZE = Math.round((40 / (SCALE / 96 /*dpi*/))) + 9;
 
-              theMap.removeMapLoadListener(streetLoader);
-            });
-        } else {
-        
-          private_ajaxOnload( obj );
-        }
-      } else {
+    if (SATELLITE_VIEW) {
 
-        streetInfoAjax.onerror();
-      }
-    };
-
-    streetInfoAjax.onerror = function () {
-      resetSvgGroups();
-
-      if (!/<FEATURECOUNT count="0" hasmore="false" \/>/.test(streetInfoAjax.responseText)) {
-       
-        alert('There was an error loading the road/highway information.');
-      }
-    }
-
-    streetInfoAjax.open("POST", streetUrl, true);
-    streetInfoAjax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    streetInfoAjax.send(streetXMLPostRequest);
-  };  
-
-var private_ajaxOnload = function (arg_info) {
-    var arcXML = arg_info.info.responseText.match(/<ARCXML[\s\S]+?<\/ARCXML>/);
-    var DOM = undefined;
-    var satelliteView = theMap.optionsReference.showSatelliteView_CheckMark;
-    
-    if ( arcXML && arcXML[0]) {
-
-      DOM = (new DOMParser()).parseFromString(arcXML[0], 'text/xml');
+      glob.streetsGroup.setAttribute('filter', 'url(#constantOpacity)');
     } else {
 
-      return;
+      glob.streetsGroup.removeAttribute('filter');
     }
-
-    // Delete the old roads and text just in case.
-    resetSvgGroups();
-
-    var features = DOM.querySelectorAll('FEATURE');
-
-    if (satelliteView) {
-
-      streetsGroup.setAttribute('filter', 'url(#constantOpacity)');
-    } else {
-
-      streetsGroup.setAttribute('filter', '');
-    }
-
-    var m = undefined;
-    var q = undefined;
 
     var cacheVar = undefined;
 
     var streets = {};   
 
-    for (m = 0; m < features.length; ++m) {
+    // Build up a street object that will be iterated over.
+    // This way all the street fragments are combined into one array.
+    for (var b = 0; b < FEATURES.length; ++b) {
 
-      cacheVar = features[m].querySelector('FIELD:last-child').getAttribute('value');
-      
-      if (cacheVar) {
-      
-        streets[cacheVar] = { coords: [], type: '' };
+      cacheVar = FEATURES[b].querySelector(
+        '[name="GIS_FEATURES.DBA.TRANSPORTATION_STREETS_GEOCODING.FULLNAME"]')
+          .getAttribute('value');
+
+      if (!cacheVar){
+
+        continue;
       }
+
+      streets[cacheVar] = streets[cacheVar] || { coords: [], type: '' };
+
+      streets[cacheVar]
+        .coords.push(FEATURES[b].querySelector('COORDS').textContent);
+      
+      streets[cacheVar]
+        .type = FEATURES[b].querySelector(
+          '[name="GIS_FEATURES.DBA.TRANSPORTATION_STREETS_GEOCODING.MAJRD_TYPE"]')
+            .getAttribute('value');
     }
+    
+    window.tt = streets;
 
-    for (m = 0; m < features.length; ++m) {
-
-      cacheVar = features[m].querySelector('FIELD:last-child').getAttribute('value');
-
-      if (cacheVar) {
-
-        streets[cacheVar]
-          .coords.push(features[m].querySelector('COORDS').textContent);
-
-        streets[cacheVar]
-          .type = features[m].querySelector('FIELDS').childNodes[1].getAttribute('value');
-      }
-    }
+    // Clear the screen of all old streets.
+    resetSvgGroups(); 
 
     var keys = Object.keys(streets);
     var num = 0;
-    var width = undefined;
+    var streetWidth = STREET_WIDTH;
     var startOffset = '25%';
     var coords = undefined;
 
@@ -199,88 +185,104 @@ var private_ajaxOnload = function (arg_info) {
     var text = undefined;
     var textPath = undefined;
 
-    var keysCache = undefined;
+    var streetName = undefined;
     var streetsCache = undefined;
-    var coordsLen = undefined;
+    var coordsLen = undefined;    
 
-    for (q = 0; q < keys.length; ++q) {
+    // var w = 0;
+    // while (w < keys.length) {
+    //   cacheVar = keys[w];
 
-      keysCache = keys[q];
-      streetsCache = streets[keysCache];
+    //   var z = streets[cacheVar].coords;
+    //   var p = z.join(';').split(';');
+    //   for(var n = 0; n < p.length; ++n){
+    //    for(var g = 0; g < p.length; ++g){
+    //        if(g === n) { continue; }
+    //        if(p[n] === p[g]){ p.splice(n,1); g = -1; }
+    //    }
+    //   }
+    //   streets[cacheVar].coords = [p.join(';')];
+    //   ++w;
+    // }
+
+    for (var q = 0; q < keys.length; ++q) {
+
+      streetName = keys[q];
+      streetsCache = streets[streetName];
       coordsLen = streetsCache.coords.length;
 
-      for ( m = 0; m < coordsLen; (++m, ++num)) { // Increment 'num' and 'm' at same time.
+      for (var m = 0; m < coordsLen; (++m, ++num)) { // <-Increment 'num' and 'm' at same time.
 
-        coords = streetsCache.coords[m].split(';'); //features[m].querySelector('COORDS').innerHTML.split(';');
+        coords = streetsCache.coords[m].split(';'); 
        
         path = document.createElementNS( "http://www.w3.org/2000/svg", "path" );
         
-        width = arg_info.width;
+        streetWidth = STREET_WIDTH;
 
         startOffset = '25%';
 
+        // Change street width depending on street type.
         switch (streetsCache.type) {
+          
+          case '1': { // Interstate eg. I-5, I-405, SR-526 (<-boeing) ect.
 
-          case '0': { /*Empty*/ } break; // normal roads
-          
-          case '1': { width *= 2.0; // interstate
+            streetWidth *= 2.0;
 
-                      if (keysCache.indexOf('SR') !== -1) { 
-                      
-                        startOffset = '75%'; 
-                      } 
-                    } break;  
+            if (streetName.indexOf('SR') !== -1) { 
+            
+              startOffset = '75%';
+            } 
+          } break;  
           
-          case '2': { width *= 1.5;
-                      
-                      if (keysCache.indexOf('SR') !== -1) { // Try to prevent name overlap on road
-                      
-                          startOffset = '75%'; 
-                      } 
-                    } break;
+          case '2': { /*let it fall to case '4'.*/ } 
           
-          case '3': { width *= 1.5;  
-                      
-                      if (keysCache.indexOf('SR') !== -1) { // Try to prevent name overlap on road
-                      
-                        startOffset = '75%'; 
-                      } 
-                    } break;
+          case '3': { /*let it fall to case '4'.*/ }
           
-          case '4': { width *= 1.0; } break;
+          case '4': {
+
+            streetWidth *= 1.5;
+            
+            if (streetName.indexOf('SR') !== -1) { // Try to prevent name overlap on road
+            
+              startOffset = '75%'; 
+            }
+          } break;
           
-          case '9': { width *= 0.5; } break;
+          case '9': { // Interstate ramps. aka "Ramps".
+
+            streetWidth *= 0.5;
+          } break;
         }
 
         cacheVar = coords[0].split(' ');
 
-        points = ("M"+ convertSPtoScreenPoints(cacheVar[0], cacheVar[1]));
+        points = ("M"+ theMap.utils.convertSPtoScreenPoints(cacheVar[0], cacheVar[1]));
 
         for (var n = 1; n < coords.length; ++n) { // Todo: cache .split(' ')'s.
           
           cacheVar = coords[n].split(' ');
 
-          points += "L"+ convertSPtoScreenPoints(cacheVar[0], cacheVar[1]);
+          points += "L"+ theMap.utils.convertSPtoScreenPoints(cacheVar[0], cacheVar[1]);
         }
 
         path.setAttribute('d', points);
-        path.setAttribute('id', 'street_'+ num);
-        path.setAttribute('stroke-width', width+'px');
+        path.setAttribute('id', 'street_'+ num); // 'num' added for unique name for textpath.
+        path.setAttribute('stroke-width', streetWidth +'px');
         path.setAttribute('class', 'road_'+ streetsCache.type );
 
-        layers[streetsCache.type].appendChild(path);
+        glob.streetLayers[streetsCache.type].appendChild(path);
         
         // Insert Street Names
         if (coordsLen === 1 || 
-            (m >= (coordsLen / 2) && m < (coordsLen / 2 + 1)) ) {
+            (m >= (coordsLen / 2) && m < (coordsLen / 2 + 1))) {
 
           text = document.createElementNS( "http://www.w3.org/2000/svg", "text" );
-          text.setAttribute('font-size',arg_info.textSize);
-          text.setAttribute('dy', '4');
-          text.setAttribute('class', (satelliteView ? ' road_text_satellite': '') );
+          text.setAttribute('font-size', TEXT_SIZE);
+          text.setAttribute('dy', '4'); // Does a decent job of centering the text in the svg path.
+          text.setAttribute('class', (SATELLITE_VIEW ? ' road_text_satellite': ''));
         
           textPath = document.createElementNS( "http://www.w3.org/2000/svg", "textPath" );
-          textPath.textContent = keysCache; //features[m].querySelector('FIELD:last-child').getAttribute('value');
+          textPath.textContent = streetName +'_'+ streetsCache.type; //TODO remove the street type //features[m].querySelector('FIELD:last-child').getAttribute('value');
           textPath.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#street_"+ num);
           textPath.setAttribute('startOffset', startOffset);
           textPath.style.cursor = 'pointer';
@@ -291,11 +293,11 @@ var private_ajaxOnload = function (arg_info) {
           coords = points.match(/^M\s?(-?\d*).*L\s?(-?\d*)/); // Find first ([1]) and last ([2]) coordinate.
           
           // Reverse coordinates so text is facing correct direction.
-          if ((coords[1] - coords[2]) > 0) { // true === text is upside down.
+          if ((+coords[1] - +coords[2]) > 0) { // true === text is upside down.
 
             points = points // Split it, filter it, and reverse it.
                       .split(' ') 
-                      .filter(function (ele) { 
+                      .filter(function (ele) {
                         return ele !== '';
                       })
                       .reverse();
@@ -305,55 +307,52 @@ var private_ajaxOnload = function (arg_info) {
 
             path.setAttribute('d', points.join(' '));
           }
-          
+
           text.appendChild(textPath);
-          streetNameGroup.appendChild(text);
+          glob.streetNameGroup.appendChild(text);
         }
       }
     }
   };
 
   function makeStreetNameDiv() {
-    var bb = this.getBoundingClientRect();
-    var div = document.createElement('div');
-    
-    div.id = 'streetNameDiv'; 
+    var bb = this.getBoundingClientRect(),
+        streetNameDiv = document.getElementById('$#streetNameDiv');
 
-    div.style.color = 'white';
-    div.style.backgroundColor = '#0E6D0F';
-    div.style.border = '1px solid white';
+    if(!streetNameDiv){
+
+      streetNameDiv = document.createElement('div');
+      streetNameDiv.id = '$#streetNameDiv';
+      streetNameDiv.className = 'streetNameDiv';
+    }
+
+    streetNameDiv.style.display = 'block';
+
+    streetNameDiv.style.top  = ((bb.top + bb.bottom)/2) - 14 +'px';
+    streetNameDiv.style.left = bb.right + 20 +'px';
     
-    div.style.position = 'absolute'; // TODO: Put this style stuff in a css class.
-    div.style.top  = bb.top -10 +'px';
-    div.style.left = bb.right + 20 +'px';
-    
-    div.style.padding = '0px 10px';
-    
-    div.style.zIndex = '100';
-    
-    div.style.fontSize = '24px';
-    
-    div.innerHTML = this.textContent
+    streetNameDiv.innerHTML = this.textContent
                       .replace(/(\d)(th|rd|nd|st) /, 
                         '$1'
                         +'<font style="vertical-align: 30%; font-size: 65%; margin-left: 1px;">'
                         +'$2'
                         +'</font> ');
 
-    document.body.appendChild(div);
+    document.body.appendChild(streetNameDiv);
   }
   
   function removeStreetNameDiv() {
+    var streetNameDiv = document.getElementById('$#streetNameDiv');
 
-    document.body.removeChild(document.getElementById('streetNameDiv'));
+    streetNameDiv.style.display = 'none';
   }
 
   function resetSvgGroups() {
-    streetNameGroup.textContent = '';
+    glob.streetNameGroup.textContent = '';
 
-    for(var u in layers) {
+    for(var u in glob.streetLayers) {
 
-      layers[u].textContent = '';
+      glob.streetLayers[u].textContent = '';
     }
   }
 
@@ -408,7 +407,7 @@ var waterInfo = function ( arg_coords ) {
         streetUrl = theMap.parameters.URL_PREFIX + theMap.parameters.PROPERTY_INFO_URL,
         streetInfoAjax = new XMLHttpRequest();
 
-    streetInfoAjax.onload = private_ajaxOnload.bind( this, { 
+    streetInfoAjax.onload = ajaxOnload.bind( this, { 
                                                             info: streetInfoAjax,
                                                             color: '',
                                                             fill: 'rgba(165, 205, 255,0.4)',
@@ -421,7 +420,7 @@ var waterInfo = function ( arg_coords ) {
 
   
 
-  var private_ajaxOnload_old = function (arg_info) {
+  var ajaxOnload_old = function (arg_info) {
     var arcXML = arg_info.info.responseText.match(/<ARCXML[\s\S]+?<\/ARCXML>/);
     if ( arcXML && arcXML[0]) {
       var z = (new DOMParser).parseFromString(arcXML[0], 'text/xml');
@@ -525,7 +524,7 @@ var waterInfo = function ( arg_coords ) {
       
     //   window.tt = z; // TODO: Testing
 
-    //   private_ajaxOnload(arg_info);
+    //   ajaxOnload(arg_info);
     // }
   };
 

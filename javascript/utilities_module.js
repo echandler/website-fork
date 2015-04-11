@@ -1,6 +1,13 @@
 theMap.utilities_module = function(){  
     var theMap = window.theMap;
 
+    var convertSPtoScreenPoints = function (x,y) {
+      var xMultiplier = ( this.presentMaxX - this.presentMinX ) / this.resizedMapWidth, // For paths.
+          yMultiplier = ( this.presentMaxY - this.presentMinY ) / this.resizedMapHeight; // For paths.
+      
+      return ( ( x - this.presentMinX  ) / xMultiplier + this.currentMapImg._left ) +','+ ( ( this.presentMaxY - y ) / yMultiplier + this.currentMapImg._top ) +' ';
+    }.bind(theMap);
+
     var convertMouseCoordsToStatePlane = function( e ){
         var xMultiplier = ( this.presentMaxX - this.presentMinX ) / this._width;
         var yMultiplier = ( this.presentMaxY - this.presentMinY ) / this._height;
@@ -218,16 +225,18 @@ theMap.utilities_module = function(){
         saveButton: window.$( 'save_button' ),
     };
     
-    var addListeners = function(){
-        var i = undefined;
+    var addListeners = function(){// TODO = comment what this does.
 
         theMap.setTimeoutt( function(){ theMap.options_module.svgController( 'finish Map Done Loading' ); }, 2000 );
         theMap.mapContainer.addEventListener( theMap.MOUSE_WHEEL_EVT, theMap.zoom_module.zoomInOut );
-        for( i = 0; i < this.array.length; ++i ){
+        
+        for(var i = 0; i < this.array.length; ++i ){
+            
             this.array[i][0].addEventListener( this.array[i][1], this.array[i][2], false );
         }
+
         this.updateButton.disabled = false;
-        this.saveButton.disabled = false;        
+        this.saveButton.disabled   = false;
     }.bind( private_addRemoveEventListenersObj );
 
     var handleResize = function(){
@@ -496,7 +505,23 @@ theMap.utilities_module = function(){
         return { x: Lat.toFixed( 7 ), y: Lon.toFixed( 7 ) };
     }
 
+    function arcXmlDOM(arg_info) {
+        var arcXML = arg_info.match(/<ARCXML[\s\S]+?<\/ARCXML>/);
+        var DOM = undefined;
+        
+        if ( arcXML && arcXML[0]) {
+
+          DOM = (new DOMParser()).parseFromString(arcXML[0], 'text/xml');
+
+          return DOM;
+        } else {
+
+          return false;
+        }
+    }
+
     return {
+        convertSPtoScreenPoints: convertSPtoScreenPoints,
         convertMouseCoordsToStatePlane: convertMouseCoordsToStatePlane,
         firstMapLoad: firstMapLoad,
         createMarkersFromInfoFromUrl: createMarkersFromInfoFromUrl,
@@ -514,6 +539,7 @@ theMap.utilities_module = function(){
         mainAjax: mainAjax,
         UnitBezier: UnitBezier,
         convertSPToWGS84: convertSPToWGS84,
+        arcXmlDOM: arcXmlDOM,
     };
 }();
 

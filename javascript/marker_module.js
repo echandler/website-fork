@@ -895,7 +895,12 @@ theMap.marker_module = function(){
             j = q.charAt( 0 ).toUpperCase();
             pieces[i] = j + q.substr( 1 ).toLowerCase();
         }
-        return pieces.join( " " ).replace( /llc/i, "LLC" ).replace(/(\d)(th|rd|nd|st) /, '$1<font style="vertical-align:30%;font-size:65%;margin-left:1px;">$2</font> ');
+        return pieces.join( " " )
+                .replace(/llc/i, "LLC")
+                .replace(/(\d)(th|rd|nd|st) /,
+                    '$1<font style=\''
+                        +'vertical-align:30%;font-size:65%;margin-left:1px;\''
+                    +'>$2</font> ');
     }
 
     var isSimpleMarkerOnImage = function(){

@@ -114,6 +114,8 @@
     theMap.resetMapOnError = theMap.mapControl_module.resetMapOnError;
     
     theMap.calcBezier = theMap.utilities_module.UnitBezier(0,0,0.25,1);
+
+    theMap.utils = theMap.utilities_module;
     
 var main = function (){
     var theMap = window.theMap,

@@ -74,7 +74,7 @@ theMap.mapControl_module = function(){
         theMap.currentMapImg._left = theMap._left; // TODO: add these in main.
         theMap.currentMapImg._top = theMap._top;
 
-        // svgFeatures.getMapInfo({
+        // svg_streets.getMapInfo({
         //         x: theMap.presentMinX,
         //         X: theMap.presentMaxX, 
         //         y: theMap.presentMinY,

@@ -369,7 +369,7 @@ theMap.ArcXML_module = function () {
         if ( !arg_overLayMap ) {
 
             this.utilities_module.mainAjax( xmlRequest );
-            svgFeatures.getMapInfo({
+            svg_streets.getMapInfo({
                 x: arg_minX,
                 X: arg_maxX, 
                 y: arg_minY,

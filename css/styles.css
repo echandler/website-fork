@@ -1082,21 +1082,25 @@ a {
     fill: rgba(0, 0, 0, 0);
     stroke-linecap: round;
 }
+
 .road_2 {
     stroke: rgb(255, 216, 100);
     fill: rgba(0, 0, 0, 0);
     stroke-linecap: round;
 }
+
 .road_3 {
     stroke: rgb(255, 255, 255);
     fill: rgba(0, 0, 0, 0);
     stroke-linecap: round;
 }
+
 .road_4 {
     stroke: rgb(255, 255, 255);
     fill: rgba(0, 0, 0, 0);
     stroke-linecap: round;
 }
+
 .road_9 {
     stroke: rgb(255, 185,  50);
     fill: rgba(0, 0, 0, 0);
@@ -1111,8 +1115,18 @@ a {
     paint-order: stroke;
     stroke: #000000;
     fill: white;
-    stroke-width: 2px;
+    stroke-width: 1px;
     stroke-linecap: butt;
     stroke-linejoin: miter;
     font-weight: 800;
+}
+
+.streetNameDiv {
+    color: white;
+    background-color: #0E6D0F;
+    border: 1px solid white;
+    position: absolute;
+    padding: 0px 10px;
+    z-index: 100;
+    font-size: 24px;
 }
