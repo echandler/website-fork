@@ -352,10 +352,10 @@ var svg_streets = function () {
   function resetSvgGroups() {
     var keys = Object.keys(glob.streetLayers);
 
-    // Clear all the streets out of the streets goup element.
+    // Clear all the streets out of the streets group element.
     glob.streetNameGroup.textContent = '';
 
-    // Clear the street old paths out of each of the street layers groups.
+    // Clear the street paths out of each of the street layers groups.
     for (var n = 0; n < keys.length; n++) {
 
       glob.streetLayers[keys[n]].textContent = '';

@@ -396,7 +396,7 @@ document.body.innerHTML = '<html><head><title>gis.snoco.org - /output/</title></
 }
 */
 
-var t = {"ARCXML": {
+var tg = {"ARCXML": {
     children: {
     "LAYERDEF_0": {
     attributes: {id: 1, visible: true},
@@ -485,8 +485,8 @@ function jsonToXML(o_obj, b_debug, a_keys, s_indent, n_iter) {
 
        o_obj  = (typeof o_obj === "string")? JSON.parse(o_obj): o_obj;
        a_keys = Object.keys(o_obj);
-       n_iter = 0;
        s_indent = s_indent || '';
+       n_iter = 0;
     }
 
     if (n_iter < a_keys.length) {
