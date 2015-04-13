@@ -350,11 +350,15 @@ var svg_streets = function () {
   }
 
   function resetSvgGroups() {
+    var keys = Object.keys(glob.streetLayers);
+
+    // Clear all the streets out of the streets goup element.
     glob.streetNameGroup.textContent = '';
 
-    for(var u in glob.streetLayers) {
+    // Clear the street old paths out of each of the street layers groups.
+    for (var n = 0; n < keys.length; n++) {
 
-      glob.streetLayers[u].textContent = '';
+      glob.streetLayers[keys[n]].textContent = '';
     }
   }
 
