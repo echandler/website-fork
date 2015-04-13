@@ -1,4 +1,3 @@
-
 var svg_streets = function () {
   var glob = {
     streetLayers      : {},
@@ -15,11 +14,11 @@ var svg_streets = function () {
       if (theMap.state.waitingForAjax) {
       
         theMap.addMapLoadListener("street loader" , theMap, 
-          function streetLoader() { // function to run.
-            theMap.removeMapLoadListener(streetLoader);
-            createStreets(theMap.utils.arcXmlDOM(glob.streetInfoAjax.responseText));
+          function streetLoader() { // function to run when map is done loading.
 
+            theMap.removeMapLoadListener(streetLoader);
             
+            createStreets(theMap.utils.arcXmlDOM(glob.streetInfoAjax.responseText));            
           });
       } else {
 
@@ -189,17 +188,19 @@ var svg_streets = function () {
     var streetsCache = undefined;
     var coordsLen = undefined;    
 
+     
     // var w = 0;
     // while (w < keys.length) {
     //   cacheVar = keys[w];
 
-    //   var z = streets[cacheVar].coords;
-    //   var p = z.join(';').split(';');
+    //   var p = streets[cacheVar].join(';').split(';');
+
     //   for(var n = 0; n < p.length; ++n){
-    //    for(var g = 0; g < p.length; ++g){
-    //        if(g === n) { continue; }
-    //        if(p[n] === p[g]){ p.splice(n,1); g = -1; }
-    //    }
+    //     for(var g = 0; g < p.length; ++g){
+
+    //       if(g === n) { continue; }
+    //       if(p[n] === p[g]){ p.splice(n,1); g = -1; }
+    //     }
     //   }
     //   streets[cacheVar].coords = [p.join(';')];
     //   ++w;
@@ -214,9 +215,9 @@ var svg_streets = function () {
       for (var m = 0; m < coordsLen; (++m, ++num)) { // <-Increment 'num' and 'm' at same time.
 
         coords = streetsCache.coords[m].split(';'); 
-       
+
         path = document.createElementNS( "http://www.w3.org/2000/svg", "path" );
-        
+
         streetWidth = STREET_WIDTH;
 
         startOffset = '25%';
@@ -274,7 +275,8 @@ var svg_streets = function () {
         
         // Insert Street Names
         if (coordsLen === 1 || 
-            (m >= (coordsLen / 2) && m < (coordsLen / 2 + 1))) {
+            (m >= (coordsLen / 2) &&
+             m < (coordsLen / 2 + 1))) {
 
           text = document.createElementNS( "http://www.w3.org/2000/svg", "text" );
           text.setAttribute('font-size', TEXT_SIZE);
@@ -282,7 +284,7 @@ var svg_streets = function () {
           text.setAttribute('class', (SATELLITE_VIEW ? ' road_text_satellite': ''));
         
           textPath = document.createElementNS( "http://www.w3.org/2000/svg", "textPath" );
-          textPath.textContent = streetName +'_'+ streetsCache.type; //TODO remove the street type //features[m].querySelector('FIELD:last-child').getAttribute('value');
+          textPath.textContent = streetName; //TODO remove the street type //features[m].querySelector('FIELD:last-child').getAttribute('value');
           textPath.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#street_"+ num);
           textPath.setAttribute('startOffset', startOffset);
           textPath.style.cursor = 'pointer';
@@ -321,8 +323,8 @@ var svg_streets = function () {
 
     if(!streetNameDiv){
 
-      streetNameDiv = document.createElement('div');
-      streetNameDiv.id = '$#streetNameDiv';
+      streetNameDiv           = document.createElement('div');
+      streetNameDiv.id        = '$#streetNameDiv';
       streetNameDiv.className = 'streetNameDiv';
     }
 
@@ -357,7 +359,7 @@ var svg_streets = function () {
   }
 
   return {
-    getMapInfo:getMapInfo,
+    getMapInfo: getMapInfo,
     streetInfo: streetInfo,
   };
 

@@ -1,16 +1,18 @@
  
 theMap.marker_module = function(){
-    var theMap = window.theMap,
-        private_largeDefaultMarkerImages = false,
-        private_xmlQueryParams = //' #ALL#'+ 
+    var theMap = window.theMap;
+    var private_largeDefaultMarkerImages = false;
+
+    var private_xmlQueryParams = //' #ALL#'+
                                   ' GIS_FEATURES.DBA.CADASTRAL_PARCELS_ASSESSOR.TAB_ACRES'
                                 + ' GIS_FEATURES.DBA.CADASTRAL_PARCELS_ASSESSOR.SITUSLINE1'
                                 + ' GIS_FEATURES.DBA.CADASTRAL_PARCELS_ASSESSOR.SITUSCITY'
                                 + ' GIS_FEATURES.DBA.CADASTRAL_PARCELS_ASSESSOR.SITUSZIP'
                                 + ' GIS_FEATURES.DBA.CADASTRAL_PARCELS_ASSESSOR.OWNERNAME'
                                 + ' GIS_FEATURES.DBA.CADASTRAL_PARCELS_ASSESSOR.PARCEL_ID'
-                                + ' GIS_FEATURES.DBA.CADASTRAL_PARCELS_ASSESSOR.MKTTL',
-        private_defaultSimpleMarkerArray = [
+                                + ' GIS_FEATURES.DBA.CADASTRAL_PARCELS_ASSESSOR.MKTTL';
+
+    var private_defaultSimpleMarkerArray = [
             ['css/images/I_405.svg', {x: 1297219.7944701847, y: 299087.74347618467}, 20, 24, 'interStateShields' ],
             ['css/images/I_5.svg', {x: 1310690.7391130, y: 365097.7726428}, 20, 20, 'interStateShields' ],
             ['css/images/I_5.svg', {x: 1304692.2556091, y: 439633.3538498} , 20, 20, 'interStateShields' ],
