@@ -212,7 +212,8 @@ a {
     width: 1%;
     margin-bottom: 5px;
 }
-.markerPinButtonUnPinned {
+
+.markerPinButton {
     float: right;
     font-size: 15px;
     display: inline;
@@ -220,30 +221,24 @@ a {
     margin-top: 9px;
     margin-right: -23px;
     cursor: pointer;
-    width: 10px;
-    height: 10px;
-    background: url('images/sprites.png') top left;
-    background-position: -3px -70px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50px;
+    border: 2px solid rgb(153, 153, 153);
 }
-.markerPinButtonUnPinned:hover {
-    background-position: -20px -70px;
+
+.markerPinButton:hover {
+    border: 2px solid rgb(60, 60, 60) !important;
 }
+
 .markerPinButtonPinned {
-    float: right;
-    font-size: 15px;
-    display: inline;
-    color: grey;
-    margin-top: 9px;
-    margin-right: -23px;
-    cursor: pointer;
-    width: 10px;
-    height: 10px;
-    background: url('images/sprites.png') top left;
-    background-position: -3px -84px;
+    background: rgb(153, 153, 153);
 }
+
 .markerPinButtonPinned:hover {
-    background-position: -20px -84px;
+    background: grey !important;
 }
+
 .imgAnchor {
     width: 71%;
     margin-bottom: 0px;
@@ -589,7 +584,7 @@ a {
 .gearAnimationClose {
     /* -webkit-animation: spinClose 1.5s  ease-out ;
     -moz-animation: spinClose 4s ease-out;
-    animation: spinClose 1.5s  ease-out; 
+    animation: spinClose 1.5s  ease-out;
     -webkit-transform: rotate( 0deg );
     transform:rotate( 0deg );*/
 }
@@ -844,8 +839,8 @@ a {
     /*#4a89dc; light blue*/
     /*rgb(93, 141, 195); Dark blue*/
     /*#70B870; green*/
-    /*#129E00; green*/ 
-    fill:#393; 
+    /*#129E00; green*/
+    fill:#393;
 }
 #small_county_svg rect {
     position: relative;

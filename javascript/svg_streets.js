@@ -12,17 +12,17 @@ var svg_streets = function () {
     if (/\d\d\d\.\d\d\d/.test(glob.streetInfoAjax.responseText)) {
 
       if (theMap.state.waitingForAjax) {
-      
-        theMap.addMapLoadListener("street loader" , theMap, 
+
+        theMap.addMapLoadListener("street loader" , theMap,
           function streetLoader() { // function to run when map is done loading.
 
             theMap.removeMapLoadListener(streetLoader);
-            
-            createStreets(theMap.utils.arcXmlDOM(glob.streetInfoAjax.responseText));            
+
+            createStreets(theMap.utils.arcXmlDOM(glob.streetInfoAjax.responseText));
           });
       } else {
 
-       createStreets(theMap.utils.arcXmlDOM(glob.streetInfoAjax.responseText));       
+       createStreets(theMap.utils.arcXmlDOM(glob.streetInfoAjax.responseText));
       }
     } else {
 
@@ -31,11 +31,11 @@ var svg_streets = function () {
   };
 
   glob.streetInfoAjax.onerror = function () {
-    
+
     resetSvgGroups();
 
     if (!/<FEATURECOUNT count="0" hasmore="false" \/>/.test(glob.streetInfoAjax.responseText)) {
-     
+
       alert('There was an error loading the road/highway information.');
     }
   };
@@ -59,11 +59,11 @@ var svg_streets = function () {
     svg_container.appendChild(filter);
 
     // Make the glob.streetLayers for the different roads
-    var layerOrderArray = [0,9,8,7,6,5,4,3,2,1];
-    
+    var layerOrderArray = [9,0,8,7,6,5,4,3,2,1];
+
     var n = 0;
     while (n < layerOrderArray.length) {
-      
+
       glob.streetLayers[layerOrderArray[n]] = document.createElementNS( "http://www.w3.org/2000/svg", "g" );
       glob.streetLayers[layerOrderArray[n]].id = 'layer_'+ layerOrderArray[n];
 
@@ -102,21 +102,21 @@ var svg_streets = function () {
                   + '</GET_FEATURES>'
                   + '</REQUEST>'
                   + '</ARCXML>';
-    
+
     var XMLPostRequest = window.encodeURIComponent( "ArcXMLRequest" )
                          +"="+ window.encodeURIComponent( streetXML );
 
     var url = theMap.parameters.URL_PREFIX + theMap.parameters.PROPERTY_INFO_URL;
 
     if (SLIDER_POSITION_NUMBER >= 6) {
-      
+
       resetSvgGroups();
 
       return; // Don't load the street information.
     }
 
     // Clear the last request.
-    glob.streetInfoAjax.abort(); 
+    glob.streetInfoAjax.abort();
 
     glob.streetInfoAjax.open("POST", url, true);
     glob.streetInfoAjax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
@@ -129,8 +129,8 @@ var svg_streets = function () {
     var SCALE = ((((theMap.presentMaxX - theMap.presentMinX) / theMap.mapContainer.offsetWidth) * 96) * 12);
     var SLIDER_POSITION_NUMBER = theMap.ZOOM_POWER_NUMBER[theMap.sliderPosition];
 
-    var STREET_WIDTH = Math.round((170 / ( SCALE / 96 /*dpi*/))+(SLIDER_POSITION_NUMBER < 5? 2: 1)) + 2;
-    var TEXT_SIZE = Math.round((40 / (SCALE / 96 /*dpi*/))) + 9;
+    var STREET_WIDTH = Math.round((170 / ( SCALE / 96 /*96dpi*/))+(SLIDER_POSITION_NUMBER < 5? 2: 1)) + 2;
+    var TEXT_SIZE = Math.round((40 / (SCALE / 96 /*96dpi*/))) + 9;
 
     if (SATELLITE_VIEW) {
 
@@ -142,7 +142,7 @@ var svg_streets = function () {
 
     var cacheVar = undefined;
 
-    var streets = {};   
+    var streets = {};
 
     // Build up a street object that will be iterated over.
     // This way all the street fragments are combined into one array.
@@ -161,17 +161,17 @@ var svg_streets = function () {
 
       streets[cacheVar]
         .coords.push(FEATURES[b].querySelector('COORDS').textContent);
-      
+
       streets[cacheVar]
         .type = FEATURES[b].querySelector(
           '[name="GIS_FEATURES.DBA.TRANSPORTATION_STREETS_GEOCODING.MAJRD_TYPE"]')
             .getAttribute('value');
     }
-    
+
     window.tt = streets;
 
     // Clear the screen of all old streets.
-    resetSvgGroups(); 
+    resetSvgGroups();
 
     var keys = Object.keys(streets);
     var num = 0;
@@ -186,9 +186,9 @@ var svg_streets = function () {
 
     var streetName = undefined;
     var streetsCache = undefined;
-    var coordsLen = undefined;    
+    var coordsLen = undefined;
 
-     
+
     // var w = 0;
     // while (w < keys.length) {
     //   cacheVar = keys[w];
@@ -214,7 +214,7 @@ var svg_streets = function () {
 
       for (var m = 0; m < coordsLen; (++m, ++num)) { // <-Increment 'num' and 'm' at same time.
 
-        coords = streetsCache.coords[m].split(';'); 
+        coords = streetsCache.coords[m].split(';');
 
         path = document.createElementNS( "http://www.w3.org/2000/svg", "path" );
 
@@ -224,31 +224,29 @@ var svg_streets = function () {
 
         // Change street width depending on street type.
         switch (streetsCache.type) {
-          
+
           case '1': { // Interstate eg. I-5, I-405, SR-526 (<-boeing) ect.
 
             streetWidth *= 2.0;
 
-            if (streetName.indexOf('SR') !== -1) { 
-            
+            if (streetName.indexOf('SR') !== -1) {
+
               startOffset = '75%';
-            } 
-          } break;  
-          
-          case '2': { /*let it fall to case '4'.*/ } 
-          
+            }
+          } break;
+
+          case '2': { /*let it fall to case '4'.*/ }
           case '3': { /*let it fall to case '4'.*/ }
-          
           case '4': {
 
             streetWidth *= 1.5;
-            
+
             if (streetName.indexOf('SR') !== -1) { // Try to prevent name overlap on road
-            
-              startOffset = '75%'; 
+
+              startOffset = '75%';
             }
           } break;
-          
+
           case '9': { // Interstate ramps. aka "Ramps".
 
             streetWidth *= 0.5;
@@ -260,7 +258,7 @@ var svg_streets = function () {
         points = ("M"+ theMap.utils.convertSPtoScreenPoints(cacheVar[0], cacheVar[1]));
 
         for (var n = 1; n < coords.length; ++n) { // Todo: cache .split(' ')'s.
-          
+
           cacheVar = coords[n].split(' ');
 
           points += "L"+ theMap.utils.convertSPtoScreenPoints(cacheVar[0], cacheVar[1]);
@@ -272,9 +270,9 @@ var svg_streets = function () {
         path.setAttribute('class', 'road_'+ streetsCache.type );
 
         glob.streetLayers[streetsCache.type].appendChild(path);
-        
+
         // Insert Street Names
-        if (coordsLen === 1 || 
+        if (coordsLen === 1 ||
             (m >= (coordsLen / 2) &&
              m < (coordsLen / 2 + 1))) {
 
@@ -282,23 +280,23 @@ var svg_streets = function () {
           text.setAttribute('font-size', TEXT_SIZE);
           text.setAttribute('dy', '4'); // Does a decent job of centering the text in the svg path.
           text.setAttribute('class', (SATELLITE_VIEW ? ' road_text_satellite': ''));
-        
+
           textPath = document.createElementNS( "http://www.w3.org/2000/svg", "textPath" );
-          textPath.textContent = streetName; //TODO remove the street type //features[m].querySelector('FIELD:last-child').getAttribute('value');
+          textPath.textContent = streetName; //features[m].querySelector('FIELD:last-child').getAttribute('value');
           textPath.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#street_"+ num);
           textPath.setAttribute('startOffset', startOffset);
           textPath.style.cursor = 'pointer';
 
           textPath.addEventListener('mouseover', makeStreetNameDiv);
           textPath.addEventListener('mouseout' , removeStreetNameDiv);
-          
+
           coords = points.match(/^M\s?(-?\d*).*L\s?(-?\d*)/); // Find first ([1]) and last ([2]) coordinate.
-          
+
           // Reverse coordinates so text is facing correct direction.
           if ((+coords[1] - +coords[2]) > 0) { // true === text is upside down.
 
             points = points // Split it, filter it, and reverse it.
-                      .split(' ') 
+                      .split(' ')
                       .filter(function (ele) {
                         return ele !== '';
                       })
@@ -332,9 +330,9 @@ var svg_streets = function () {
 
     streetNameDiv.style.top  = ((bb.top + bb.bottom)/2) - 14 +'px';
     streetNameDiv.style.left = bb.right + 20 +'px';
-    
+
     streetNameDiv.innerHTML = this.textContent
-                      .replace(/(\d)(th|rd|nd|st) /, 
+                      .replace(/(\d)(th|rd|nd|st) /,
                         '$1'
                         +'<font style="vertical-align: 30%; font-size: 65%; margin-left: 1px;">'
                         +'$2'
@@ -342,7 +340,7 @@ var svg_streets = function () {
 
     document.body.appendChild(streetNameDiv);
   }
-  
+
   function removeStreetNameDiv() {
     var streetNameDiv = document.getElementById('$#streetNameDiv');
 
@@ -408,12 +406,12 @@ var waterInfo = function ( arg_coords ) {
                   + '</GET_FEATURES>'
                   + '</REQUEST>'
                   + '</ARCXML>',
-    
+
         streetXMLPostRequest = window.encodeURIComponent( "ArcXMLRequest" ) + "=" + encodeURIComponent( streetXML ),
         streetUrl = theMap.parameters.URL_PREFIX + theMap.parameters.PROPERTY_INFO_URL,
         streetInfoAjax = new XMLHttpRequest();
 
-    streetInfoAjax.onload = ajaxOnload.bind( this, { 
+    streetInfoAjax.onload = ajaxOnload.bind( this, {
                                                             info: streetInfoAjax,
                                                             color: '',
                                                             fill: 'rgba(165, 205, 255,0.4)',
@@ -424,7 +422,7 @@ var waterInfo = function ( arg_coords ) {
     streetInfoAjax.send( streetXMLPostRequest );
   };
 
-  
+
 
   var ajaxOnload_old = function (arg_info) {
     var arcXML = arg_info.info.responseText.match(/<ARCXML[\s\S]+?<\/ARCXML>/);
@@ -455,7 +453,7 @@ var waterInfo = function ( arg_coords ) {
     for (var q = 0; q < arr.length; ++q) {
 
       for (var m = 0; m < arr[q].features.length; ++m) {
-        
+
         streets[arr[q].features[m].querySelector('FIELD:last-child').getAttribute('value')] = '';
 
       }
@@ -466,7 +464,7 @@ var waterInfo = function ( arg_coords ) {
           window.qq.push(arr[q].features[m].querySelector('COORDS').innerHTML);
         }
 
-        streets[arr[q].features[m].querySelector('FIELD:last-child').getAttribute('value')] += 
+        streets[arr[q].features[m].querySelector('FIELD:last-child').getAttribute('value')] +=
           arr[q].features[m].querySelector('COORDS').innerHTML +';';
       }
     }
@@ -482,7 +480,7 @@ var waterInfo = function ( arg_coords ) {
           path = document.createElementNS( "http://www.w3.org/2000/svg", "path" );
           text = document.createElementNS( "http://www.w3.org/2000/svg", "text" );
           textPath = document.createElementNS( "http://www.w3.org/2000/svg", "textPath" );
-          
+
           //console.log(coords);
 
           text.setAttribute('font-size',"10");
@@ -494,13 +492,13 @@ var waterInfo = function ( arg_coords ) {
 
           for (var n = 2; n < coords.length; ++n) {
               xy = c(coords[n].split(' ')[0], coords[n].split(' ')[1]);
-              
+
               //if (points.indexOf(xy) === -1) {
                console.log(xy);
                 points += " L "+ xy;
               //}
           }
-          
+
           //points += 'z';
           console.log(keys[m]+'\n', points);
           path.setAttribute('d', points);
@@ -508,7 +506,7 @@ var waterInfo = function ( arg_coords ) {
           path.style.stroke = arr[0].color;
           path.style.strokeWidth = arr[0].width;
           path.style.fill = arr[0].fill || 'transparent';
-          
+
           if (arg_info.onmouseover) {
              path.onmouseover = arg_info.onmouseover;
              path.onmouseout  = arg_info.onmouseout;
@@ -527,7 +525,7 @@ var waterInfo = function ( arg_coords ) {
     //   arg_info.street = false;
     //   arg_info.width  = arg_info.width - 2;
     //   arg_info.color  = 'rgba(255,255,255,0.2)';
-      
+
     //   window.tt = z; // TODO: Testing
 
     //   ajaxOnload(arg_info);

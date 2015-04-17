@@ -5,7 +5,7 @@ theMap.mapControl_module = function(){
     // Tried out a simple 'observer' (or 'pub/sub') pattern.
     var mapLoadFuncArray = [],
         addFuncTo_mapLoadFuncArray = function( arg_description, arg_scope, arg_function ){
-            
+
             // arg_description is for debugging in the dev tools.
             mapLoadFuncArray.push( [arg_description, arg_scope, arg_function] );
         },
@@ -23,7 +23,8 @@ theMap.mapControl_module = function(){
                     mapLoadFuncArray[a][2].call( mapLoadFuncArray[a][1] );
                 } catch( e ) {
                     console.error( '**** Error calling function "callFuncsIn_mapLoadFuncArray()" in "theMap.mapControl_module".' )
-                    console.log( '**** This is the error object:', e );
+                    console.log( '**** This is the error object:\n', e , '\n\n');
+                    console.log( '**** This is the stack trace:\n', e.stack , '\n\n');
                     console.log( '**** Element at index '+ a +' in mapLoadFuncArray:', mapLoadFuncArray[a] );
                 }
             }
@@ -56,19 +57,19 @@ theMap.mapControl_module = function(){
             xmlEnvelope = theMap.parsedXMLFromServer.getElementsByTagName( "ENVELOPE" );
 
         if( theMap.state.panning || theMap.state.zooming || theMap.state.waitingForAjax ){ return; }
-        
+
         theMap.currentMapImg = this;
         theMap.resetMapOnErrorSliderPosition = theMap.sliderPosition;
         theMap.options_module.svgController( 'start Map Done Loading' );// Spins the gear
-        
+
         if ( xmlEnvelope && xmlEnvelope[0]) {
-        
+
             theMap.presentMinX = +( +xmlEnvelope[0].getAttribute( "minx" ) ).toFixed( 3 );
             theMap.presentMaxX = +( +xmlEnvelope[0].getAttribute( "maxx" ) ).toFixed( 3 );
             theMap.presentMinY = +( +xmlEnvelope[0].getAttribute( "miny" ) ).toFixed( 3 );
             theMap.presentMaxY = +( +xmlEnvelope[0].getAttribute( "maxy" ) ).toFixed( 3 );
         }
-            
+
         theMap._left = 0 - theMap.dragDiv._left;
         theMap._top  = 0 - theMap.dragDiv._top;
         theMap.currentMapImg._left = theMap._left; // TODO: add these in main.
@@ -76,11 +77,11 @@ theMap.mapControl_module = function(){
 
         // svg_streets.getMapInfo({
         //         x: theMap.presentMinX,
-        //         X: theMap.presentMaxX, 
+        //         X: theMap.presentMaxX,
         //         y: theMap.presentMinY,
         //         Y: theMap.presentMaxY,
         //     });
-        
+
         theMap.tempTransformText = 'translate3d('+ theMap._left +'px,'+ theMap._top  +'px, 0px)';
         this.style[theMap.CSSTRANSFORM] = theMap.tempTransformText;
         theMap.tempTransformString = '';
@@ -122,17 +123,17 @@ theMap.mapControl_module = function(){
                         zoom: theMap.sliderPosition,
                         title: "SnoCo Interactive Map "+ theMap.popStateCounter,
                     },
-                    "title 1", 
-                    '?={"x":'+ this.presentMinX +',"X":'+ this.presentMaxX +',"y":'+ this.presentMinY +',"Y":'+ this.presentMaxY +',"z":'+ this.sliderPosition +'}' 
+                    "title 1",
+                    '?={"x":'+ this.presentMinX +',"X":'+ this.presentMaxX +',"y":'+ this.presentMinY +',"Y":'+ this.presentMaxY +',"z":'+ this.sliderPosition +'}'
                     );
                 }
                 document.title = "SnoCo Interactive Map "+ theMap.popStateCounter;
-            } 
+            }
         }.bind( theMap ), 250 );
         theMap.state.waitingForImage = false; // Set to true when making an ajax request.
     }
 
-    // This is attached to the map in main.js. 
+    // This is attached to the map in main.js.
     var mapLoadError = function( e ){
         this.className = '';
         document.body.className = '';
@@ -140,7 +141,7 @@ theMap.mapControl_module = function(){
         window.alert( ' There was a problem, the map image didn\'t load properly.\n\n Please try again.\n\n' );
         resetMapOnError();
     }
-    
+
     var resetMapOnError = function(){// TODO: Fix this
         theMap.options_module.svgController( 'start Map Done Loading' );
     }.bind( theMap );
@@ -169,7 +170,7 @@ theMap.mapControl_module = function(){
         if ( e.relatedTarget ){ return }
         e.preventDefault();
         this.document.removeEventListener( 'mouseup', private_mapMouseUp );
-        this.document.removeEventListener( 'mouseout', private_mapMouseUp ); 
+        this.document.removeEventListener( 'mouseout', private_mapMouseUp );
         document.removeEventListener( 'mousemove', mapInitialDragTasks );
         this.document.removeEventListener( 'mousemove',  this.theMap.pan.mouseMoveFunction );
         if ( !theMap.pageHasFocus ){
@@ -180,7 +181,7 @@ theMap.mapControl_module = function(){
             }
         }
         if ( e.clientY - this.theMap.pan.mouseDownStartY === 0 && e.clientX - this.theMap.pan.mouseDownStartX === 0 ){
-            if( this.theMap.sliderPosition > 120 || document.body.style.cursor === "crosshair" 
+            if( this.theMap.sliderPosition > 120 || document.body.style.cursor === "crosshair"
                 || ( e && e.target.nodeName === 'circle' ) ){ return; }
             theMap.marker_module.deleteUnUsedMarkers();
             theMap.marker_module.makeMarker( e );
@@ -197,7 +198,7 @@ theMap.mapControl_module = function(){
             theMap.dragDiv._top = +xyCoords[2];
             theMap.dragDiv._left = +xyCoords[1];
             theMap.zoom_module.zoomStart(
-                ( e.clientX - this.theMap.mapContainer._left  - theMap.dragDiv._left - +this.theMap._left ) , 
+                ( e.clientX - this.theMap.mapContainer._left  - theMap.dragDiv._left - +this.theMap._left ) ,
                 ( e.clientY - this.theMap.mapContainer._top - theMap.dragDiv._top - +this.theMap._top  ),
                 e.clientX,  e.clientY );
         }
@@ -217,8 +218,8 @@ theMap.mapControl_module = function(){
         this.theMap.dragDiv.style[this.theMap.CSSTRANSFORM] = 'translate3d( '+ ( this.theMap.dragDiv._left + ( e.clientX - this.theMap.pan.mouseDownStartX ) ) +'px,'+ ( this.theMap.dragDiv._top + ( e.clientY - this.theMap.pan.mouseDownStartY ) ) +'px,0px)';
     }.bind( {theMap: theMap, date: window.Date} );
 
-    // This function is called once and immediately removed just to make the panning feel smoother. 
-    // Math.round is for a bug in chrome, the text is blurry if the left and\or top coordinates 
+    // This function is called once and immediately removed just to make the panning feel smoother.
+    // Math.round is for a bug in chrome, the text is blurry if the left and\or top coordinates
     // are not integers. ("left: 543.3321px;" = blurry text, "left: 543px;" = sharp text)
     var mapInitialDragTasks = function(){
         this.theMap.dragDiv.style.transition = '';
@@ -228,7 +229,7 @@ theMap.mapControl_module = function(){
                 startY = this.theMap.testObj.panNew.y,
                 finishX = this.round( ( ( startX - this.theMap.testObj.panOld.x ) * this.theMap.panningObj.panningAnimationMultiplier ) * posOnBezierCurve + startX ),
                 finishY = this.round( ( ( startY - this.theMap.testObj.panOld.y ) * this.theMap.panningObj.panningAnimationMultiplier ) * posOnBezierCurve + startY );
-            
+
             this.theMap.dragDiv.style[this.theMap.CSSTRANSFORM] = 'translate('+ finishX +'px,'+ finishY +'px)';
             this.theMap.dragDiv._left = finishX;
             this.theMap.dragDiv._top  = finishY;

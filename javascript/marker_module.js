@@ -1,4 +1,4 @@
- 
+
 theMap.marker_module = function(){
     var theMap = window.theMap;
     var private_largeDefaultMarkerImages = false;
@@ -43,6 +43,7 @@ theMap.marker_module = function(){
             simpleMarker.src = arg_imgUrl;
             simpleMarker.style.position = 'absolute';
             simpleMarker.className = arg_className +' simpleMarker';
+            simpleMarker.setAttribute('data', arg_imgUrl.replace(/.*(.?._..?.?)\..*/, '$1'));
             simpleMarker.width  = arg_width;
             simpleMarker.height = arg_height;
             simpleMarker.style.zIndex = '11';
@@ -64,7 +65,7 @@ theMap.marker_module = function(){
             statePlaneCoordsXY = !infoObject && theMap.utilities_module.convertMouseCoordsToStatePlane( e ),
             xMultiplier = ( this.presentMaxX - this.presentMinX ) / this.resizedMapWidth,
             yMultiplier = ( this.presentMaxY - this.presentMinY ) / this.resizedMapHeight;
-        
+
         var markerBody = document.createElement( 'div' );
             markerBody.data = { markerBody: markerBody };
             markerBody.className = 'markerParent';
@@ -96,12 +97,12 @@ theMap.marker_module = function(){
                     this.svgGroup.group.parentNode.removeChild( this.svgGroup.group );
                 }
                 this.svgGroup = null;
-            }
+            };
             markerBody.data.changeBgColorAndzIndex = function( arg_color, arg_zIndex ){
                 this.markerBody.style.backgroundColor = arg_color;
                 this.markerBody.data.innerArrow.style.borderTopColor = arg_color;
                 this.markerBody.style.zIndex = arg_zIndex;
-            }
+            };
             markerBody.data.apn = infoObject.a || undefined;
 
             // markerBody.message and markerBody.imgUrl are used by utilities_module.makeUrl();
@@ -122,7 +123,7 @@ theMap.marker_module = function(){
                 while( markerArrayLen-- ){
                     if ( markerArray[markerArrayLen].id === parentId ){
                         markerArray.splice( markerArrayLen, 1 );
-                    } 
+                    }
                 }
                 resetOpacityOfMarkersAroundThisMarker.call( this.markerBody );
                 this.markerBody.data.removeSvgGroup();
@@ -147,6 +148,7 @@ theMap.marker_module = function(){
             apnContainer.appendChild( anchor );
             markerBody.appendChild( apnContainer );
         }
+
         var editPinDiv = document.createElement( 'div' );
             editPinDiv.style.cssText = 'line-height: 20px; margin-bottom: 8px;';
         var editButton = document.createElement( 'a' );
@@ -158,23 +160,25 @@ theMap.marker_module = function(){
             editButton.addEventListener( 'click', private_markerMessageEditor, false );
         markerBody.data.editButton = editButton;
         editPinDiv.appendChild( editButton );
+
         var pinButton = document.createElement( 'div' );
-            pinButton.className = 'markerPinButtonUnPinned';
+            pinButton.className = 'markerPinButton';
             pinButton.title = 'Pin this marker';
             pinButton.markerBody = markerBody;
             pinButton.addEventListener( 'click', function(){
-                if( !/unpinned/i.test( this.className ) ){
-                    this.className = 'markerPinButtonUnPinned';
-                    this.markerBody.className = this.markerBody.className.replace( /dontdelete/ig, '' );
+                if( /pinned/i.test( this.className ) ){
+                    this.className = this.className.replace( / markerPinButtonPinned/ig, '' );
+                    this.markerBody.className = this.markerBody.className.replace( / dontdelete/ig, '' );
                 } else {
-                    this.className = 'markerPinButtonPinned';
-                    this.markerBody.className = this.markerBody.className.replace( /dontdelete/ig, '' );
+                    this.className += ' markerPinButtonPinned';
+                    this.markerBody.className = this.markerBody.className.replace( / dontdelete/ig, '' );
                     this.markerBody.className += ' DONTDELETE';
                 }
             });
         markerBody.data.pinButton = pinButton;
         editPinDiv.appendChild( pinButton );
         markerBody.appendChild( editPinDiv );
+
         var arrow = document.createElement( 'div' );
             arrow.className = 'markerArrow';
         markerBody.data.arrow = arrow;
@@ -183,7 +187,7 @@ theMap.marker_module = function(){
             innerArrow.className = 'markerInnerArrow';
         markerBody.data.innerArrow = innerArrow;
         arrow.appendChild( innerArrow );
-        
+
         window.$( 'theMap_marker_container' ).appendChild( markerBody );
         markerBody.data.setOffSetWH();
         this.markersArray.push( markerBody );
@@ -229,7 +233,7 @@ theMap.marker_module = function(){
         // TODO: this should be re-factored a little bit.
         // 'this' equals the edit button/link on the marker.
         var createElement = document.createElement.bind( document ),
-            text = undefined, 
+            text = undefined,
             imageSrc = undefined,
             messageContainer = createElement( 'div' ),
             coordsDiv = createElement( 'div' ),
@@ -237,8 +241,8 @@ theMap.marker_module = function(){
             imgSrcTextArea = createElement( 'textarea' ),
             imgAnchor = createElement( 'a' );
 
-        if ( e ){ 
-            e.preventDefault();  
+        if ( e ){
+            e.preventDefault();
             this.removeEventListener( 'click', private_markerMessageEditor );
             this.addEventListener( 'click', markerAddImageAndText );
             this.innerHTML = 'done';
@@ -260,13 +264,13 @@ theMap.marker_module = function(){
         coordsDiv.addEventListener( 'click', function(){
 
             // TODO: Should minutes and seconds be an option also?
-              if ( this.getAttribute( 'data' ) === '' ){ 
+              if ( this.getAttribute( 'data' ) === '' ){
                 this.innerHTML = "x: "+ this.markerBody.data.statePlaneCoordX.toFixed( 7 ) +" y: " + this.markerBody.data.statePlaneCoordY.toFixed( 7 );
-                this.setAttribute( 'data','sp' ); 
+                this.setAttribute( 'data','sp' );
                 this.title = 'State plane coordinates are approximate.';
               } else {
-                this.innerHTML = "x: "+ this.markerBody.data.wgs84XCoord +" y: " + this.markerBody.data.wgs84YCoord; 
-                this.setAttribute( 'data','' ); 
+                this.innerHTML = "x: "+ this.markerBody.data.wgs84XCoord +" y: " + this.markerBody.data.wgs84YCoord;
+                this.setAttribute( 'data','' );
                 this.title = 'Coordinates are approximate.';
               }
               this.markerBody.data.setOffSetWH();
@@ -288,7 +292,7 @@ theMap.marker_module = function(){
                 this.imgSrcTextArea.value = theMap.parameters.PROPERTY_IMG_URL + this.markerBody.data.apn.replace(/^(\d{4})\d*/, "$1" ) +"/"+ this.markerBody.data.apn +"R011.jpg";
             };
         }
-        messageContainer.appendChild( coordsDiv ); 
+        messageContainer.appendChild( coordsDiv );
         messageContainer.appendChild( textArea );
         messageContainer.appendChild( imgSrcTextArea );
         messageContainer.appendChild( imgAnchor );
@@ -299,14 +303,14 @@ theMap.marker_module = function(){
 
     function markerAddImageAndText( e, arg_info ){ // arg_info = {m: 'message' ,i: 'image src' }.
         // 'this' equals the edit 'button' (anchor tag) on the marker.
-        var text = '', 
+        var text = '',
             imageSrc = '',
             textDiv = document.createElement( 'div' ),
             image = document.createElement( 'img' ),
             messageContainer = this.markerBody.querySelector( '.messageContainer' );
-        
+
         if ( e ){
-            e.preventDefault(); 
+            e.preventDefault();
             this.removeEventListener( 'click', markerAddImageAndText );
             this.addEventListener( 'click', private_markerMessageEditor );
             this.innerHTML = 'edit';
@@ -337,20 +341,20 @@ theMap.marker_module = function(){
         textDiv.className = 'markerTextDiv';
         textDiv.markerBody = this.markerBody;
         Array.prototype.forEach.call( textDiv.getElementsByTagName( 'img' ), function( img ){
-            
+
             // There might be html img tags in the text which will mess up the markers position.
             // So set a onload listener that will recalculate the width and height, then call calculateMarkerPosition again.
             var load = function(){
-                this.editButton.markerBody.data.setOffSetWH(); 
+                this.editButton.markerBody.data.setOffSetWH();
                 this.editButton.theMap.calculateMarkerPosition( this.editButton.markerBody );
                 this.img.removeEventListener( 'load', load );
             }.bind( { editButton: this, img: img } );
             img.addEventListener( 'load', load );
-            
+
         }.bind( this ) );
         messageContainer.appendChild( textDiv );
         textDiv.querySelector( '.n' ) && textDiv.querySelector( '.n' ).addEventListener( ( /Firefox/i.test( window.navigator.userAgent ) )? "DOMMouseScroll" : "mousewheel", function( e ){ e.stopPropagation(); return false; } );
-        
+
         // The div's with class '.m' are the single homes with owner name, address, ect.
         // don't touch the inline width style of "Apn:" it is set in the css.
         // The div's with class'.n' are for apt buildings where there is a list of apn's
@@ -367,7 +371,7 @@ theMap.marker_module = function(){
             image.theMap = this.theMap;
             image.markerBody = this.markerBody;
             image.style.display = 'none';
-            image.onload = function(){ 
+            image.onload = function(){
                     this.style.display = '';
                     this.markerBody.data.setOffSetWH();
                     this.theMap.calculateMarkerPosition( this.markerBody );
@@ -394,27 +398,27 @@ theMap.marker_module = function(){
         // what a mess..
         if ( /http:\/\/www.snoco.org\/docs\/sas\/photos/.test( this.src ) ){
             if ( /R01/.test( this.src ) ){
-                window.setTimeout( function(){ 
+                window.setTimeout( function(){
                     this.parentNode.href = this.src.replace( /R01/, 'C01' );
                     this.src = this.src.replace( /R01/, 'C01' );
-                }.bind( this ), 10 ); 
+                }.bind( this ), 10 );
             } else if ( /C01/.test( this.src ) ){
-                window.setTimeout( function(){ 
+                window.setTimeout( function(){
                     this.parentNode.href = this.src.replace( /C01/, 'R02' );
                     this.src = this.src.replace( /C01/, 'R02' );
                 }.bind( this ), 10 );
             } else if ( /R02/.test( this.src ) ){
-                window.setTimeout( function(){ 
+                window.setTimeout( function(){
                     this.parentNode.href = this.src.replace( /R02/, 'C02' );
                     this.src = this.src.replace( /R02/, 'C02' );
                 }.bind( this ), 10 );
             } else if ( /C02/.test( this.src ) ){
-                window.setTimeout( function(){ 
+                window.setTimeout( function(){
                     this.parentNode.href = this.src.replace( /C02/, 'R03' );
                     this.src = this.src.replace( /C02/, 'R03' );
-                }.bind( this ), 10 ); 
+                }.bind( this ), 10 );
             } else if ( /R03/.test( this.src ) ){
-                window.setTimeout( function(){ 
+                window.setTimeout( function(){
                     this.parentNode.href = this.src.replace( /R03/, 'C03' );
                     this.src = this.src.replace( /R03/, 'C03' );
                 }.bind( this ), 10 );
@@ -436,7 +440,7 @@ theMap.marker_module = function(){
                         yMultiplier = ( this.presentMaxY - this.presentMinY ) / this._height, // For markers.
                         markersArray = ( arg_singleMarker && arg_singleMarker.id )? [arg_singleMarker]: this.markersArray,
                         len = markersArray.length,
-                        styleLeft = undefined, styleTop = undefined, 
+                        styleLeft = undefined, styleTop = undefined,
                         i = 0, n = 0, m = 0;
 
                     for( ; i < len; ++i ){
@@ -500,14 +504,14 @@ theMap.marker_module = function(){
 
     var private_propertyInfoAjaxOnload = function ( arg_propInfoAjax ){
         var anchor = document.createElement( 'a' ),
-            apnContainer = document.createElement( 'div' ),             
-            apn = document.createElement( 'div' ), 
+            apnContainer = document.createElement( 'div' ),
+            apn = document.createElement( 'div' ),
             html = undefined,
             responseText = arg_propInfoAjax.responseText,
             featureCount = responseText.match(/FEATURECOUNT count="(.*?)"/);
 
         if( /error/.test( responseText ) ){
-            console.log( responseText.match( /<error.*<\/error/i ) ); 
+            console.log( responseText.match( /<error.*<\/error/i ) );
             private_streetInfo.call( this, arg_propInfoAjax.x, arg_propInfoAjax.y );
             return;
         }
@@ -545,10 +549,10 @@ theMap.marker_module = function(){
         var coordsArray = arg_response.match(/<COORDS>(.*?)<\/COORDS>/ig ),
             group = document.createElementNS( "http://www.w3.org/2000/svg", "g" ),
             polyline = undefined,
-            n = 0, m = 0, x = 0, y = 0, 
+            n = 0, m = 0, x = 0, y = 0,
             coords = [], points = '',
             splitXY = [], duplicateObj = {};
-     
+
         group.setAttribute( 'style', 'opacity: 0.3;' );
         while( coordsArray[n] ){
             coords = coordsArray[n].replace(/..?coords./i, '' ).split( ';' );
@@ -569,7 +573,7 @@ theMap.marker_module = function(){
                 splitXY = coords[m].replace(/..?coords./i, '' ).split( ' ' );
                 polyline.spCoords.push( { x: +splitXY[0], y: +splitXY[1] } );
                 ++m;
-            }            
+            }
             group.appendChild( polyline );
             arg_marker.data.svgGroup.polylinesArray.push( polyline );
             ++n;
@@ -604,8 +608,8 @@ theMap.marker_module = function(){
 
     var private_streetInfoAjaxOnload = function ( arg_streetInfoAjax ){
         var anchor = document.createElement( 'a' ),
-            apnContainer = document.createElement( 'div' ),             
-            apn = document.createElement( 'div' ), 
+            apnContainer = document.createElement( 'div' ),
+            apn = document.createElement( 'div' ),
             responseText = arg_streetInfoAjax.responseText,
             featureCount = responseText.match(/FEATURECOUNT count="(.*?)"/),
             names = responseText.match(/\.NAME=".*?"/g ),
@@ -613,7 +617,7 @@ theMap.marker_module = function(){
             fullNames = responseText.match(/FULLNAME=".*?"/g ),
             message = '',
             noDuplicatesObject = {};
-    
+
         if( /error/.test( responseText ) ){
             console.log( responseText.match( /<error.*<\/error/i ) );
             console.log( arg_streetInfoAjax );
@@ -623,13 +627,13 @@ theMap.marker_module = function(){
             for( var n = 0; n < fullNames.length; ++n ){
                 if( fullNames[n].replace(/FULLNAME="(.*?)"/, '$1' ) !== '' ){
                     fullNames[n] = fullNames[n].replace(/FULLNAME="(.*?)"/, '$1' );
-                    if( fullNames[n] == "I 5"    || 
-                        fullNames[n] == "I 405"  || 
-                        fullNames[n] == 'SR 9'   || 
-                        fullNames[n] == 'SR 530' || 
-                        fullNames[n] == 'US 2'   || 
+                    if( fullNames[n] == "I 5"    ||
+                        fullNames[n] == "I 405"  ||
+                        fullNames[n] == 'SR 9'   ||
+                        fullNames[n] == 'SR 530' ||
+                        fullNames[n] == 'US 2'   ||
                         fullNames[n] == 'SR 526' ){
-                        
+
                         // Display an SVG highway/interstate sign in the place of words.
                         message = '<img src="css/images/'+ fullNames[n].replace(/ /,'_' ) +'.svg" height="50" width="50" title="'+ fullNames[n] +'"/><br>';
                         noDuplicatesObject = {};
@@ -645,7 +649,7 @@ theMap.marker_module = function(){
                     }
                 }
             }
-            
+
         } else {
             return;
         }
@@ -665,14 +669,14 @@ theMap.marker_module = function(){
             searchByAPNsAjax = new XMLHttpRequest(),
             currentAPNs = {},
             xmlRequest = undefined;
-        
+
         e && e.preventDefault;
         if ( apnArray[0] == '' ){ return; }
 
         // Stick the APN's of the current markers into an object as a key so they
         // can be compared to what the user entered in text box. If an APN is already present
         // it will be skipped...because it already exists.
-        theMap.markersArray.forEach( 
+        theMap.markersArray.forEach(
             function( marker ){ currentAPNs[marker.apn] = '' }
         );
         for( var i = 0; i < apnArray.length; i++ ){
@@ -691,7 +695,7 @@ theMap.marker_module = function(){
                 + '<REQUEST>\n<GET_FEATURES outputmode="xml" geometry="true" compact="true" '
                 + 'envelope="true" featurelimit="14000" beginrecord="1">\n'
                 + '<LAYER id="11" /><SPATIALQUERY subfields="#SHAPE# '
-                + private_xmlQueryParams 
+                + private_xmlQueryParams
                 + ' GIS_FEATURES.DBA.CADASTRAL_PARCELS_ASSESSOR.X_COORD'
                 + ' GIS_FEATURES.DBA.CADASTRAL_PARCELS_ASSESSOR.Y_COORD'
                 + "\" where=\"PARCEL_ID IN ("+ apnArray.join( ',' ) +")\" \/>"
@@ -758,11 +762,11 @@ theMap.marker_module = function(){
                                                     return '<br>';
                                                 }
                                                 return p1;
-                                            }.bind( addBrIncrementorObj ) 
+                                            }.bind( addBrIncrementorObj )
                                 );// <- End of replace method.
             lineBreaks = /*Breaks up long owners name*/( function( o ){ a = '';s = o.indexOf( "<br>" );while( s != -1 ){a += "<br>"; s = o.indexOf( "<br>",s+1 );}return a;})( ownerName );
 
-        if( featureCount === 0 || featureCount === 1 ){ 
+        if( featureCount === 0 || featureCount === 1 ){
             try{
                 if( !theMap.markersArray.some( function( makerParent ){ return ( arg_marker.data.apn == makerParent.data.apn ) && makerParent.data.svgGroup && makerParent.data.svgGroup.group } ) ){
                     private_makePolygonBoundary( arg_xml, arg_marker );
@@ -771,15 +775,15 @@ theMap.marker_module = function(){
             html =  '<div class="m"><div>Owner:<br>' + lineBreaks
                     + 'Address:<br><br>'
                     + 'Value:</div><div>'
-                    + ( ( !ownerName || /unknown/i.test( ownerName ) )? 'Unknown'  : ownerName ) +'<br>'                   
+                    + ( ( !ownerName || /unknown/i.test( ownerName ) )? 'Unknown'  : ownerName ) +'<br>'
                     + ( ( !addrLine1 || /unknown/i.test( addrLine1 ) )? 'Unknown'  : addrLine1  ) +'<br>'
                     + ( (  !addrCity || /unknown/i.test( addrCity )  )? 'Unknown, ': addrCity +', ' )
                     + ( (   !addrZip || /unknown/i.test( addrZip )   )? 'Unknown'  : addrZip ) +'<br>'
                     + '$'+ marketValue +' <div>('+ sizeAcres +' acres)</div></div>';
-        
+
         // Properties with many parcel numbers associated with it, for example condominium complex.
         // Makes anchor tags with the persons information in the data attribute, the makeMultiFamilyHouseingMesssage function
-        // uses the data to make a message that pops up on the side with the persons information. 
+        // uses the data to make a message that pops up on the side with the persons information.
         } else {
             try{
                 private_makePolygonBoundary( arg_xml, arg_marker );
@@ -816,7 +820,7 @@ theMap.marker_module = function(){
             if ( markersArray[i] && /markerParent|smallCountyMarker/.test( markersArray[i].className ) ){
 
                 // Used a setTimeout for visual effect only, nothing special.
-                window.setTimeout( function( m ){ 
+                window.setTimeout( function( m ){
                     window.$( 'smallCountyMarker'+ m.id ).parentNode.removeChild( window.$( 'smallCountyMarker'+ m.id ) );
                     m.data.removeSvgGroup();
                     m.parentNode.removeChild( m ) }, ( window.Math.random() * 500 ), markersArray[i] );
@@ -826,10 +830,10 @@ theMap.marker_module = function(){
     }
 
     function deleteUnUsedMarkers( arg_markerToDelete ){
-        
-        // Only deletes markers with a className of 'parentMarker' unless they have a 
+
+        // Only deletes markers with a className of 'parentMarker' unless they have a
         // className of 'DONTDELETE'.
-        // Called when person clicks map to make a new marker, unless ctrl is held down.       
+        // Called when person clicks map to make a new marker, unless ctrl is held down.
         var markersArray = theMap.markersArray,
             i = 0;
 
@@ -845,8 +849,8 @@ theMap.marker_module = function(){
     }
 
     function private_normalize( arg_ownerName ){ // This is basically of a hack job.
-        
-        // This function attempts to format the owners name in a better way so that 
+
+        // This function attempts to format the owners name in a better way so that
         // it is more appealing to read. This required a lot of trial and error, if it
         // isn't perfect who cares?
         var splitIt = '',
@@ -856,7 +860,7 @@ theMap.marker_module = function(){
             fannie = /federal national mort/i.test( arg_ownerName ),
             freddie = /federal home loan/i.test( arg_ownerName ),
             USA = /u s a/i.test( arg_ownerName );
-                                        
+
         arg_ownerName = arg_ownerName.replace(/\\/,'' );
         if ( hud ){ return 'HUD'; }
         if ( fannie ){ return 'Fannie Mae'; }
@@ -865,7 +869,7 @@ theMap.marker_module = function(){
         if ( /LLC|l l c|realt|city of|town of|indian land|trust|forest|state|univ/i.test( arg_ownerName ) ){ return private_upperCase( arg_ownerName.replace(/\\|\//,' & ') ); }
         words = arg_ownerName.replace( /&amp;|\&|\+|\/| jr(?!\w)| sr(?!\w)|  /gi, function( match ){ return ( ( /jr|sr/gi ).test( match ) == true ) ? '' : ( ( /  /gi ).test( match ) ) ? ' ' : ' & '; } );
         splitIt = ( ( words.split( ' ' ).length == 3 || words.split( ' ' ).length == 2 ) && ( /\&|bank|corp|llc|credit|union|RESIDENCE|Mortgage|apart|condo|inc.?\w{0}|ASSOC/gi ).test( words ) == false )
-                            ? words.replace( /([a-z]*)\s?(\w*)\s?(\w*)/i, function( match,a,b,c,offset,string ){ return ( b.length > 1 ) ? [ b, a ].join( ' ' ) : [ c,a ].join( ' ' ); } ).split( ' ' ) 
+                            ? words.replace( /([a-z]*)\s?(\w*)\s?(\w*)/i, function( match,a,b,c,offset,string ){ return ( b.length > 1 ) ? [ b, a ].join( ' ' ) : [ c,a ].join( ' ' ); } ).split( ' ' )
                             : words.split( ' ' );
         splitIt.forEach( function( value, index, array ){
                             if( ( value.length > 1 && ( /II/g ).test( value ) == false ) || ( /\&/g ).test( value ) == true ){
@@ -908,11 +912,11 @@ theMap.marker_module = function(){
     var isSimpleMarkerOnImage = function(){
         var markersArray = this.markersArray,
             len = markersArray.length;
-            
+
         for( var i = 0; i < len; ++i ){
             if( /simpleMarker/.test( markersArray[i].className ) ){
                 if( markersArray[i].data.statePlaneCoordX < this.presentMaxX &&
-                    markersArray[i].data.statePlaneCoordY < this.presentMaxY && 
+                    markersArray[i].data.statePlaneCoordY < this.presentMaxY &&
                     markersArray[i].data.statePlaneCoordX > this.presentMinX &&
                     markersArray[i].data.statePlaneCoordY > this.presentMinY )
                 {
@@ -926,21 +930,21 @@ theMap.marker_module = function(){
 
     function makeMultiFamilyHouseingMesssage( e ){
         var message = undefined,
-            messageWidth = undefined,            
+            messageWidth = undefined,
             markerBodyRect = this.parentNode.parentNode.markerBody.getBoundingClientRect(),
             thisRect = this.getBoundingClientRect(),
             data = this.getAttribute( 'data' ).split( '<br>' ),
             html = undefined;
-        
+
         html =  '<div class="m"><div>Owner:<br>'
                 + 'Address:<br>'
                 + ( ( !/unknown/i.test( data[1] ) && /unknown|\w|\d/gi.test( data[2] ) )? '<br>':'' )
-                + 'Value:</div><div>'+ data[0] +'<br>'                   
+                + 'Value:</div><div>'+ data[0] +'<br>'
                 + ( ( !/unknown/i.test( data[1] ) )? data[1] +'<br>': 'Unknown<br>' )
                 + ( ( /unknown|\w|\d/gi.test( data[2] ) )? data[2] +'<br>': '' )
                 + data[3] +' <div style="color: grey; font-style: italic; display: inline-block;">('+ data[4] +' acres)</div></div>';
         message = theMap.utilities_module.simpleMessageBox( html, 'hi' ),
-        message.style.width = 'auto'; 
+        message.style.width = 'auto';
         messageWidth = message.offsetWidth;
         if( ( markerBodyRect.left - 5 - messageWidth ) < theMap.mapContainer._left + 10 ){
             message.style.left = markerBodyRect.right + 15 +'px';
@@ -953,9 +957,9 @@ theMap.marker_module = function(){
         message.style.padding = '15px';
         message.style.zIndex = '999999999999';
         message.style.color = 'black';
-        
+
         // 'this' equals the anchor tag that the person is hovering their mouse over,
-        // the anchor tag also holds the Apn number. 'm' is where the message is stored 
+        // the anchor tag also holds the Apn number. 'm' is where the message is stored
         // so that onmouseout will have something easy to remove.
         this.m = message;
     }
