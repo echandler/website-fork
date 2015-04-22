@@ -82,7 +82,7 @@ theMap.marker_module = function(){
             markerBody.data.offsetLeft = undefined;
             markerBody.data.offsetTop = undefined;
             markerBody.data.theMap = this;
-            markerBody.data.svgGroup = { group: undefined, polylinesArray: [] };
+            markerBody.data.svgGroup = { group: undefined, pathsArray: [] };
             markerBody.addEventListener( 'mouseover', lowerOpacityOfMarkersAroundThisMarker );
             markerBody.addEventListener( 'mouseout', resetOpacityOfMarkersAroundThisMarker );
             markerBody.data.setOffSetWH = function(){
@@ -111,6 +111,7 @@ theMap.marker_module = function(){
             markerBody.addEventListener( 'mousedown', function( e ){
                 e.stopPropagation();
             });
+
         var deleteButton = document.createElement( 'div' );
             deleteButton.className = 'markerDeleteButton';
             deleteButton.innerHTML = '&#215;';
@@ -131,6 +132,13 @@ theMap.marker_module = function(){
                 window.$( 'smallCountyMarker'+ parentId ).parentNode.removeChild( window.$( 'smallCountyMarker'+ parentId ) );
             });
         markerBody.appendChild( deleteButton );
+
+        var colorDiv = document.createElement( 'div' );
+            colorDiv.className = 'markercolorDiv';
+            colorDiv.markerBody = markerBody;
+            colorDiv.style.cssText = 'opacity: 0.3; position: absolute;right: 10px;height: 35%;width: 12px;margin: auto;top: 0px;bottom: 6px;';
+        markerBody.data.colorDiv = colorDiv;
+        markerBody.appendChild( colorDiv );
 
         if ( infoObject && infoObject.a !== '' ){
             var apnContainer = document.createElement( 'div' );
@@ -175,6 +183,7 @@ theMap.marker_module = function(){
                     this.markerBody.className += ' DONTDELETE';
                 }
             });
+
         markerBody.data.pinButton = pinButton;
         editPinDiv.appendChild( pinButton );
         markerBody.appendChild( editPinDiv );
@@ -199,7 +208,15 @@ theMap.marker_module = function(){
                 private_makePolygonBoundary( infoObject.g, markerBody );
             }
         } else {
-            private_propertyInfo.call( markerBody, markerBody.data.statePlaneCoordX, markerBody.data.statePlaneCoordY );
+
+            if(e.target.id.indexOf('street') !== -1){ // Did they click on a svg street path?
+
+                private_streetInfo.call( markerBody, markerBody.data.statePlaneCoordX, markerBody.data.statePlaneCoordY );
+            } else {
+
+                private_propertyInfo.call( markerBody, markerBody.data.statePlaneCoordX, markerBody.data.statePlaneCoordY );
+            }
+
             calculatePosition.marker( markerBody );
         }
         return markerBody;
@@ -386,7 +403,7 @@ theMap.marker_module = function(){
                     }
                     this.markerBody.data.setOffSetWH();
                     this.theMap.calculateMarkerPosition( this.markerBody );
-                }
+                };
             image.onerror = markerImgError;
             messageContainer.appendChild( image );
         }
@@ -394,7 +411,7 @@ theMap.marker_module = function(){
         calculatePosition.marker( this.markerBody );
     }
 
-    function markerImgError( e ){
+    function markerImgError(){
         // what a mess..
         if ( /http:\/\/www.snoco.org\/docs\/sas\/photos/.test( this.src ) ){
             if ( /R01/.test( this.src ) ){
@@ -441,7 +458,7 @@ theMap.marker_module = function(){
                         markersArray = ( arg_singleMarker && arg_singleMarker.id )? [arg_singleMarker]: this.markersArray,
                         len = markersArray.length,
                         styleLeft = undefined, styleTop = undefined,
-                        i = 0, n = 0, m = 0;
+                        i = 0;
 
                     for( ; i < len; ++i ){
                         styleLeft = ( ( ( markersArray[i].data.statePlaneCoordX - this.presentMinX ) / xMultiplier ) - markersArray[i].data.offsetLeft ) + this._left;
@@ -453,26 +470,53 @@ theMap.marker_module = function(){
                         }
                     }
                 }.bind( theMap ),
-            svgHighlight: function( arg_singleMarker ){
-                    var xMultiplier = ( this.presentMaxX - this.presentMinX ) / this.resizedMapWidth, // For polylines.
-                        yMultiplier = ( this.presentMaxY - this.presentMinY ) / this.resizedMapHeight, // For polylines.
-                        polyline = undefined, points = '',
-                        polyLineSpCoordsArrayLen = undefined,
-                        markersArray = ( arg_singleMarker && arg_singleMarker.id )? [arg_singleMarker]: this.markersArray,
-                        len = markersArray.length,
-                        i = 0, n = 0, m = 0;
 
-                    for( ; i < len; ++i ){
-                        if( markersArray[i].data.svgGroup ){ //Calculate polylines.
-                            for( n = 0; n < markersArray[i].data.svgGroup.polylinesArray.length; ++n ){
-                                polyline = markersArray[i].data.svgGroup.polylinesArray[n];
-                                polyLineSpCoordsArrayLen = polyline.spCoords.length;
-                                points = '';
-                                for( m = 0; m < polyLineSpCoordsArrayLen; ++m ){
-                                    points += ( ( polyline.spCoords[m].x - this.presentMinX  ) / xMultiplier + this.currentMapImg._left ) +','+ ( ( this.presentMaxY - polyline.spCoords[m].y ) / yMultiplier + this.currentMapImg._top ) +' ';
+            svgHighlight: function( arg_singleMarker ){
+                    var xMultiplier = ( this.presentMaxX - this.presentMinX ) / this.resizedMapWidth, // For paths.
+                        yMultiplier = ( this.presentMaxY - this.presentMinY ) / this.resizedMapHeight, // For paths.
+                        path = undefined, points = '',
+                        pathSpCoordsArrayLen = undefined,
+                        markersArray = ( arg_singleMarker && arg_singleMarker.id )? [arg_singleMarker]: this.markersArray,
+                        markersArrayLen = markersArray.length,
+                        n = 0, m = 0;
+
+                    // Iterate through the different markers.
+                    for( var i = 0; i < markersArrayLen; ++i ){
+
+                        if( markersArray[i].data.svgGroup &&
+                            markersArray[i].data.svgGroup.pathsArray.length > 0 ){
+
+                            // Iterate through the array of paths for each marker.
+                            // Some properties span multiple parcels, each has it's own svg path element.
+                            for( n = 0; n < markersArray[i].data.svgGroup.pathsArray.length; ++n ){
+
+                              path = markersArray[i].data.svgGroup.pathsArray[n];
+                              pathSpCoordsArrayLen = path.spCoords.length;
+
+                              points = '';
+
+                              // Iterate through the current paths state plane coords array.
+                              // Some paths have holes, so there may be more than one element in the array.
+                              // Usually there is only one element (one array of sp coords).
+                              for( m = 0; m < pathSpCoordsArrayLen; ++m ){
+
+                                points += '\nM';
+
+                                // Iterate through each state plane x,y coord and convert to screen points.
+                                for (var v = 0; v < path.spCoords[m].length; v++) {
+
+                                  points += (((path.spCoords[m][v].x - this.presentMinX) / xMultiplier) + this.currentMapImg._left)
+                                              + ','
+                                              + (((this.presentMaxY - path.spCoords[m][v].y) / yMultiplier) + this.currentMapImg._top)
+                                              + ' ';
                                 }
-                                polyline.setAttribute( 'points', points );
+
+                                points += 'z ';
+                              }
+
+                              path.setAttribute( 'd', points );
                             }
+
                         }
                     }
 
@@ -511,76 +555,131 @@ theMap.marker_module = function(){
             featureCount = responseText.match(/FEATURECOUNT count="(.*?)"/);
 
         if( /error/.test( responseText ) ){
+
             console.log( responseText.match( /<error.*<\/error/i ) );
+
             private_streetInfo.call( this, arg_propInfoAjax.x, arg_propInfoAjax.y );
+
             return;
         }
+
         if( +featureCount[1] === 0 || +featureCount[1] === 1 ){ //TODO: Is there a single way of checking for 0 or 1?
+
             this.data.apn = /\d{14}/.exec( responseText );
+
             if( !this.data.apn ){
-                private_streetInfo.call( this, arg_propInfoAjax.x, arg_propInfoAjax.y );
-                return;
+
+              // It didn't find a property so check if it is a road/street/interstate ect.
+              private_streetInfo.call( this, arg_propInfoAjax.x, arg_propInfoAjax.y );
+              return;
             }
+
             this.data.apn = this.data.apn[0];
+
             apn.className = 'markerApnText';
             apn.innerHTML = 'Apn:';
+
             anchor.className = 'markerApnLink';
             anchor.href = theMap.parameters.APN_URL + this.data.apn;
             anchor.target = '_blank';
             anchor.innerHTML = this.data.apn;
+
             apnContainer.appendChild( apn );
             apnContainer.appendChild( anchor );
             apnContainer.style.marginTop = "-0.54em";
             apnContainer.style.marginRight = "10px";
+
             this.insertBefore( apnContainer, this.children[1] );
         }
+
         this.style.width = '';
         this.data.setOffSetWH();
+
         calculatePosition.marker( this );
+
         html = makeInfoHtml( responseText, this );
+
         if ( this.data.apn && theMap.optionsReference.showPropertyImage_CheckMark ){
+
             markerAddImageAndText.call( this.querySelector( '.markerEdit' ), null, { "m": html, "i":"http://www.snoco.org/docs/sas/photos/"+ this.data.apn.replace(/^(\d{4})\d*/, "$1" ) +"/"+ this.data.apn +"R011.jpg" } );
         }else {
+
             markerAddImageAndText.call( this.querySelector( '.markerEdit' ), null, { "m": html, "i":"" } );
         }
-    }
+    };
 
+    // Test property = file:///C:/Users/admin/Desktop/website%20fork/index.htm?={%22x%22:1279569.055,%22X%22:1280969.055,%22y%22:296488.493,%22Y%22:297186.306,%22z%22:40}
+    // Test property = file:///C:/Users/admin/Desktop/website%20fork/index.htm?={%22x%22:1308837.076,%22X%22:1311637.076,%22y%22:306289.22,%22Y%22:307684.845,%22z%22:60}
     var private_makePolygonBoundary = function( arg_response, arg_marker ){
-        var coordsArray = arg_response.match(/<COORDS>(.*?)<\/COORDS>/ig ),
+        var features = arg_response.match(/(<FEATURE>)(.*?)<\/FEATURE>/g ),
+            coordsArray = [],
             group = document.createElementNS( "http://www.w3.org/2000/svg", "g" ),
-            polyline = undefined,
-            n = 0, m = 0, x = 0, y = 0,
-            coords = [], points = '',
+            path  = undefined,
+            n = 0, m = 0,
+            coords = [],
+            tempCoords = [],
             splitXY = [], duplicateObj = {};
 
         group.setAttribute( 'style', 'opacity: 0.3;' );
-        while( coordsArray[n] ){
-            coords = coordsArray[n].replace(/..?coords./i, '' ).split( ';' );
-            points = '';
-            polyline = document.createElementNS( "http://www.w3.org/2000/svg", "polyline" );
-            polyline.spCoords = [];
-            m = 0;
 
-            // This if statment checks if the first x coordinate is a duplicateObj key, if it is then it's
-            // assumed that polyline already exists so skip it.
-            if( coords[0].replace(/..?coords./i, '' ).split( ' ' )[0] in duplicateObj ){
-                ++n;
-                continue;
-            } else {
-                duplicateObj[coords[0].replace(/..?coords./i, '' ).split( ' ' )[0]] = undefined;
-            }
-            while( coords[m] ){
-                splitXY = coords[m].replace(/..?coords./i, '' ).split( ' ' );
-                polyline.spCoords.push( { x: +splitXY[0], y: +splitXY[1] } );
-                ++m;
-            }
-            group.appendChild( polyline );
-            arg_marker.data.svgGroup.polylinesArray.push( polyline );
-            ++n;
+        for (var g = 0; g < features.length; g++) {
+
+          coordsArray = features[g].match(/(<COORDS>)(.*?)<\/COORDS>/g );
+
+          path  = document.createElementNS( "http://www.w3.org/2000/svg", "path" );
+          path.spCoords = [];
+
+          n = 0;
+          while(coordsArray[n]){
+
+              coords = coordsArray[n].replace(/..?coords./i, '' ).split( ';' );
+
+              tempCoords = [];
+              //path = document.createElementNS( "http://www.w3.org/2000/svg", "path" );
+
+              // This if statment checks if the first x coordinate is a duplicateObj key, if it is then it's
+              // assumed that path already exists so skip it.
+              if( coords[0].replace(/..?coords./i, '' ).split( ' ' )[0] in duplicateObj ){
+
+                  ++n;
+
+                  continue;
+              } else {
+
+                  duplicateObj[coords[0].replace(/..?coords./i, '' ).split( ' ' )[0]] = undefined;
+              }
+
+              m = 0;
+              while( coords[m] ){
+
+                  splitXY = coords[m].replace(/..?coords./i, '' ).split( ' ' );
+
+                  tempCoords.push( { x: +splitXY[0], y: +splitXY[1] } );
+
+                  ++m;
+              }
+
+              path.spCoords.push(tempCoords);
+              ++n;
+          }
+
+          if (path.spCoords.length > 0) {// Skip it if there are no coordinates.
+
+            path.style.fill = 'rgb('+ ~~(Math.random()*255) +','+ ~~(Math.random()*255) +','+ ~~(100 + Math.random()*155) +')';
+            arg_marker.data.colorDiv.style.background = path.style.fill;
+
+            group.appendChild( path );
+
+            arg_marker.data.svgGroup.pathsArray.push( path );
+          }
         }
-        if( arg_marker.data.svgGroup ){ // arg_marker.svgGroup may be null if the person deleted the arg_marker quick enough.
+
+        if(arg_marker.data.svgGroup){ // arg_marker.svgGroup may be null if the person deleted the arg_marker quick enough.
+
             arg_marker.data.svgGroup.group = group;
+
             theMap.svgPropertyHightlightGroup.appendChild( group );
+
             calculatePosition.svgHighlight( arg_marker );
         }
     }.bind( theMap );
@@ -607,10 +706,7 @@ theMap.marker_module = function(){
     };
 
     var private_streetInfoAjaxOnload = function ( arg_streetInfoAjax ){
-        var anchor = document.createElement( 'a' ),
-            apnContainer = document.createElement( 'div' ),
-            apn = document.createElement( 'div' ),
-            responseText = arg_streetInfoAjax.responseText,
+        var responseText = arg_streetInfoAjax.responseText,
             featureCount = responseText.match(/FEATURECOUNT count="(.*?)"/),
             names = responseText.match(/\.NAME=".*?"/g ),
             streetType = responseText.match(/STREETTYPE=".*?"/g ),
@@ -619,14 +715,20 @@ theMap.marker_module = function(){
             noDuplicatesObject = {};
 
         if( /error/.test( responseText ) ){
+
             console.log( responseText.match( /<error.*<\/error/i ) );
             console.log( arg_streetInfoAjax );
             return;
         }
+
         if( +featureCount[1] !== 0 ){
+
             for( var n = 0; n < fullNames.length; ++n ){
+
                 if( fullNames[n].replace(/FULLNAME="(.*?)"/, '$1' ) !== '' ){
+
                     fullNames[n] = fullNames[n].replace(/FULLNAME="(.*?)"/, '$1' );
+
                     if( fullNames[n] == "I 5"    ||
                         fullNames[n] == "I 405"  ||
                         fullNames[n] == 'SR 9'   ||
@@ -639,28 +741,40 @@ theMap.marker_module = function(){
                         noDuplicatesObject = {};
                         break;
                     } else {
+
                         noDuplicatesObject[private_upperCase( fullNames[n] )] = '';
                     }
+
                 } else if( names[n].replace(/\.NAME="(.*?)"/, '$1' ) !== '' ){
+
                     if( streetType[n].replace(/STREETTYPE="(.*?)"/,'$1' ) !== '' ){
+
                         noDuplicatesObject[private_upperCase( names[n].replace(/\.NAME="(.*?)"/, '$1' ) ) +' '+ private_upperCase( streetType[n].replace(/STREETTYPE="(.*?)"/,'$1' ) )] = '';
+
                     } else {
+
                         noDuplicatesObject[private_upperCase( names[n].replace(/\.NAME="(.*?)"/, '$1' ) )] = '';
                     }
                 }
             }
-
         } else {
+
             return;
         }
+
         Object.keys( noDuplicatesObject ).forEach( function( arg_road ){
+
             message += arg_road +'<br>';// TODO: Adds an unnecessary <br> after last road.
         });
-        markerAddImageAndText.call( this.data.editButton, null, { m: message, i:'' })
+
+        markerAddImageAndText.call( this.data.editButton, null, { m: message, i:'' });
+
         this.style.width = '';
+
         this.data.setOffSetWH();
+
         calculatePosition.marker( this );
-    }
+    };
 
     var searchByAPNs = function( e ){//lat,lng
         var apnArray = document.querySelector( '#search_apn_div  input' ).value.replace(/\s/g, '' ).split( ',' ),
@@ -751,24 +865,25 @@ theMap.marker_module = function(){
             parcelNumber = undefined,
             parcelNumberRegex = /PARCEL_ID="(.*?)"/g,
             sizeAcres = arg_xml.match( /TAB_ACRES="(.*?)"/ )[1],
-            otherInfoArray = [],
             featureCount = +arg_xml.match( /FEATURECOUNT count="(.*?)"/ )[1],
             html = undefined,
             addBrIncrementorObj = { a: 0 },
             ownerName = private_normalize( arg_xml.match( /OWNERNAME="(.*?)"/ )[1] )
-                        .replace( /(\s)/g, function( match, p1, index, string ){
+                        .replace( /(\s)/g, function( match, p1, index ){
                                                 if( index >= ( this.a + 24 ) ){
                                                     this.a += 24;
                                                     return '<br>';
                                                 }
                                                 return p1;
                                             }.bind( addBrIncrementorObj )
-                                );// <- End of replace method.
-            lineBreaks = /*Breaks up long owners name*/( function( o ){ a = '';s = o.indexOf( "<br>" );while( s != -1 ){a += "<br>"; s = o.indexOf( "<br>",s+1 );}return a;})( ownerName );
+                                ),// <- End of replace method.
+            lineBreaks = /*Breaks up long owners name*/( function( o ){ var a = ''; var s = o.indexOf( "<br>" );while( s != -1 ){a += "<br>"; s = o.indexOf( "<br>",s+1 );}return a;})( ownerName );
+
+        ownerName = private_upperCase(ownerName);
 
         if( featureCount === 0 || featureCount === 1 ){
             try{
-                if( !theMap.markersArray.some( function( makerParent ){ return ( arg_marker.data.apn == makerParent.data.apn ) && makerParent.data.svgGroup && makerParent.data.svgGroup.group } ) ){
+                if( !theMap.markersArray.some( function( makerParent ){ return ( arg_marker.data.apn == makerParent.data.apn ) && makerParent.data.svgGroup && makerParent.data.svgGroup.group; } ) ){
                     private_makePolygonBoundary( arg_xml, arg_marker );
                 }
             } catch( e ){}
@@ -866,7 +981,10 @@ theMap.marker_module = function(){
         if ( fannie ){ return 'Fannie Mae'; }
         if ( freddie ){ return 'Freddie Mac'; }
         if ( USA ){ return '(USA) Federal Gov. Land'; }
-        if ( /LLC|l l c|realt|city of|town of|indian land|trust|forest|state|univ/i.test( arg_ownerName ) ){ return private_upperCase( arg_ownerName.replace(/\\|\//,' & ') ); }
+        if ( /LLC|l l c|realt|city of|town of|indian land|trust|forest|state|univ/i.test( arg_ownerName ) ){
+          return arg_ownerName.replace(/\\|\//,' & ');
+        }
+
         words = arg_ownerName.replace( /&amp;|\&|\+|\/| jr(?!\w)| sr(?!\w)|  /gi, function( match ){ return ( ( /jr|sr/gi ).test( match ) == true ) ? '' : ( ( /  /gi ).test( match ) ) ? ' ' : ' & '; } );
         splitIt = ( ( words.split( ' ' ).length == 3 || words.split( ' ' ).length == 2 ) && ( /\&|bank|corp|llc|credit|union|RESIDENCE|Mortgage|apart|condo|inc.?\w{0}|ASSOC/gi ).test( words ) == false )
                             ? words.replace( /([a-z]*)\s?(\w*)\s?(\w*)/i, function( match,a,b,c,offset,string ){ return ( b.length > 1 ) ? [ b, a ].join( ' ' ) : [ c,a ].join( ' ' ); } ).split( ' ' )

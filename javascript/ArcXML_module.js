@@ -56,20 +56,20 @@ theMap.ArcXML_module = function () {
                 textColor        : '95,145,245',//"165,205,255"
                 textOutlineClr   : '',
             },
-            
+
             satelliteMapYearA = false,
             satelliteMapYearB = false,
 
             showTerrain = false,
 
             showAirPortRunWay = true,
-            
+
             xmlRequest = undefined;
-        
+
         // <-----End of variable assignments.----->
 
         if (this.clickedOnASvgCity) { // They clicked on a city instead of zooming in manually.
-        
+
             cityTwns.boundaryWidth = 2;
         }
 
@@ -83,15 +83,15 @@ theMap.ArcXML_module = function () {
             traffic.rdNameOutlneClr    = cityTwns.textOutlineClr;
             traffic.roadFontColor      = '255,255,255';
             traffic.cityRdTransparency = 0.3;
-            
+
             addresses.textColor      = '0,0,0';
             addresses.textOutLineClr = '255,255,255';
-            
+
             water.showFeatures   = false;
             water.textColor      = '160,200,255';
             water.textOutlineClr = 'outline="20,20,10"';
             //water.textSize = '16';
-            
+
             parcels.boundryColor  = '230,230,230';
 
             showAirPortRunWay = false;
@@ -99,13 +99,13 @@ theMap.ArcXML_module = function () {
             showTerrain = true;
 
             if (options['show'
-                        + this.parameters.SATELLITE_MAP_YEARS.a.year 
+                        + this.parameters.SATELLITE_MAP_YEARS.a.year
                         +'SatelliteYearMap_CheckMark']) {
-                
+
                 satelliteMapYearA = true;
                 satelliteMapYearB = false;
             } else {
-                
+
                 satelliteMapYearA = false;
                 satelliteMapYearB = true;
             }
@@ -117,19 +117,19 @@ theMap.ArcXML_module = function () {
                 satelliteMapYearA = true;
                 satelliteMapYearB = false;
             } else { // First
-            
+
                 satelliteMapYearA = false;
                 satelliteMapYearB = true;
 
                 window.setTimeout(function () {
                     // Run it again with arg_overLayMap set to true.
-                    makeArcXMLRequest(arg_minX, arg_maxX, arg_minY, arg_maxY, arg_onPopState, true); 
+                    makeArcXMLRequest(arg_minX, arg_maxX, arg_minY, arg_maxY, arg_onPopState, true);
                 }, 100);
             }
         }
-        
+
         traffic.roadWidth = ((sliderPositionNumber > 7)? 2: traffic.roadWidth);
-        
+
         xmlRequest = [
             '<?xml version="1.0" encoding="UTF-8" ?>',
             '<ARCXML version="1.1">',
@@ -141,7 +141,7 @@ theMap.ArcXML_module = function () {
             '<LAYERLIST order="true">',
 
             '<LAYERDEF id="0" visible="'+ showTerrain +'"/>',
-            
+
             ((water.showFeatureNames || water.showFeatures)?
                 '<LAYERDEF id="10" visible="true">' // Display and Name water.water features.
                     + '<GROUPRENDERER>'
@@ -183,33 +183,33 @@ theMap.ArcXML_module = function () {
                     '<TEXTSYMBOL antialiasing="true" font="Arial" fontcolor="'+ traffic.roadFontColor +'" outline="'+ traffic.rdNameOutlneClr +'" fontstyle="bold" printmode="titlecaps" fontsize="'+ traffic.roadFontSize +'" />',
                 '</SIMPLELABELRENDERER>',/*Verdana*/
             '</LAYERDEF>',
-            
+
             //'<LAYERDEF id="20" visible="false"/>' // Rural Miles, shows mile markers.
-            
+
             '<LAYERDEF id="9" visible="true">', // County border
                 '<SPATIALQUERY where="LABEL=\'Snohomish County\'" />',
                 '<SIMPLERENDERER>',
                     '<SIMPLEPOLYGONSYMBOL boundarywidth="3" boundarycaptype="round" boundarycolor="205,197,189" filltransparency="0"/>',// TODO: Change boundy/fill color, darker with no satellite image, lighter with satellite image.
                 '</SIMPLERENDERER>',
             '</LAYERDEF>',
-            
+
             // '<LAYERDEF id="19" visible="false"/>', // TownShip/range grid.
             // '<LAYERDEF id="18" visible="false"/>', // TownShip/range grid.
             // '<LAYERDEF id="17" visible="false"/>', // Section grid.
-            
+
             ((options.$14SaleRecord_CheckMark)? '<LAYERDEF id="31" visible="true"/>': ''),
             //'<LAYERDEF id="31" visible="'+ options.$14SaleRecord_CheckMark +'"/>', //TODO: 2013 sales records doesn't work.
             //'<LAYERDEF id="32" visible="false"/>',
-            
+
             ((options.$13SaleRecord_CheckMark)? '<LAYERDEF id="33" visible="true"/>' : ''),
             //'<LAYERDEF id="33" visible="'+ options.$13SaleRecord_CheckMark +'"/>',
             //'<LAYERDEF id="34" visible="false"/>',
-            
+
             ((options.$12SaleRecord_CheckMark)? '<LAYERDEF id="35" visible="true"/>' : ''),
             //'<LAYERDEF id="35" visible="'+ options.$12SaleRecord_CheckMark +'"/>',
             //'<LAYERDEF id="36" visible="false"/>',
             //'<LAYERDEF id="30" visible="false"/>',// turns on property description, in blue;
-            
+
             '<LAYERDEF id="8" visible="true">', // Airports.
                 '<GROUPRENDERER>',
                     '<SIMPLELABELRENDERER field="NAME">',
@@ -222,7 +222,7 @@ theMap.ArcXML_module = function () {
                     : ''),
                 '</GROUPRENDERER>',
             '</LAYERDEF>',
-            
+
             '<LAYERDEF id="6" visible="'+ traffic.showStrtCenterLns +'" type="polygon">',// Street Center Lines.
                 '<GROUPRENDERER>',//roads
                     '<SIMPLERENDERER>', // Minor roads border zoomed in
@@ -252,7 +252,7 @@ theMap.ArcXML_module = function () {
                     '</VALUEMAPRENDERER>',
                 '</GROUPRENDERER>',
             '</LAYERDEF>',
-            
+
             '<LAYERDEF id="5" visible="'+ traffic.showArterialCirculation +'">', // Arterial Circulation
                 '<GROUPRENDERER>',
                     '<SIMPLERENDERER>',// Minor roads border zoomed out
@@ -274,22 +274,23 @@ theMap.ArcXML_module = function () {
                     '</VALUEMAPRENDERER>',
                 '</GROUPRENDERER>',
             '</LAYERDEF>',
-            
-            '<LAYERDEF id="11" visible="true">',// parcel numbers and boundary lines
-                '<GROUPRENDERER>',
-                    ((options.showParcelBoundary_CheckMark)?
-                        '<SIMPLERENDERER>'// Parcel Boundry
+
+            '<LAYERDEF id="11" visible="'+ options.showParcelBoundary_CheckMark +'">',// parcel numbers and boundary lines
+                ((options.showParcelBoundary_CheckMark)?
+                    '<GROUPRENDERER>'
+                        +'<SIMPLERENDERER>'// Parcel Boundry
                             +'<SIMPLELINESYMBOL width="'+ parcels.boundryWidth +'" antialiasing="true" transparency="'+(((11.5 / (sliderPositionNumber + 2)) * 0.3) + 0.3) +'" captype="round" color="'+ parcels.boundryColor +'"/>'
-                        +'</SIMPLERENDERER>'
-                    : ''),
-                    ((parcels.showNumbers)?
-                        '<SIMPLELABELRENDERER field="PARCEL_ID">'
-                            +'<TEXTSYMBOL antialiasing="true" font="Calibri" fontsize="'+ addresses.textSize +'" fontcolor="'+ cityTwns.textColor +'" outline="'+ cityTwns.textOutlineClr +'"/>'
-                        +'</SIMPLELABELRENDERER>'
-                    : ''),
-                '</GROUPRENDERER>',
+                        +'</SIMPLERENDERER>'+
+
+                        ((parcels.showNumbers)? // Show parcel numbers
+                            '<SIMPLELABELRENDERER field="PARCEL_ID">'
+                                +'<TEXTSYMBOL antialiasing="true" font="Calibri" fontsize="'+ addresses.textSize +'" fontcolor="'+ cityTwns.textColor +'" outline="'+ cityTwns.textOutlineClr +'"/>'
+                            +'</SIMPLELABELRENDERER>'
+                        : '')
+                   +'</GROUPRENDERER>'
+                : ""),
             '</LAYERDEF>',
-            
+
             ((addresses.showAddresses)?
                 '<LAYERDEF id="13" visible="true">'
                     +'<SIMPLELABELRENDERER field="'+ ((sliderPositionNumber < (pageIsSmall? 1: 3))?'SITUSLINE1': 'SITUSHOUSE') +'">'
@@ -297,10 +298,10 @@ theMap.ArcXML_module = function () {
                     +'</SIMPLELABELRENDERER>'
                 +'</LAYERDEF>'
             : ''),
-            
-            '<LAYERDEF id="4" visible="'+ options.showCities_CheckMark +'">', //cityTwns.city names and bound 
+
+            '<LAYERDEF id="4" visible="'+ options.showCities_CheckMark +'">', //cityTwns.city names and bound
                 ((this.clickedOnASvgCity)? // Used when person clicks on a svg cityTwns.city.
-                    '<SPATIALQUERY where=" NAME=\''+ this.clickedOnASvgCity +'\'"></SPATIALQUERY>' 
+                    '<SPATIALQUERY where=" NAME=\''+ this.clickedOnASvgCity +'\'"></SPATIALQUERY>'
                 : ''),
                 '<GROUPRENDERER>',
                     ((cityTwns.showBoundaries || this.clickedOnASvgCity)?
@@ -314,16 +315,16 @@ theMap.ArcXML_module = function () {
                     ((sliderPositionNumber > 1 /* Don't show cityTwns.city names at sliderPosition 1 or 0 */)?
                         '<SIMPLELABELRENDERER field="'+ ((cityTwns.showNames && options.showCities_CheckMark)? 'NAME': 'FALSE') +'">'
                             +'<TEXTSYMBOL antialiasing="true" font="Calibri" fontcolor="'+ cityTwns.textColor +'" outline="'+ cityTwns.textOutlineClr +'" printmode="'+ cityTwns.nameCase +'" fontstyle="'+ cityTwns.textStyle +'" fontsize="'+ cityTwns.textSize +'" shadow="120,120,120"/>'
-                        +'</SIMPLELABELRENDERER>' 
+                        +'</SIMPLELABELRENDERER>'
                     : ''),
                 '</GROUPRENDERER>',
             '</LAYERDEF>',
-            
-            ((options.showBenchMark_CheckMark)? 
+
+            ((options.showBenchMark_CheckMark)?
                 '<LAYERDEF id="38" visible="true"/>'
                +'<LAYERDEF id="37" visible="true"/>'
             : ''),
-            
+
             //'<LAYERDEF id="38" visible="'+ options.showBenchMark_CheckMark +'"/>', // BenchMark Names
             //'<LAYERDEF id="37" visible="'+ options.showBenchMark_CheckMark +'"/>', // BenchMark Areas
             //'<LAYERDEF id="3" visible="false"/>', // National Forests
@@ -332,11 +333,11 @@ theMap.ArcXML_module = function () {
             //      '</SIMPLELABELRENDERER>',
             //'</LAYERDEF>',
             //'<LAYERDEF id="1" visible="false"/>', // Information about 2007 satallite view.
-            
+
             '</LAYERLIST>',
-            
+
             '<BACKGROUND color="235,230,230"/>',
-            
+
             '</PROPERTIES>',
 
             // '<LAYER type="acetate" name="theScaleBar">',
@@ -344,7 +345,7 @@ theMap.ArcXML_module = function () {
             // '<SCALEBAR coords="'+ scaleBarXCoord +' '+ scaleBarYCoord +'" outline="'+ cityTwns.textOutlineClr +'" font="Arial" fontcolor="'+ cityTwns.textColor +'" style="Bold" barcolor="255,255,255" mapunits="feet" scaleunits="feet" antialiasing="True" screenlength="'+ scaleBarWidth +'" fontsize="15" barwidth="7" overlap="False"/>',
             // '</OBJECT>',
             // '</LAYER>',
-            
+
             '</GET_IMAGE>',
             '</REQUEST>',
             '</ARCXML>'
@@ -353,7 +354,7 @@ theMap.ArcXML_module = function () {
         this.options_module.svgController('start Send Request To Server');
 
         this.startSend = Date.now();
-        
+
         this.zoomStartTimer = undefined;
 
         this.clickedOnASvgCity = false; // TODO: This is a global.
@@ -371,7 +372,7 @@ theMap.ArcXML_module = function () {
             this.utilities_module.mainAjax(xmlRequest);
             svg_streets.getMapInfo({
                 x: arg_minX,
-                X: arg_maxX, 
+                X: arg_maxX,
                 y: arg_minY,
                 Y: arg_maxY,
             });
@@ -407,7 +408,7 @@ var tg = {"ARCXML": {
             attributes: {field: "NAME"},
             children: {
                 "TEXTSYMBOL": {
-                    attributes: {antialiasing: "true", font: "Calibri", fontsize: "12", fontcolor: "255,255,255"} 
+                    attributes: {antialiasing: "true", font: "Calibri", fontsize: "12", fontcolor: "255,255,255"}
                 }
             }
             },
@@ -415,12 +416,12 @@ var tg = {"ARCXML": {
             attributes: {field: "sdfsdfsdf"},
             children: {
                 "TEXTSYMBOL": {
-                    attributes: {antialiasing: "true", font: "Calibri", fontsize: "12", fontcolor: "255,255,255"} 
+                    attributes: {antialiasing: "true", font: "Calibri", fontsize: "12", fontcolor: "255,255,255"}
                 }
             }
             }
         }
-        } 
+        }
     }
     },
     "LAYERDEF_1": {
@@ -430,10 +431,10 @@ var tg = {"ARCXML": {
                 attributes: {field: "NAME"},
                 children: {
                     "TEXTSYMBOL": {
-                        attributes: {antialiasing: "true", font: "Calibri", fontsize: "12", fontcolor: "255,255,255"} 
+                        attributes: {antialiasing: "true", font: "Calibri", fontsize: "12", fontcolor: "255,255,255"}
                     }
                 }
-            }   
+            }
         }
     },
     "LAYERDEF_2": {
@@ -443,7 +444,7 @@ var tg = {"ARCXML": {
                 attributes: {field: "NAME"},
                 children: {
                     "TEXTSYMBOL": {
-                        attributes: {antialiasing: "true", font: "Calibri", fontsize: "12", fontcolor: "255,255,255"} 
+                        attributes: {antialiasing: "true", font: "Calibri", fontsize: "12", fontcolor: "255,255,255"}
                     }
                 }
             },
@@ -451,10 +452,10 @@ var tg = {"ARCXML": {
                 attributes: {field: "sdfsdfsdf"},
                 children: {
                     "TEXTSYMBOL": {
-                        attributes: {antialiasing: "true", font: "Calibri", fontsize: "12", fontcolor: "255,255,255"} 
+                        attributes: {antialiasing: "true", font: "Calibri", fontsize: "12", fontcolor: "255,255,255"}
                     }
                 }
-            } 
+            }
         }
     },
     "LAYERDEF_3": {
@@ -464,10 +465,10 @@ var tg = {"ARCXML": {
                 attributes: {field: "NAME"},
                 children: {
                     "TEXTSYMBOL": {
-                        attributes: {antialiasing: "true", font: "Calibri", fontsize: "12", fontcolor: "255,255,255"} 
+                        attributes: {antialiasing: "true", font: "Calibri", fontsize: "12", fontcolor: "255,255,255"}
                     }
                 }
-            }   
+            }
         }
     }
 }}
@@ -476,11 +477,11 @@ var tg = {"ARCXML": {
 function jsonToXML(o_obj, b_debug, a_keys, s_indent, n_iter) {
     var s_xml = '',
         s_newLine = b_debug? '\n': '',
-        o_children, 
+        o_children,
         o_attributes;
 
     s_indent = b_debug? s_indent: '';
-    
+
     if (typeof o_obj === "string" || !a_keys || !n_iter) {
 
        o_obj  = (typeof o_obj === "string")? JSON.parse(o_obj): o_obj;
@@ -490,18 +491,18 @@ function jsonToXML(o_obj, b_debug, a_keys, s_indent, n_iter) {
     }
 
     if (n_iter < a_keys.length) {
-        
+
         o_children   = o_obj[a_keys[n_iter]].children;
         o_attributes = o_obj[a_keys[n_iter]].attributes || {};
 
         s_xml += s_indent +'<'+ a_keys[n_iter].replace(/_[\s\S]*/, '')
 
                + s_getAttributes(o_attributes, Object.keys(o_attributes), 0)
-                
+
                + (o_children? ">"+ s_newLine: "/>"+ s_newLine);
 
         if (o_children) {
-            
+
             s_xml += jsonToXML( o_children,
                                 b_debug,
                                 Object.keys(o_children),
@@ -513,7 +514,7 @@ function jsonToXML(o_obj, b_debug, a_keys, s_indent, n_iter) {
 
         s_xml += jsonToXML(o_obj, b_debug, a_keys, s_indent, ++n_iter);
     }
-        
+
     return s_xml;
 
     // Returns the attributes as a string
@@ -521,13 +522,13 @@ function jsonToXML(o_obj, b_debug, a_keys, s_indent, n_iter) {
         var s_attribs = '';
 
         if (o_attributes && n_iter < a_keys.length) {
-            
+
             s_attribs += ' '+ a_keys[n_iter] +'="'+ o_attributes[a_keys[n_iter]] +'"';
-            
+
             s_attribs += s_getAttributes(o_attributes, a_keys, ++n_iter);
         }
 
-        return s_attribs;               
+        return s_attribs;
     }
 }
 
