@@ -1,10 +1,10 @@
-theMap.utilities_module = function(){  
+theMap.utilities_module = function(){
     var theMap = window.theMap;
 
     var convertSPtoScreenPoints = function (x,y) {
       var xMultiplier = ( this.presentMaxX - this.presentMinX ) / this.resizedMapWidth, // For paths.
           yMultiplier = ( this.presentMaxY - this.presentMinY ) / this.resizedMapHeight; // For paths.
-      
+
       return ( ( x - this.presentMinX  ) / xMultiplier + this.currentMapImg._left ) +','+ ( ( this.presentMaxY - y ) / yMultiplier + this.currentMapImg._top ) +' ';
     }.bind(theMap);
 
@@ -13,15 +13,15 @@ theMap.utilities_module = function(){
         var yMultiplier = ( this.presentMaxY - this.presentMinY ) / this._height;
         var x = ( ( ( e.clientX - this.mapContainer._left ) - ( this.dragDiv._left + this._left ) ) * xMultiplier + this.presentMinX );
         var y = ( this.presentMaxY - ( ( ( e.clientY - this.mapContainer._top ) - ( this.dragDiv._top + this._top ) ) * yMultiplier ) );
-        
+
         return { x: x, y: y };
     }.bind( theMap );
-    
+
     // firstMapLoad only gets called on the first map load.
     function firstMapLoad(){
-        
+
         // This primes the first history position so that there will be a "state" if the person
-        // uses the back button, then sets the onPopState variable to true so that an identical 
+        // uses the back button, then sets the onPopState variable to true so that an identical
         // "state" won't be pushed onto the history stack.
 
         if( window.history.replaceState ){
@@ -32,15 +32,15 @@ theMap.utilities_module = function(){
                         maxyOld: this.presentMaxY,
                         zoom: theMap.sliderPosition,
                         title: "SnoCo Interactive Map: Welcome!"
-                    }, 
+                    },
                     "title 1",
                     ( !window.theMap.infoFromUrl )
-                        ? '?={"x":' + this.presentMinX.toFixed( 3 ) 
-                            +',"X":'+ this.presentMaxX.toFixed( 3 ) 
-                            +',"y":'+ this.presentMinY.toFixed( 3 ) 
-                            +',"Y":'+ this.presentMaxY.toFixed( 3 ) 
-                            +',"z":'+ this.sliderPosition 
-                            +'}' 
+                        ? '?={"x":' + this.presentMinX.toFixed( 3 )
+                            +',"X":'+ this.presentMaxX.toFixed( 3 )
+                            +',"y":'+ this.presentMinY.toFixed( 3 )
+                            +',"Y":'+ this.presentMaxY.toFixed( 3 )
+                            +',"z":'+ this.sliderPosition
+                            +'}'
                         : window.location.search
             );
         }
@@ -57,7 +57,7 @@ theMap.utilities_module = function(){
     }
 
     function createMarkersFromInfoFromUrl(){
-        
+
         // First check if the first char ( after '?=') is a number, if so assume it is an APN that needs to be calculated,
         // otherwise assume it is a JSON object with pre-calculated marker information.
         if ( checkUrlForApn().doesExist ){
@@ -70,13 +70,13 @@ theMap.utilities_module = function(){
                     theMap.marker_module.makeMarker( null, mrker );
                 } );
             }
-        } 
+        }
 
         // If there was an number pasted into #find_parcel_number_input, then style the "Search by APN"
         // anchor so it looks like a button.
         if ( /^\d/.test ( document.querySelector( '#search_apn_div  input' ).value ) ){
              //window.$( 'document.querySelector( '#search_apn_div  input' ),' ).className = 'findParcelNumberBorder';
-        } 
+        }
         setTimeout( function(){ theMap.infoFromUrl = undefined; }, 500 );
     }
 
@@ -89,9 +89,9 @@ theMap.utilities_module = function(){
             }
         }
         return false;
-    } 
-    
-    var getInfoFromUrl = function(){ 
+    }
+
+    var getInfoFromUrl = function(){
 
         // First check to see if it is a JSON object, if it is then stick it in infoFromUrl,
         //  that will be checked for true/false then used to create the first map.
@@ -117,15 +117,15 @@ theMap.utilities_module = function(){
                     this.optionsReference.showParcelNumbers_CheckMark = this.infoFromUrl.pn;
                 }
                 if( this.infoFromUrl.l && this.infoFromUrl.l.length !== 0 ){
-                    this.addMapLoadListener( 'Creates svg lines from information in the url, deleted after first use.', theMap, 
+                    this.addMapLoadListener( 'Creates svg lines from information in the url, deleted after first use.', theMap,
                             function makeLines(){
-                                theMap.drawSvgLine_module.createPolylinesFromUrl( theMap.infoFromUrl.l ); 
+                                theMap.drawSvgLine_module.createPolylinesFromUrl( theMap.infoFromUrl.l );
                                 theMap.removeMapLoadListener( makeLines );
                             } );
                     //this.drawSvgLine_module.createPolylinesFromUrl( this.infoFromUrl.l );
                 }
                 if( this.infoFromUrl.ml && this.infoFromUrl.ml.length !== 0 ){
-                    this.addMapLoadListener( 'Creates svg lines from information in the url, deleted after first use.', theMap, 
+                    this.addMapLoadListener( 'Creates svg lines from information in the url, deleted after first use.', theMap,
                             function makeLines(){
                                 theMap.measureSvgLine_module.createPolylinesFromUrl( this.infoFromUrl.ml );
                                 theMap.removeMapLoadListener( makeLines );
@@ -136,16 +136,16 @@ theMap.utilities_module = function(){
             }
 
             // Either way call call a function that will attempt to create markers if there is APN information.
-            this.addMapLoadListener( 'Creates markers from information in the url, deleted after first use.', theMap, 
+            this.addMapLoadListener( 'Creates markers from information in the url, deleted after first use.', theMap,
                 function createMarkers(){
                     theMap.utilities_module.createMarkersFromInfoFromUrl();
                     theMap.removeMapLoadListener( createMarkers );
                 });
         } catch ( error ){
-            window.alert(   'There appears to be a problem with the URL.\n\nCryptic Error Message:\n  "  '+ 
+            window.alert(   'There appears to be a problem with the URL.\n\nCryptic Error Message:\n  "  '+
                             error +'  "\n\n'+
                             'The URL length is: '+ ( location.pathname + location.search ).length +
-                            ' characters.' ); 
+                            ' characters.' );
         }
     }.bind( theMap );
 
@@ -167,11 +167,11 @@ theMap.utilities_module = function(){
 
         // This controls pageHasFocus when the browser isn't focused ( clicked outside the browser );
         // The visibility api doesn't fire off when someone clicks outside the browser.
-        window.onblur = function(){ 
+        window.onblur = function(){
             theMap.pageHasFocus = false;// Mouse down event will set this to true, the click event will still fire.
             theMap.pageHasFocusForClick = false; // Used to prevent click events from firing.
 
-            // This is used to set the pageHasFocus variable to true if the person uses the mousewheel to 
+            // This is used to set the pageHasFocus variable to true if the person uses the mousewheel to
             // zoom on the map. ThetheMap.zoom_module.zoomInOut function was setting pageHasFocus everytime
             // which was unnecessary.
             theMap.mapContainer.addEventListener( theMap.MOUSE_WHEEL_EVT, onFocusMouseWheelEvnt );
@@ -181,11 +181,11 @@ theMap.utilities_module = function(){
                 this.removeEventListener( theMap.MOUSE_WHEEL_EVT, onFocusMouseWheelEvnt );
             }
         };
-        
+
         // From mdn "Using the Page Visibility API" 1/26/2014.
         // This controls pageHasFocus when switching between tabs.
         // First window.onblur will set pageHasFocus = false, then when switching back the visibly api will set pageHasFocus = true.
-        if ( typeof document.hidden !== "undefined" ){ // Opera 12.10 and Firefox 18 and later support 
+        if ( typeof document.hidden !== "undefined" ){ // Opera 12.10 and Firefox 18 and later support
             document.addEventListener( "visibilitychange", setPageHasFocusToTrue );
         } else if ( typeof document.mozHidden !== "undefined" ){
             document.addEventListener( "mozvisibilitychange", setPageHasFocusToTrue );
@@ -195,7 +195,7 @@ theMap.utilities_module = function(){
             document.addEventListener( "webkitvisibilitychange", setPageHasFocusToTrue );
         }
 
-        // This will set a "click" event listener that will set pageHasFocus = true if the person clicks on 
+        // This will set a "click" event listener that will set pageHasFocus = true if the person clicks on
         // the options panel or the zoom slider.
         window.$( 'options_container' ).addEventListener( 'click', setPageHasFocusToTrue );
         window.$( 'zoom_control' ).addEventListener( 'click', setPageHasFocusToTrue );
@@ -224,14 +224,14 @@ theMap.utilities_module = function(){
         updateButton: window.$( 'update_button' ),
         saveButton: window.$( 'save_button' ),
     };
-    
+
     var addListeners = function(){// TODO = comment what this does.
 
         theMap.setTimeoutt( function(){ theMap.options_module.svgController( 'finish Map Done Loading' ); }, 2000 );
         theMap.mapContainer.addEventListener( theMap.MOUSE_WHEEL_EVT, theMap.zoom_module.zoomInOut );
-        
+
         for(var i = 0; i < this.array.length; ++i ){
-            
+
             this.array[i][0].addEventListener( this.array[i][1], this.array[i][2], false );
         }
 
@@ -241,7 +241,7 @@ theMap.utilities_module = function(){
 
     var handleResize = function(){
         var middleOfContainerX = this._width / 2,
-            middleOfContainerY = this._height / 2; 
+            middleOfContainerY = this._height / 2;
 
         this.viewPortWidth  = window.innerWidth;
         this.viewPortHeight = window.innerHeight;
@@ -252,7 +252,7 @@ theMap.utilities_module = function(){
         this.svgContainer.style.height = this.resizedMapHeight +'px';
         // This finds the top of the zoom slider on the screen, it changes when the screen resizes
         // because it's containers ( #zoom_control ) left and top are set as a percentage of the screen size.
-        this.zoom_slider_container_styleTop = window.$( 'zoom_slider_container' ).getBoundingClientRect().top;       
+        this.zoom_slider_container_styleTop = window.$( 'zoom_slider_container' ).getBoundingClientRect().top;
         this.overlayMap_module.resizeOverlayMapContainer();
         this.smallCountySvg_module.smallCountySvgResize();
         this.zoom_module.zoomStart( middleOfContainerX, middleOfContainerY, this.viewPortWidth/2, this.viewPortHeight/2 );
@@ -260,12 +260,12 @@ theMap.utilities_module = function(){
 
     var calculateMaxWidthHeight = function(){
         var maxWidthHeight = theMap.parameters.MAX_IMG_PIXELS;
-            
+
         // If the viewPortHeight multiplied by viewPortWidth is greater than the max number
         // of pixels the server will serve then find the biggest size the map image can be.
         if ( this.viewPortHeight * this.viewPortWidth > maxWidthHeight ){
-            
-            // By default it will try to reduce the width of the map and and not touch 
+
+            // By default it will try to reduce the width of the map and and not touch
             // the height so it will be full height.
             if ( this.viewPortWidth < theMap.parameters.MAX_WIDTH ){
                 this.resizedMapWidth = ( function ( height, width, maxWidthHeight ){
@@ -316,16 +316,16 @@ theMap.utilities_module = function(){
     var removeTransitionFromMarkers = function(){
         var markers = this.markersArray;
         var len = markers.length;
-        
+
         while ( len-- ){
-        
+
             markers[len].style.cssText = markers[len].style.cssText.replace( /(-webkit-|-moz-|-ms-)?transition.*?;/g, '' );
         }
     }.bind( theMap );
-    
+
     function simpleMessageBox( arg_innerHTML, arg_id, arg_width ){
         var message = document.createElement( 'div' );
-        
+
         message.className = 'simpleMessageBox';
         message.style.width = ( arg_width && ( arg_width +'px' ) ) || '300px';
         message.style.left = ( ( window.innerWidth / 2 ) - ( ( arg_width && ( arg_width / 2 ) ) || 150 ) ) +'px';
@@ -343,48 +343,48 @@ theMap.utilities_module = function(){
             url = theMap.parameters.URL_PREFIX + theMap.parameters.MAP_URL,
             mainAjaxHTTPRequest = theMap.mainAjaxHTTPRequest;
 
-        mainAjaxHTTPRequest.abort(); 
-        
+        mainAjaxHTTPRequest.abort();
+
         theMap.state.waitingForAjax = true;
         theMap.citiesTownsSvg_module.svgCitiesSetDisplay( 'none' );
         //document.body.className = 'waiting';
-        
+
         window.theMap.className = '';
 
         mainAjaxHTTPRequest.onreadystatechange = function(){
             try{
 
                 if( mainAjaxHTTPRequest.status === 200 && mainAjaxHTTPRequest.readyState === 4){
-                    
+
                     onload();
                 }
             } catch(e){
-                
-                console.log(e); 
+
+                console.log(e);
             }
         };
 
         var onload = function(){
              //z = ( new DOMParser() ).parseFromString( /<\?xml.*>/.exec(  mainAjaxHTTPRequest.responseText )[0], "application/xml" );
             if( /error/i.test ( mainAjaxHTTPRequest.responseText ) ){
-                
+
                 handleAjaxError( mainAjaxHTTPRequest.responseText, mainAjaxHTTPRequest );
                 return;
             }
 
             try{
-            
+
                 theMap.parsedXMLFromServer = ( new DOMParser() ).parseFromString( /<\?xml.*>/.exec(  mainAjaxHTTPRequest.responseText )[0], "application/xml" );
             } catch ( tryCatchError ){
-            
+
                handleAjaxError( tryCatchError, mainAjaxHTTPRequest);
                theMap.mapControl_module.resetMapOnError();
-               
+
                return;
-            } 
+            }
 
             window.theMap.state.waitingForAjax = false;
-            
+
             theMap.mapControl_module.setImg();
         };
 
@@ -401,26 +401,26 @@ theMap.utilities_module = function(){
         var error = undefined;
 
         theMap.state.waitingForAjax = false;
-        
+
         if( /error/i.test( arg_responseObj.responseText ) ){
-            
+
             error = arg_responseObj.responseText.match( /<error.*?>(.*?)<\/error>/i );
-            
+
             if( error ){ //Error from map server
-                
+
                 error = error[1].replace( /\\/g , '' );
-                
+
                 window.console.error( 'There was an ajax error from onload: ', arg_Error );
                 window.console.log( arg_responseObj );
-                
-                window.alert( 'There was an error: \n\n    ' 
-                            + error 
+
+                window.alert( 'There was an error: \n\n    '
+                            + error
                             +'\n\nThis error does not indicate a problem with '
                             +'your computer, network or internet connection.\n'
                             +'Please try again later.' );
 
             } else if ( arg_responseObj.responseText.match( /HTTPException:(.*?)\n/i ) ){
-                
+
                 error = arg_responseObj.responseText.match( /HTTPException:(.*?)\n/i )[1].replace( /\\/g , '' );
 
                 window.alert( 'There was an error.\nPlease try again later.\n\n'+ error );
@@ -429,13 +429,13 @@ theMap.utilities_module = function(){
         } else if (arg_responseObj.responseText === ''){
 
             window.console.error( 'There was an ajax error: ', arg_Error, arg_responseObj.status );
-            window.console.log( arg_responseObj );            
+            window.console.log( arg_responseObj );
 
             window.alert( 'There was an error.\nPlease try again later.\n\nBlank response from server\n\n'+ arg_responseObj.status +': '+ arg_responseObj.statusText );
         } else {
 
             window.console.error( 'There was an ajax error: ', arg_Error, arg_responseObj.status );
-            window.console.log( arg_responseObj );            
+            window.console.log( arg_responseObj );
 
             window.alert( 'There was an error.\nPlease try again later.\n\n'+ arg_responseObj.status +': '+ arg_responseObj.statusText );
         }
@@ -443,17 +443,17 @@ theMap.utilities_module = function(){
         theMap.resetMapOnError();
     }
 
-    // This function calculates where theMap.dragDiv is in the css cubic bezier transition when 
+    // This function calculates where theMap.dragDiv is in the css cubic bezier transition when
     // the panning animation is canceled before it is has finished. It is a port of a port of webkit UnitBezier.
     // http://stackoverflow.com/questions/11696736/recreating-css3-transitions-cubic-bezier-curve
     // https://trac.webkit.org/browser/trunk/Source/WebCore/platform/graphics/UnitBezier.h
     // https://gist.github.com/mckamey/3783009
     function UnitBezier( p1x, p1y, p2x, p2y ) {
-        var cx = 3.0 * p1x, 
-            bx = ( 3.0 * ( p2x - p1x ) ) - cx, 
+        var cx = 3.0 * p1x,
+            bx = ( 3.0 * ( p2x - p1x ) ) - cx,
             ax = 1.0 - cx - bx,
-            cy = 3.0 * p1y, 
-            by = ( 3.0 * ( p2y - p1y ) ) - cy, 
+            cy = 3.0 * p1y,
+            by = ( 3.0 * ( p2y - p1y ) ) - cy,
             ay = 1.0 - cy - by;
 
         return  function ( arg_percentCompleted ){
@@ -470,7 +470,7 @@ theMap.utilities_module = function(){
                         else { t1 = t2; }
                         t2 = ( ( t1 - t0 ) * 0.5 ) + t0;
                     }
-                    
+
                 };
     }
 
@@ -479,36 +479,36 @@ theMap.utilities_module = function(){
         var sqrt = window.Math.sqrt, pow = window.Math.pow,
             atan = window.Math.atan, sin = window.Math.sin,
             abs = window.Math.abs,
-            part1 = undefined, 
+            part1 = undefined,
             rho   = undefined, theta = undefined, txy = undefined,
-            lon   = undefined, 
-            lat0  = undefined,  lat1 = undefined, 
+            lon   = undefined,
+            lat0  = undefined,  lat1 = undefined,
             Lat   = undefined, Lon   = undefined;
 
-        uX = uX - 1640416.666666667; 
+        uX = uX - 1640416.666666667;
         uY = uY - 0;
-        rho = sqrt( pow( uX,2 ) + pow( ( 19205309.96888484 - uY ),2 ) );  
-        theta = atan( uX / ( 19205309.96888484 - uY ) ); 
-        txy = pow( ( rho / ( 20925646.00* 1.8297521088829285 ) ),( 1 / 0.7445203265542939 ) ); 
-        lon = ( theta / 0.7445203265542939 ) + -2.1089395128333326; 
-        uX = uX + 1640416.666666667; 
-        lat0 = 1.5707963267948966 - ( 2 * atan( txy ) ); 
-        part1 = ( 1 - ( 0.08181905782 * sin( lat0 ) ) ) / ( 1 + ( 0.08181905782 * sin( lat0 ) ) ); 
-        lat1 = 1.5707963267948966 - ( 2 * atan( txy * pow( part1,( 0.08181905782 / 2 ) ) ) ); 
-        while ( ( abs( lat1 - lat0 ) ) > 0.000000002 ){ 
-            lat0 = lat1; 
-            part1 = ( 1 - ( 0.08181905782 * sin( lat0 ) ) ) / ( 1 + ( 0.08181905782 * sin( lat0 ) ) ); 
-            lat1 = 1.5707963267948966 - ( 2 * atan( txy * pow( part1,( 0.08181905782 / 2 ) ) ) ); 
-        } 
+        rho = sqrt( pow( uX,2 ) + pow( ( 19205309.96888484 - uY ),2 ) );
+        theta = atan( uX / ( 19205309.96888484 - uY ) );
+        txy = pow( ( rho / ( 20925646.00* 1.8297521088829285 ) ),( 1 / 0.7445203265542939 ) );
+        lon = ( theta / 0.7445203265542939 ) + -2.1089395128333326;
+        uX = uX + 1640416.666666667;
+        lat0 = 1.5707963267948966 - ( 2 * atan( txy ) );
+        part1 = ( 1 - ( 0.08181905782 * sin( lat0 ) ) ) / ( 1 + ( 0.08181905782 * sin( lat0 ) ) );
+        lat1 = 1.5707963267948966 - ( 2 * atan( txy * pow( part1,( 0.08181905782 / 2 ) ) ) );
+        while ( ( abs( lat1 - lat0 ) ) > 0.000000002 ){
+            lat0 = lat1;
+            part1 = ( 1 - ( 0.08181905782 * sin( lat0 ) ) ) / ( 1 + ( 0.08181905782 * sin( lat0 ) ) );
+            lat1 = 1.5707963267948966 - ( 2 * atan( txy * pow( part1,( 0.08181905782 / 2 ) ) ) );
+        }
         Lat = lat1 / 0.01745329252;
-        Lon = lon / 0.01745329252; 
+        Lon = lon / 0.01745329252;
         return { x: Lat.toFixed( 7 ), y: Lon.toFixed( 7 ) };
     }
 
     function arcXmlDOM(arg_info) {
         var arcXML = arg_info.match(/<ARCXML[\s\S]+?<\/ARCXML>/);
         var DOM = undefined;
-        
+
         if ( arcXML && arcXML[0]) {
 
           DOM = (new DOMParser()).parseFromString(arcXML[0], 'text/xml');
@@ -546,7 +546,7 @@ theMap.utilities_module = function(){
 /*
     TODO:
         *   When order is true in arcxml the layers that are not sent are considers view = false,
-            so use a ternary statement to remove them if they are not needed? 
+            so use a ternary statement to remove them if they are not needed?
 */
 /*errors: <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=Cp1252"><HTML><HEAD><TITLE>Default Form</TITLE><!-- Title must match jsForm.htm's title --><SCRIPT TYPE="text/javascript" LANGUAGE="JavaScript">function passXML() {
 
@@ -555,14 +555,14 @@ null( XMLResponse );
 }</SCRIPT></HEAD><BODY BGCOLOR="null" onload="passXML()"><FORM ACTION="" METHOD="POST" name="theForm"><!--- <input type="Hidden" name="Form" value="True"> ---><INPUT TYPE="Hidden" NAME="ArcXMLRequest" VALUE=""><INPUT TYPE="Hidden" NAME="JavaScriptFunction" VALUE="parent.MapFrame.processXML"><INPUT TYPE="Hidden" NAME="BgColor" VALUE="null"><INPUT TYPE="Hidden" NAME="FormCharset" VALUE="Cp1252"><INPUT TYPE="Hidden" NAME="RedirectURL" VALUE=""><INPUT TYPE="Hidden" NAME="HeaderFile" VALUE=""><INPUT TYPE="Hidden" NAME="FooterFile" VALUE=""></FORM></BODY></HTML>
 
 
-"<html>\n  
-<head>\n    
-<title>Internal Server Error</title>\n    
-<style>\n   body {\n        padding: 20px;\n        font-family: arial, sans-serif;\n        font-size: 14px;\n      }\n      pre {\n        background: #F2F2F2;\n        padding: 10px;\n      }\n    
-</style>\n  
-</head>\n  
-<body>\n    
-<h1>Internal Server Error</h1>\n    
-<p>The server has either erred or is incapable of performing\n    the requested operation.</p>\n    
+"<html>\n
+<head>\n
+<title>Internal Server Error</title>\n
+<style>\n   body {\n        padding: 20px;\n        font-family: arial, sans-serif;\n        font-size: 14px;\n      }\n      pre {\n        background: #F2F2F2;\n        padding: 10px;\n      }\n
+</style>\n
+</head>\n
+<body>\n
+<h1>Internal Server Error</h1>\n
+<p>The server has either erred or is incapable of performing\n    the requested operation.</p>\n
 <pre>Traceback (most recent call last):\n  File &quot;/base/data/home/runtimes/python27/python27_lib/versions/third_party/webapp2-2.5.2/webapp2.py&quot;, line 1535, in __call__\n    rv = self.handle_exception(request, response, e)\n  File &quot;/base/data/home/runtimes/python27/python27_lib/versions/third_party/webapp2-2.5.2/webapp2.py&quot;, line 1529, in __call__\n    rv = self.router.dispatch(request, response)\n  File &quot;/base/data/home/runtimes/python27/python27_lib/versions/third_party/webapp2-2.5.2/webapp2.py&quot;, line 1278, in default_dispatcher\n    return route.handler_adapter(request, response)\n  File &quot;/base/data/home/runtimes/python27/python27_lib/versions/third_party/webapp2-2.5.2/webapp2.py&quot;, line 1102, in __call__\n    return handler.dispatch()\n  File &quot;/base/data/home/runtimes/python27/python27_lib/versions/third_party/webapp2-2.5.2/webapp2.py&quot;, line 572, in dispatch\n    return self.handle_exception(e, self.app.debug)\n  File &quot;/base/data/home/runtimes/python27/python27_lib/versions/third_party/webapp2-2.5.2/webapp2.py&quot;, line 570, in dispatch\n    return method(*args, **kwargs)\n  File &quot;/base/data/home/apps/s~forwarding-proxy/1.376496693057479353/helloworld.py&quot;, line 38, in post\n    response = urllib2.urlopen(req)\n  File &quot;/base/data/home/runtimes/python27/python27_dist/lib/python2.7/urllib2.py&quot;, line 127, in urlopen\n    return _opener.open(url, data, timeout)\n  File &quot;/base/data/home/runtimes/python27/python27_dist/lib/python2.7/urllib2.py&quot;, line 404, in open\n    response = self._open(req, data)\n  File &quot;/base/data/home/runtimes/python27/python27_dist/lib/python2.7/urllib2.py&quot;, line 422, in _open\n    '_open', req)\n  File &quot;/base/data/home/runtimes/python27/python27_dist/lib/python2.7/urllib2.py&quot;, line 382, in _call_chain\n    result = func(*args)\n  File &quot;/base/data/home/runtimes/python27/python27_dist/lib/python2.7/urllib2.py&quot;, line 1214, in http_open\n    return self.do_open(httplib.HTTPConnection, req)\n  File &quot;/base/data/home/runtimes/python27/python27_dist/lib/python2.7/urllib2.py&quot;, line 1187, in do_open\n    r = h.getresponse(buffering=True)\n  File &quot;/base/data/home/runtimes/python27/python27_dist/lib/python2.7/gae_override/httplib.py&quot;, line 526, in getresponse\n    raise HTTPException(str(e))\nHTTPException: Deadline exceeded while waiting for HTTP response from URL: http://gis.snoco.org/servlet/com.esri.esrimap.Esrimap?ServiceName=Assessor&amp;ClientVersion=9.4.1&amp;Form=True&amp;Encode=False?\n</pre>\n  </body>\n</html>"
 */
