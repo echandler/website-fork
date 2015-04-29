@@ -1,10 +1,10 @@
 var svg_streets = function () {
   var glob = {
-    streetLayers      : {},
-    streetNameGroup   : document.createElementNS( "http://www.w3.org/2000/svg", "g"),
-    streetsGroup      : document.createElementNS( "http://www.w3.org/2000/svg", "g"),
-    streetsContainer  : document.createElementNS( "http://www.w3.org/2000/svg", "g"),
-    streetInfoAjax    : new XMLHttpRequest()
+    streetLayers     : {},
+    streetNameGroup  : document.createElementNS("http://www.w3.org/2000/svg", "g"),
+    streetsGroup     : document.createElementNS("http://www.w3.org/2000/svg", "g"),
+    streetsContainer : document.createElementNS("http://www.w3.org/2000/svg", "g"),
+    streetInfoAjax   : new XMLHttpRequest()
   };
 
   glob.streetInfoAjax.onload = function () {
@@ -44,9 +44,9 @@ var svg_streets = function () {
     var svg_container = document.getElementById('theMap_svg_container');
 
     // Make the filter for the sattallite view. http://stackoverflow.com/questions/14386642/if-two-partially-opaque-shapes-overlap-can-i-show-only-one-shape-where-they-ove
-    var filter = document.createElementNS( "http://www.w3.org/2000/svg", "filter");
-    var fecomponent = document.createElementNS( "http://www.w3.org/2000/svg", "feComponentTransfer");
-    var fefunca = document.createElementNS( "http://www.w3.org/2000/svg", "feFuncA");
+    var filter = document.createElementNS("http://www.w3.org/2000/svg", "filter");
+    var fecomponent = document.createElementNS("http://www.w3.org/2000/svg", "feComponentTransfer");
+    var fefunca = document.createElementNS("http://www.w3.org/2000/svg", "feFuncA");
 
     filter.setAttribute('id', 'constantOpacity');
 
@@ -64,7 +64,7 @@ var svg_streets = function () {
     var n = 0;
     while (n < layerOrderArray.length) {
 
-      glob.streetLayers[layerOrderArray[n]] = document.createElementNS( "http://www.w3.org/2000/svg", "g");
+      glob.streetLayers[layerOrderArray[n]] = document.createElementNS("http://www.w3.org/2000/svg", "g");
       glob.streetLayers[layerOrderArray[n]].id = 'layer_'+ layerOrderArray[n];
 
       glob.streetsGroup.appendChild(glob.streetLayers[layerOrderArray[n]]);
@@ -84,7 +84,7 @@ var svg_streets = function () {
     //waterInfo(arg_coords);
   }
 
-  var streetInfo = function ( arg_coords) {
+  var streetInfo = function (arg_coords) {
     var SLIDER_POSITION_NUMBER = theMap.ZOOM_POWER_NUMBER[theMap.sliderPosition];
 
     var streetXML = '<?xml version="1.0" encoding="UTF-8" ?>'
@@ -95,16 +95,16 @@ var svg_streets = function () {
                   + '<LAYER id="6" />'
                   + '<SPATIALQUERY subfields="#SHAPE# MAJRD_TYPE FULLNAME">' // FULLNAME
                   + '<SPATIALFILTER relation="area_intersection">'
-                  + '<ENVELOPE maxy="' + arg_coords.Y + '" maxx="' + arg_coords.X
-                  +         '" miny="' + arg_coords.y + '" minx="' + arg_coords.x + '"/>'
+                  + '<ENVELOPE maxy="'+ arg_coords.Y +'" maxx="'+ arg_coords.X
+                  +         '" miny="'+ arg_coords.y +'" minx="'+ arg_coords.x +'"/>'
                   + '</SPATIALFILTER>'
                   + '</SPATIALQUERY>'
                   + '</GET_FEATURES>'
                   + '</REQUEST>'
                   + '</ARCXML>';
 
-    var XMLPostRequest = window.encodeURIComponent( "ArcXMLRequest")
-                         +"="+ window.encodeURIComponent( streetXML);
+    var XMLPostRequest = window.encodeURIComponent("ArcXMLRequest")
+                         +"="+ window.encodeURIComponent(streetXML);
 
     var url = theMap.parameters.URL_PREFIX + theMap.parameters.PROPERTY_INFO_URL;
 
@@ -129,7 +129,7 @@ var svg_streets = function () {
     var SCALE = ((((theMap.presentMaxX - theMap.presentMinX) / theMap.mapContainer.offsetWidth) * 96) * 12);
     var SLIDER_POSITION_NUMBER = theMap.ZOOM_POWER_NUMBER[theMap.sliderPosition];
 
-    var STREET_WIDTH = Math.round((170 / ( SCALE / 96 /*96dpi*/))+(SLIDER_POSITION_NUMBER < 5? 2: 1)) + 2;
+    var STREET_WIDTH = Math.round((170 / (SCALE / 96 /*96dpi*/)) + (SLIDER_POSITION_NUMBER < 5? 2: 1)) + 2;
     var TEXT_SIZE = Math.round((40 / (SCALE / 96 /*96dpi*/))) + 9;
 
     if (SATELLITE_VIEW) {
@@ -148,9 +148,9 @@ var svg_streets = function () {
     // This way all the street fragments are combined into one array.
     for (var b = 0; b < FEATURES.length; ++b) {
 
-      cacheVar = FEATURES[b].querySelector(
-        '[name="GIS_FEATURES.DBA.TRANSPORTATION_STREETS_GEOCODING.FULLNAME"]')
-          .getAttribute('value');
+      cacheVar = FEATURES[b]
+                 .querySelector('[name="GIS_FEATURES.DBA.TRANSPORTATION_STREETS_GEOCODING.FULLNAME"]')
+                 .getAttribute('value');
 
       if (!cacheVar){
 
@@ -159,16 +159,12 @@ var svg_streets = function () {
 
       streets[cacheVar] = streets[cacheVar] || { coords: [], type: '' };
 
-      streets[cacheVar]
-        .coords.push(FEATURES[b].querySelector('COORDS').textContent);
+      streets[cacheVar].coords.push(FEATURES[b].querySelector('COORDS').textContent);
 
-      streets[cacheVar]
-        .type = FEATURES[b].querySelector(
-          '[name="GIS_FEATURES.DBA.TRANSPORTATION_STREETS_GEOCODING.MAJRD_TYPE"]')
-            .getAttribute('value');
+      streets[cacheVar].type = FEATURES[b]
+              .querySelector('[name="GIS_FEATURES.DBA.TRANSPORTATION_STREETS_GEOCODING.MAJRD_TYPE"]')
+              .getAttribute('value');
     }
-
-    //window.tt = streets; // TODO: testing only.
 
     // Clear the screen of all old streets.
     resetSvgGroups();
@@ -180,46 +176,23 @@ var svg_streets = function () {
     var coords = undefined;
 
     var points = undefined;
-    var path = undefined;
+    var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     var pathClone = undefined;
-    var text = undefined;
+    var text = document.createElementNS("http://www.w3.org/2000/svg", "text");
     var textClone = undefined;
-    var textPath = undefined;
+    var textPath = document.createElementNS("http://www.w3.org/2000/svg", "textPath");
     var textPathClone = undefined;
 
     var streetName = undefined;
     var streetsCache = undefined;
     var coordsLen = undefined;
 
-    text = document.createElementNS( "http://www.w3.org/2000/svg", "text");
     text.setAttribute('font-size', TEXT_SIZE);
     text.setAttribute('dy', '4'); // Does a decent job of centering the text in the svg path.
     text.setAttribute('class', (SATELLITE_VIEW ? ' road_text_satellite': ''));
 
-    textPath = document.createElementNS( "http://www.w3.org/2000/svg", "textPath");
-    //textPath.textContent = streetName; //features[m].querySelector('FIELD:last-child').getAttribute('value');
-    //textPath.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#street_"+ num);
     textPath.setAttribute('startOffset', startOffset);
     textPath.style.cursor = 'pointer';
-
-    path = document.createElementNS( "http://www.w3.org/2000/svg", "path");
-
-    // var w = 0;
-    // while (w < keys.length) {
-    //   cacheVar = keys[w];
-
-    //   var p = streets[cacheVar].join(';').split(';');
-
-    //   for(var n = 0; n < p.length; ++n){
-    //     for(var g = 0; g < p.length; ++g){
-
-    //       if(g === n) { continue; }
-    //       if(p[n] === p[g]){ p.splice(n,1); g = -1; }
-    //     }
-    //   }
-    //   streets[cacheVar].coords = [p.join(';')];
-    //   ++w;
-    // }
 
     for (var q = 0; q < keys.length; ++q) {
 
