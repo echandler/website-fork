@@ -100,7 +100,7 @@ theMap.ArcXML_module = function () {
 
             if (options['show'
                         + this.parameters.SATELLITE_MAP_YEARS.a.year
-                        +'SatelliteYearMap_CheckMark']) {
+                        + 'SatelliteYearMap_CheckMark']) {
 
                 satelliteMapYearA = true;
                 satelliteMapYearB = false;
@@ -111,7 +111,7 @@ theMap.ArcXML_module = function () {
             }
         }
 
-        if (options.showOverlayMap) {
+        if (options.showOverlayMap_state) {
             if (arg_overLayMap) { // Second
 
                 satelliteMapYearA = true;
@@ -336,7 +336,7 @@ theMap.ArcXML_module = function () {
 
             '</LAYERLIST>',
 
-            '<BACKGROUND color="235,230,230"/>',
+            '<BACKGROUND color="235,235,240"/>',
 
             '</PROPERTIES>',
 
@@ -503,7 +503,7 @@ function jsonToXML(o_obj, b_debug, a_keys, s_indent, n_iter) {
 
         if (o_children) {
 
-            s_xml += jsonToXML( o_children,
+            s_xml += jsonToXML(o_children,
                                 b_debug,
                                 Object.keys(o_children),
                                 s_indent +'    ',

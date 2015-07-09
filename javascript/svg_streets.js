@@ -44,9 +44,9 @@ var svg_streets = function () {
     var svg_container = document.getElementById('theMap_svg_container');
 
     // Make the filter for the sattallite view. http://stackoverflow.com/questions/14386642/if-two-partially-opaque-shapes-overlap-can-i-show-only-one-shape-where-they-ove
-    var filter = document.createElementNS("http://www.w3.org/2000/svg", "filter");
+    var filter      = document.createElementNS("http://www.w3.org/2000/svg", "filter");
     var fecomponent = document.createElementNS("http://www.w3.org/2000/svg", "feComponentTransfer");
-    var fefunca = document.createElementNS("http://www.w3.org/2000/svg", "feFuncA");
+    var fefunca     = document.createElementNS("http://www.w3.org/2000/svg", "feFuncA");
 
     filter.setAttribute('id', 'constantOpacity');
 
@@ -56,7 +56,8 @@ var svg_streets = function () {
     fecomponent.appendChild(fefunca);
     filter.appendChild(fecomponent);
 
-    svg_container.appendChild(filter);
+    //svg_container.appendChild(filter);
+    svg_container.insertBefore(filter, theMap.svgCitiesGroup);
 
     // Make the glob.streetLayers for the different roads
     var layerOrderArray = [9,0,8,7,6,5,4,3,2,1];
@@ -74,17 +75,16 @@ var svg_streets = function () {
     glob.streetsContainer.appendChild(glob.streetsGroup);
     glob.streetsContainer.appendChild(glob.streetNameGroup);
 
-    svg_container.appendChild(glob.streetsContainer);
+    //svg_container.appendChild(glob.streetsContainer);
+    svg_container.insertBefore(glob.streetsContainer, theMap.svgCitiesGroup);
   })();
 
   function getMapInfo (arg_coords) {
 
-   // parcelInfo(arg_coords);
     streetInfo(arg_coords);
-    //waterInfo(arg_coords);
   }
 
-  var streetInfo = function (arg_coords) {
+  function streetInfo(arg_coords) {
     var SLIDER_POSITION_NUMBER = theMap.ZOOM_POWER_NUMBER[theMap.sliderPosition];
 
     var streetXML = '<?xml version="1.0" encoding="UTF-8" ?>'
@@ -104,15 +104,17 @@ var svg_streets = function () {
                   + '</ARCXML>';
 
     var XMLPostRequest = window.encodeURIComponent("ArcXMLRequest")
-                         +"="+ window.encodeURIComponent(streetXML);
+                        + "="
+                        + window.encodeURIComponent(streetXML);
 
     var url = theMap.parameters.URL_PREFIX + theMap.parameters.PROPERTY_INFO_URL;
 
     if (SLIDER_POSITION_NUMBER >= 6) {
+      // Don't load the street information.
 
       resetSvgGroups();
 
-      return; // Don't load the street information.
+      return;
     }
 
     // Clear the last request.
@@ -121,18 +123,17 @@ var svg_streets = function () {
     glob.streetInfoAjax.open("POST", url, true);
     glob.streetInfoAjax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     glob.streetInfoAjax.send(XMLPostRequest);
-  };
+  }
 
   function createStreets(arg_DOM) {
     var FEATURES = arg_DOM.querySelectorAll('FEATURE');
-    var SATELLITE_VIEW = theMap.optionsReference.showSatelliteView_CheckMark;
+    var SHOW_SATELLITE_VIEW = theMap.optionsReference.showSatelliteView_CheckMark;
     var SCALE = ((((theMap.presentMaxX - theMap.presentMinX) / theMap.mapContainer.offsetWidth) * 96) * 12);
     var SLIDER_POSITION_NUMBER = theMap.ZOOM_POWER_NUMBER[theMap.sliderPosition];
-
     var STREET_WIDTH = Math.round((170 / (SCALE / 96 /*96dpi*/)) + (SLIDER_POSITION_NUMBER < 5? 2: 1)) + 2;
     var TEXT_SIZE = Math.round((40 / (SCALE / 96 /*96dpi*/))) + 9;
 
-    if (SATELLITE_VIEW) {
+    if (SHOW_SATELLITE_VIEW) {
 
       glob.streetsGroup.setAttribute('filter', 'url(#constantOpacity)');
     } else {
@@ -144,23 +145,21 @@ var svg_streets = function () {
 
     var streets = {};
 
-    // Build up a street object that will be iterated over.
-    // This way all the street fragments are combined into one array.
+    // Build up a street object that will be iterated over later.
+    // This way all the street fragments are combined into one array per street.
     for (var b = 0; b < FEATURES.length; ++b) {
 
       cacheVar = FEATURES[b]
                  .querySelector('[name="GIS_FEATURES.DBA.TRANSPORTATION_STREETS_GEOCODING.FULLNAME"]')
                  .getAttribute('value');
 
-      if (!cacheVar){
+      if (!cacheVar) {
 
         continue;
       }
 
       streets[cacheVar] = streets[cacheVar] || { coords: [], type: '' };
-
       streets[cacheVar].coords.push(FEATURES[b].querySelector('COORDS').textContent);
-
       streets[cacheVar].type = FEATURES[b]
               .querySelector('[name="GIS_FEATURES.DBA.TRANSPORTATION_STREETS_GEOCODING.MAJRD_TYPE"]')
               .getAttribute('value');
@@ -175,7 +174,7 @@ var svg_streets = function () {
     var startOffset = '25%';
     var coords = undefined;
 
-    var points = undefined;
+    var points = '';
     var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     var pathClone = undefined;
     var text = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -183,13 +182,13 @@ var svg_streets = function () {
     var textPath = document.createElementNS("http://www.w3.org/2000/svg", "textPath");
     var textPathClone = undefined;
 
-    var streetName = undefined;
+    var streetName = '';
     var streetsCache = undefined;
     var coordsLen = undefined;
 
     text.setAttribute('font-size', TEXT_SIZE);
     text.setAttribute('dy', '4'); // Does a decent job of centering the text in the svg path.
-    text.setAttribute('class', (SATELLITE_VIEW ? ' road_text_satellite': ''));
+    text.setAttribute('class', (SHOW_SATELLITE_VIEW ? ' road_text_satellite': ''));
 
     textPath.setAttribute('startOffset', startOffset);
     textPath.style.cursor = 'pointer';
@@ -217,19 +216,19 @@ var svg_streets = function () {
 
             if (streetName.indexOf('SR') !== -1) {
 
-              startOffset = '75%';
+              startOffset = '75%'; // Try to prevent name overlap on road.
             }
           } break;
 
-          case '2': { /*let it fall to case '4'.*/ }
-          case '3': { /*let it fall to case '4'.*/ }
+          case '2':
+          case '3':
           case '4': {
 
             streetWidth *= 1.5;
 
-            if (streetName.indexOf('SR') !== -1) { // Try to prevent name overlap on road
+            if (streetName.indexOf('SR') !== -1) {
 
-              startOffset = '75%';
+              startOffset = '75%'; // Try to prevent name overlap on road.
             }
           } break;
 
@@ -299,7 +298,7 @@ var svg_streets = function () {
     var bb = this.getBoundingClientRect(),
         streetNameDiv = document.getElementById('$#streetNameDiv');
 
-    if(!streetNameDiv){
+    if (!streetNameDiv) {
 
       streetNameDiv           = document.createElement('div');
       streetNameDiv.id        = '$#streetNameDiv';
@@ -313,10 +312,10 @@ var svg_streets = function () {
 
     streetNameDiv.innerHTML = this.textContent
                       .replace(/(\d)(th|rd|nd|st) /,
-                        '$1'
-                        +'<font style="vertical-align: 30%; font-size: 65%; margin-left: 1px;">'
-                        +'$2'
-                        +'</font> ');
+                          '$1'
+                        + '<font style="vertical-align: 30%; font-size: 65%; margin-left: 1px;">'
+                        + '$2'
+                        + '</font> ');
 
     document.body.appendChild(streetNameDiv);
   }
@@ -340,10 +339,10 @@ var svg_streets = function () {
     }
   }
 
-  /*function findBy(Ax, Ay, Bx, Cx, Cy){
+  /*function findBy(Ax, Ay, Bx, Cx, Cy) {
     var m = (Cy - Ay) / (Cx - Ax); // Change in y divided by change in x (slope of the line).
-    var b = Cy - (m * Cx);         // Solve for y intercept, could use points (Ax, Ay) also.
-    var y = (m * Bx) + b;          // Slope intercept form. (slope(m) multiplied by x(Bx) plus y intercept(b)).
+    var b = Cy - (m * Cx);         // Solve for y intercept, could use point (Ax, Ay) also.
+    var y = (m * Bx) + b;          // Slope intercept form.
 
     return y;
   }*/

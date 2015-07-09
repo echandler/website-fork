@@ -1,211 +1,302 @@
 
-theMap.citiesTownsSvg_module = function(){
+theMap.citiesTownsSvg_module = function () {
     var theMap = window.theMap,
-        svg_container = window.$( 'theMap_svg_container' ),
-        citiesGroup = window.$( 'svg_cities_group' ),
+        svg_container = window.$('theMap_svg_container'),
+        citiesGroup = window.$('svg_cities_group'),
         private_citiesPolylineElementsArray = []; // This gets populated by private_addCityPolyLinesToSvgContainer().
+
+    theMap.svgCitiesGroup = citiesGroup; // TODO: This is a work around, fix this in the future;
 
     // This was used for manually clicking around the cities to get the state place coords.
     // It isn't used by anything.
-    function collectStatePlaneCoords( e ){
-        if( !window.points ){ window.points = []; }
-        var xMultiplier = ( this.presentMaxX - this.presentMinX ) / this.resizedMapWidth;
-        var yMultiplier = ( this.presentMaxY - this.presentMinY ) / this.resizedMapHeight;
-        var x = ( ( e.clientX - this.mapContainer._left ) * xMultiplier + this.presentMinX );
-        var y = ( this.presentMaxY - ( ( e.clientY - this.mapContainer._top ) * yMultiplier ) );
+    function collectStatePlaneCoords(e) {
+        var xMultiplier = (this.presentMaxX - this.presentMinX) / this.resizedMapWidth;
+        var yMultiplier = (this.presentMaxY - this.presentMinY) / this.resizedMapHeight;
 
-        points.push( x +','+y );
-        console.log( theMap.utilities_module.convertMouseCoordsToStatePlane( e ) );
+        var x = ((e.clientX - this.mapContainer._left) * xMultiplier + this.presentMinX);
+        var y = (this.presentMaxY - ((e.clientY - this.mapContainer._top) * yMultiplier));
+
+        if (!window.points) {
+
+            window.points = [];
+        }
+
+        window.points.push(x +','+y);// TODO: this needs to be fixed.
+
+        console.log(theMap.utilities_module.convertMouseCoordsToStatePlane(e));
     }
 
-    function private_randomCityColors(){
+    function private_randomCityColors() {
         var cities = private_citiesPolylineElementsArray,
-            colorArray = ['rgb( 93, 141, 195 )', 'rgb( 228, 128, 140 )', 'rgb( 94, 180, 137 )','rgb( 225, 149, 103 )','rgb( 127, 221, 201 )','rgb( 94, 166, 214 )','rgb( 108, 196, 105 )'],
-            colorIndex = 0;
+            colorArray = ['rgb(93, 141, 195)', 'rgb(228, 128, 140)', 'rgb(94, 180, 137)','rgb(225, 149, 103)','rgb(127, 221, 201)','rgb(94, 166, 214)','rgb(108, 196, 105)'];
 
-        for( var i = 0, color = 0; i < cities.length; ++i/*,++color*/ ){
-            color = ( Math.random() * ( colorArray.length-1 ) ).toFixed( 0 );//( Math.random()*165 + 90 ).toFixed( 0 ) +','+ ( Math.random()*125 + 100 ).toFixed( 0 ) +','+ ( Math.random()*165 + 90 ).toFixed( 0 );
-            cities[i].style.fill = colorArray[color];//'rgb( '+ color +' )';
-            if( cities[i].getAttribute( 'Data' ) === 'GOLD BAR' ){ cities[i].style.fill = 'rgb( 255, 215, 0 )'; }
-            //if( color === ( colorArray.length - 1 ) ){ color = 0; }
+        for (var i = 0, color = 0; i < cities.length; ++i/*,++color*/) {
+
+            color = (Math.random() * (colorArray.length-1)).toFixed(0);//(Math.random()*165 + 90).toFixed(0) +','+ (Math.random()*125 + 100).toFixed(0) +','+ (Math.random()*165 + 90).toFixed(0);
+
+            cities[i].style.fill = colorArray[color];//'rgb('+ color +')';
+
+            if (cities[i].getAttribute('Data') === 'GOLD BAR') {
+
+                cities[i].style.fill = 'rgb(255, 215, 0)';
+            }
+            //if (color === (colorArray.length - 1)) { color = 0; }
         }
     }
 
-    var  resizeAllSvgCities = function(){
+    var  resizeAllSvgCities = function () {
         var cities = private_citiesPolylineElementsArray;
 
-        //this.container.style.top = ( 0 - this.theMap.dragDiv._top ) +'px';
-        //this.container.style.left = ( 0 - this.theMap.dragDiv._left ) +'px';
+        //this.container.style.top = (0 - this.theMap.dragDiv._top) +'px';
+        //this.container.style.left = (0 - this.theMap.dragDiv._left) +'px';
         this.container.style.width = this.theMap.resizedMapWidth +'px';
         this.container.style.height = this.theMap.resizedMapHeight +'px';
-        for( var i = 0; i < cities.length; ++i ){
-            resizeOneSvgCity( private_citiesPolylineElementsArray[i] );
-        }
-    }.bind( { theMap: window.theMap, container: svg_container } );
 
-    var resizeOneSvgCity = function( arg_cityPolyline ){
-        var xMultiplier = ( this.presentMaxX - this.presentMinX ) / this.resizedMapWidth,
-            yMultiplier = ( this.presentMaxY - this.presentMinY ) / this.resizedMapHeight,
+        for (var i = 0; i < cities.length; ++i) {
+
+            resizeOneSvgCity(private_citiesPolylineElementsArray[i]);
+        }
+    }.bind({
+        theMap: window.theMap,
+        container: svg_container
+    });
+
+    var resizeOneSvgCity = function (arg_cityPolyline) {
+        var xMultiplier = (this.presentMaxX - this.presentMinX) / this.resizedMapWidth,
+            yMultiplier = (this.presentMaxY - this.presentMinY) / this.resizedMapHeight,
+            presentMinX = this.presentMinX,
+            presentMaxY = this.presentMaxY,
+            x = undefined,
+            y = undefined,
             index = 0,
-            pointsData = private_cityPolylines[arg_cityPolyline.getAttribute( 'Data' )].split( ' ' ),
+            pointsData = private_cityPolylines[arg_cityPolyline.getAttribute('Data')].split(' '),
             len = pointsData.length,
             arr = undefined,
-            x = undefined, y = undefined,
-            points = [],
-            presentMinX = this.presentMinX,
-            presentMaxX = this.presentMaxX,
-            presentMaxY = this.presentMaxY,
-            presentMinY = this.presentMinY;
+            points = [];
 
-        while( index < len ){
-            arr = pointsData[index].split( ',' );
-            x = ( ( +arr[0] - presentMinX ) / xMultiplier - this.dragDiv._left );
-            y = ( ( presentMaxY - +arr[1] ) / yMultiplier - this.dragDiv._top );
-            points.push( x +','+ y );
+        while (index < len) {
+
+            arr = pointsData[index].split(',');
+
+            x = ((+arr[0] - presentMinX) / xMultiplier - this.dragDiv._left);
+            y = ((presentMaxY - +arr[1]) / yMultiplier - this.dragDiv._top);
+
+            points.push(x +','+ y);
+
             ++index;
         }
-        arg_cityPolyline.setAttribute( 'points', points.join( ' ' ) );
-    }.bind( theMap );
 
-    function getClientXYfromSP( x , y ){ 
-        var xMultiplier = ( theMap.presentMaxX - theMap.presentMinX ) / theMap.resizedMapWidth,
-            yMultiplier = ( theMap.presentMaxY - theMap.presentMinY ) / theMap.resizedMapHeight,
-            x = ( ( +x - window.theMap.presentMinX  ) / xMultiplier ),
-            y = ( window.theMap.presentMaxY - (+y ) ) / yMultiplier;
+        arg_cityPolyline.setAttribute('points', points.join(' '));
+    }.bind(theMap);
+
+    function getClientXYfromSP(x , y) {
+        var xMultiplier = (theMap.presentMaxX - theMap.presentMinX) / theMap.resizedMapWidth,
+            yMultiplier = (theMap.presentMaxY - theMap.presentMinY) / theMap.resizedMapHeight;
+
+        x = ((+x - window.theMap.presentMinX) / xMultiplier);
+        y = (window.theMap.presentMaxY - (+y)) / yMultiplier;
 
         return {x: x, y: y, coords:'state plane'};
     }
 
-    var boxZoom_city = function( arg_name ){
+    var boxZoom_city = function (arg_name) {
             var zoomBoxObj = private_zoomBoxesForCities[arg_name],
-                boxClientXY = { start: getClientXYfromSP( zoomBoxObj.start.x, zoomBoxObj.start.y ), end: getClientXYfromSP( zoomBoxObj.end.x, zoomBoxObj.end.y ) },
-                widthOfBox = boxClientXY.end.x - boxClientXY.start.x,
-                heightOfBox = boxClientXY.end.y - boxClientXY.start.y,
-                middleOfCityX = ( boxClientXY.end.x - boxClientXY.start.x )/2 + boxClientXY.start.x,
-                middleOfCityY = ( boxClientXY.end.y - boxClientXY.start.y )/2 + boxClientXY.start.y,
-                mapHalfWidthPoint = ( this.resizedMapWidth/2 - middleOfCityX )/2,
-                mapHalfHeightPoint = ( this.resizedMapHeight/2 - middleOfCityY )/2,
-                middleOfCityX  = undefined,
-                y = undefined;
-            
-            if( this.sliderPosition < 180 ){ return; }
-            private_setAllCitiesDisplay( 'none' );
-            theMap.addMapLoadListener( 'sets svg cities display to none, removes itself first immediately', theMap, function theFunc(){
-                private_setAllCitiesDisplay( '' );
-                theMap.removeMapLoadListener( theFunc );
+                boxClientXY = {
+                    start: getClientXYfromSP(zoomBoxObj.start.x, zoomBoxObj.start.y),
+                    end: getClientXYfromSP(zoomBoxObj.end.x, zoomBoxObj.end.y)
+                };
+
+            var widthOfBox = boxClientXY.end.x - boxClientXY.start.x,
+                heightOfBox = boxClientXY.end.y - boxClientXY.start.y;
+
+            var middleOfCityX = (boxClientXY.end.x - boxClientXY.start.x)/2 + boxClientXY.start.x,
+                middleOfCityY = (boxClientXY.end.y - boxClientXY.start.y)/2 + boxClientXY.start.y;
+
+            var mapHalfWidthPoint = (this.resizedMapWidth/2 - middleOfCityX)/2,
+                mapHalfHeightPoint = (this.resizedMapHeight/2 - middleOfCityY)/2;
+
+            if (this.sliderPosition < 180) {
+
+                return;
+            }
+
+            private_setAllCitiesDisplay('none');
+
+            theMap.addMapLoadListener('sets svg cities display to none, removes itself first immediately', theMap, function theFunc() {
+
+                private_setAllCitiesDisplay('');
+
+                theMap.removeMapLoadListener(theFunc);
             });
+
             this.clickedOnASvgCity = arg_name;
-            this.dragDiv._left = Math.round( this.dragDiv._left + mapHalfWidthPoint );
-            this.dragDiv._top = Math.round( this.dragDiv._top   + mapHalfHeightPoint );
+
+            this.dragDiv._left = Math.round(this.dragDiv._left + mapHalfWidthPoint);
+            this.dragDiv._top = Math.round(this.dragDiv._top   + mapHalfHeightPoint);
+
             this.dragDiv.className = ' smoothTransition';
+
             //svg_container.style.opacity = '0';
             //svg_container.style.zIndex = '-1000';
             //this.measureSvgLine_module.setFeetDivsDisplaytoNone();
-            this.markersArray.forEach( function( marker ){
+
+            this.markersArray.forEach(function (marker) {
+
                 marker.className += ' smoothTransition';
             });
-            setTimeout( function(){ 
-                theMap.dragDiv.className = theMap.dragDiv.className.replace(/smoothTransition/,'' );
-                theMap.markersArray.forEach( function( marker ){
-                    marker.className = marker.className.replace(/ smoothTransition/g, '' );
+
+            setTimeout(function () {
+
+                theMap.dragDiv.className = theMap.dragDiv.className.replace(/smoothTransition/,'');
+
+                theMap.markersArray.forEach(function (marker) {
+
+                    marker.className = marker.className.replace(/ smoothTransition/g, '');
                 });
-            }, 600 );
-            this.dragDiv.style[theMap.CSSTRANSFORM] = 'translate( '+ this.dragDiv._left +'px, '+ this.dragDiv._top +'px)';
-            this._left = Math.round( this._left + mapHalfWidthPoint );
-            this._top = Math.round( this._top   + mapHalfHeightPoint );
+            }, 600);
+
+            this.dragDiv.style[theMap.CSSTRANSFORM] = 'translate('+ this.dragDiv._left +'px, '+ this.dragDiv._top +'px)';
+
+            this._left = Math.round(this._left + mapHalfWidthPoint);
+            this._top = Math.round(this._top   + mapHalfHeightPoint);
+
             this.currentMapImg.className = 'smoothTransition';
-            this.currentMapImg.style[theMap.CSSTRANSFORM] = 'translate( '+ this._left +'px, '+ this._top +'px)';
+
+            this.currentMapImg.style[theMap.CSSTRANSFORM] = 'translate('+ this._left +'px, '+ this._top +'px)';
+
             this.currentMapImg._left = theMap._left;
             this.currentMapImg._top = theMap._top;
-            this.tempTransformText = 'translate( '+ theMap._left +'px,'+ theMap._top  +'px)';
-            this.marker_module.calculateMarkerPosition();
-            this.boxZoom_module.boxZoom_doTheZoom( {width: widthOfBox, height: heightOfBox, x: this.resizedMapWidth/2 + this.mapContainer._left, y: this.resizedMapHeight/2 + this.mapContainer._top });
-        }.bind( theMap );
 
-    function private_setAllCitiesDisplay( arg_value ){
-        private_citiesPolylineElementsArray.forEach( function( city ){
+            this.baseCSSTransformValue = 'translate('+ theMap._left +'px,'+ theMap._top  +'px)';
+
+            this.marker_module.calculateMarkersPositions();
+
+            this.boxZoom_module.boxZoom_doTheZoom({width: widthOfBox, height: heightOfBox, x: this.resizedMapWidth/2 + this.mapContainer._left, y: this.resizedMapHeight/2 + this.mapContainer._top });
+        }.bind(theMap);
+
+    function private_setAllCitiesDisplay(arg_value) {
+
+        private_citiesPolylineElementsArray.forEach(function (city) {
+
             city.style.display = arg_value;
         });
     }
     // TODO: This is a hack job.
-    function init(){
-        theMap.addMapLoadListener( 'citiesTownsSvg_module.init', window, function(){
-            if( this.theMap.sliderPosition <= 160 ){
+    function init() {
+
+        theMap.addMapLoadListener('citiesTownsSvg_module.init', window, function () {
+
+            if (this.theMap.sliderPosition <= 160) {
+
                 this.citiesGroup.style.display = 'none';
+
             } else {
+
                 resizeAllSvgCities();
+
                 this.citiesGroup.style.display = '';
             }
+
             this.cities_svg.style.zIndex = '10';
             this.cities_svg.style.opacity = '1';
-        }.bind( { cities_svg: svg_container, theMap: window.theMap, resizeAllSvgCities: resizeAllSvgCities, citiesGroup: citiesGroup } ) );
-        window.$( 'zoom_control' ).addEventListener( 'mousedown', function(){
+        }.bind({
+            cities_svg: svg_container,
+            theMap: window.theMap,
+            resizeAllSvgCities: resizeAllSvgCities,
+            citiesGroup: citiesGroup
+        }));
+
+        window.$('zoom_control').addEventListener('mousedown', function () {
+
             this.style.opacity = '0';
             this.style.zIndex = '-1000';
-        }.bind( svg_container ) );
+        }.bind(svg_container));
+
         private_addCityPolyLinesToSvgContainer();
+
         private_randomCityColors();
+
         citiesGroup.displayStatus = undefined;
     }
 
-    var private_addCityPolyLinesToSvgContainer = function(){
+    var private_addCityPolyLinesToSvgContainer = function () {
         var parent = citiesGroup,
             polyline = undefined,
-            citiesArray = Object.keys( private_cityPolylines ),
+            citiesArray = Object.keys(private_cityPolylines),
             pointsObj = private_cityPolylines,
-            zoomBoxObj = private_zoomBoxesForCities,
             tempArray = [];
-                      
-        for( var i = 0; i < citiesArray.length; ++i ){
-            polyline = document.createElementNS( 'http://www.w3.org/2000/svg', 'polyline' );
-            polyline.setAttribute( 'points', pointsObj[citiesArray[i]] );
-            polyline.setAttribute( 'onmouseover', 'this.style.fillOpacity = "0.4";' );
-            polyline.setAttribute( 'onmouseout', 'this.style.fillOpacity = "";' );
+
+        for (var i = 0; i < citiesArray.length; ++i) {
+            polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+            polyline.setAttribute('points', pointsObj[citiesArray[i]]);
+            polyline.setAttribute('onmouseover', 'this.style.fillOpacity = "0.4";');
+            polyline.setAttribute('onmouseout', 'this.style.fillOpacity = "";');
             polyline.upperCaseName = citiesArray[i];
-            polyline.addEventListener( 'mousedown', svgCitiesMouseDown );
+            polyline.addEventListener('mousedown', svgCitiesMouseDown);
             polyline.clickAble = true;
             polyline.theMap = theMap;
             polyline.theMapContainer = theMap.mapContainer;
             polyline.citiesGroup = citiesGroup;
-            polyline.setAttribute( 'class', 'svg_cities' );
-            polyline.setAttribute( 'Data', citiesArray[i] );
-            parent.appendChild( polyline );
-            tempArray.push( polyline )
+            polyline.setAttribute('class', 'svg_cities');
+            polyline.setAttribute('Data', citiesArray[i]);
+            parent.appendChild(polyline);
+
+            tempArray.push(polyline);
         }
+
         private_citiesPolylineElementsArray = tempArray;
-    }
+    };
 
-    var svgCitiesSetDisplay = function( arg_displayValue ){
+    var svgCitiesSetDisplay = function (arg_displayValue) {
+
         citiesGroup.style.display = arg_displayValue;
-    }
+    };
 
-    var svgCitiesMouseDown = function ( e ){
-            var obj = { boxZoom: boxZoom_city, self: this, theMap: this.theMap, theMapContainer: this.theMapContainer, citiesGroup: this.citiesGroup };
-            var citiesMouseMove = function ( e ){
-                    if ( e.clientY - this.theMap.pan.mouseDownStartY < 5 && e.clientX - this.theMap.pan.mouseDownStartX < 5 ){ return; }
-                    this.self.clickAble = false;
-                    //this.citiesGroup.style.zIndex = '-1000';
-                    this.theMapContainer.removeEventListener( 'mousemove', citiesMouseMove );
-                    this.theMapContainer.removeEventListener( 'mouseup', citiesMouseUp );
-                }.bind( obj );
-            var citiesMouseUp = function ( e ){
-                    this.theMapContainer.removeEventListener( 'mousemove', citiesMouseMove );
-                    this.theMapContainer.removeEventListener( 'mouseup', citiesMouseUp );
-                    if( this.self.clickAble ){
-                        
-                        // TODO: This setTimeout is a workaround, it lets the click event handler on the
-                        // container fire off first before it does the zoom. If it does the zoom first
-                        // then it changes the slider position to a lower number and creates a marker for
-                        // no reason.
-                        window.setTimeout( function(){ this.boxZoom( this.self.upperCaseName ); }.bind( this ),0 );
-                    }
-                    this.self.clickAble = true;
-                }.bind( obj );
-            
-            if( theMap.state.lineDrawingMode ){ return; }
-            this.theMapContainer.addEventListener( 'mousemove', citiesMouseMove );
-            this.theMapContainer.addEventListener( 'mouseup', citiesMouseUp );
-        }
+    var svgCitiesMouseDown = function () {
+            var obj = {
+                boxZoom: boxZoom_city,
+                self: this,
+                theMap: this.theMap,
+                theMapContainer: this.theMapContainer,
+                citiesGroup: this.citiesGroup
+            };
+
+            var citiesMouseMove = function (e) {
+
+                if (e.clientY - this.theMap.pan.mouseDownStartY < 5 && e.clientX - this.theMap.pan.mouseDownStartX < 5) { return; }
+
+                this.self.clickAble = false;
+
+                //this.citiesGroup.style.zIndex = '-1000';
+
+                this.theMapContainer.removeEventListener('mousemove', citiesMouseMove);
+                this.theMapContainer.removeEventListener('mouseup', citiesMouseUp);
+            }.bind(obj);
+
+            var citiesMouseUp = function () {
+
+                this.theMapContainer.removeEventListener('mousemove', citiesMouseMove);
+                this.theMapContainer.removeEventListener('mouseup', citiesMouseUp);
+
+                if (this.self.clickAble) {
+
+                    // TODO: This setTimeout is a workaround, it lets the click event handler on the
+                    // container fire off first before it does the zoom. If it does the zoom first
+                    // then it changes the slider position to a lower number and creates a marker for
+                    // no reason.
+                    window.setTimeout(function () { this.boxZoom(this.self.upperCaseName); }.bind(this),0);
+                }
+
+                this.self.clickAble = true;
+            }.bind(obj);
+
+            if (theMap.state.lineDrawingMode) {
+                return;
+            }
+
+            this.theMapContainer.addEventListener('mousemove', citiesMouseMove);
+            this.theMapContainer.addEventListener('mouseup', citiesMouseUp);
+        };
 
     var private_cityPolylines = {
         SNOHOMISH: '1325468,350601 1326487,350601 1327030,350306 1327846,349831 1327778,349514 1327166,349514 1327121,348902 1327370,348857 1327325,347974 1327529,347974 1327506,347611 1328978,347566 1329001,345664 1328185,345664 1328321,345347 1329703,345347 1329680,347453 1329567,348087 1329974,348087 1329974,348178 1330178,348178 1330178,347906 1330790,347272 1330812,346230 1331129,346230 1331129,344894 1332941,344871 1332964,346185 1334322,346230 1334277,344849 1335613,344826 1335523,344079 1335704,342946 1335523,342629 1334979,341927 1334979,341452 1335183,341316 1335455,340501 1335387,340002 1334956,339300 1334503,338893 1334594,338485 1334028,337579 1333801,337194 1333779,336696 1333847,336289 1333892,335994 1333847,335564 1334096,335315 1334322,335020 1334322,334749 1334073,334567 1334164,334250 1334119,332960 1332443,332982 1331877,333888 1331650,334024 1331310,334499 1331061,334726 1330608,334884 1330065,334884 1328797,335315 1327438,335473 1326306,335519 1325898,335700 1325558,336039 1325241,336289 1324970,337013 1326736,336991 1327053,337308 1326849,337511 1326962,338055 1326894,338259 1326759,338463 1326713,338780 1326487,338621 1326283,339097 1326260,339685 1326011,339708 1326011,340184 1326623,340184 1326623,340319 1328004,340252 1328049,340954 1328185,341474 1328434,341882 1328955,342244 1326668,342290 1326645,343648 1326328,343648 1326396,346253 1325762,346253 1325762,346955 1326351,346955 1326374,347702 1325921,348064 1326260,348427 1326125,348653 1326147,348902 1326374,348925 1325785,349853 1325468.31128569,350601.1668392833',
@@ -231,10 +322,11 @@ theMap.citiesTownsSvg_module = function(){
     };
 
     // This object is holds the top upper left corner and bottom lower right
-    // corner of a virtual box that is used to by boxZoom_city() to zoom into 
+    // corner of a virtual box that is used to by boxZoom_city() to zoom into
     // the city. Sort of funky but it works.
     var private_zoomBoxesForCities = {
-        SNOHOMISH:{ start:{x:1324268.0821190232, y:350804.9793392833}, end:{x:1335726.87378569, y:332597.7293392833} },
+        SNOHOMISH:{ start:{x:1324268.0821190232, y:350804.9793392833},
+        end:{x:1335726.87378569, y:332597.7293392833} },
         ARLINGTON:{ start:{x:1301377.4053758, y:446269.9415842}, end:{x:1335624.0720425, y:414663.2749175} },
         MARYSVILLE:{ start:{x:1302400.1523996438, y:427973.16717942106}, end:{x:1328684.7047805963, y:374363.7767032307} },
         EVERETT:{ start:{x:1282538.047, y:383300.631125 }, end:{x:1314675.6371785714, y:319250.18916071416 } },
@@ -264,4 +356,4 @@ theMap.citiesTownsSvg_module = function(){
         boxZoom_city: boxZoom_city,
         svgCitiesSetDisplay: svgCitiesSetDisplay,
     };
-}()
+}();

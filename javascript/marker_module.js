@@ -1,9 +1,8 @@
 "use strict";
-theMap.marker_module = function(){
-
-
+theMap.marker_module = function () {
     var theMap = window.theMap;
     var private_largeDefaultMarkerImages = false;
+    var private_markerCounter = 0;
 
     var private_xmlQueryParams = //' #ALL#'+
                                   ' GIS_FEATURES.DBA.CADASTRAL_PARCELS_ASSESSOR.TAB_ACRES'
@@ -27,7 +26,7 @@ theMap.marker_module = function(){
             ['css/images/snocoTrees.svg',{x: 1304547, y: 359370}, 13, 31, 'assessor interStateShields']
         ];
 
-    function makeInterStateShields(){
+    function makeInterStateShields() {
         var m = 0, marker = undefined;
 
         while (private_defaultSimpleMarkerArray[m]) {
@@ -40,7 +39,7 @@ theMap.marker_module = function(){
         }
     }
 
-    var private_makeSimpleMarker = function(arg_imgUrl, arg_spObj, arg_height, arg_width,  arg_className) {
+    var private_makeSimpleMarker = function (arg_imgUrl, arg_spObj, arg_height, arg_width,  arg_className) {
         var simpleMarker = document.createElement('img');
             simpleMarker.src = arg_imgUrl;
             simpleMarker.style.position = 'absolute';
@@ -64,78 +63,113 @@ theMap.marker_module = function(){
             return simpleMarker;
     };
 
-    var makeMarker = function(e, arg_infoObject) {
+    var makeMarker = function (e, arg_infoObject) {
         // TODO: Are all these var's necessary?
         // Don't set a marker if the map is not zoomed in enough, default is 100;
-        var infoObject = arg_infoObject || false, //{"a": "apn number goes here","x": lat,"y": lng,"m":"text message","i":"img url"}
+        var infoObject = (arg_infoObject || false), //{"a": "apn number goes here","x": lat,"y": lng,"m":"text message","i":"img url"}
             statePlaneCoordsXY = !infoObject && theMap.utilities_module.convertMouseCoordsToStatePlane(e);
 
         var markerBody = document.createElement('div');
-            markerBody.data = { markerBody: markerBody };
-            markerBody.className = 'markerParent';
-            markerBody.data.statePlaneCoordX = +infoObject.x || statePlaneCoordsXY.x;
-            markerBody.data.statePlaneCoordY = +infoObject.y || statePlaneCoordsXY.y;
-            markerBody.data.zindex = 1e6 - markerBody.data.statePlaneCoordY.toFixed(0);
+
+        markerBody.data = {
+            markerBody: markerBody,
+            deleted: false
+        };
+
+        markerBody.className = 'markerParent';
+
+        markerBody.data.statePlaneCoordX = +infoObject.x || statePlaneCoordsXY.x;
+        markerBody.data.statePlaneCoordY = +infoObject.y || statePlaneCoordsXY.y;
+        markerBody.data.zindex = 1e6 - markerBody.data.statePlaneCoordY.toFixed(0);
 
         var wsg84XYCoords = this.utilities_module.convertSPToWGS84(markerBody.data.statePlaneCoordX, markerBody.data.statePlaneCoordY);
-            markerBody.data.wgs84XCoord = wsg84XYCoords.x;
-            markerBody.data.wgs84YCoord = wsg84XYCoords.y;
-            markerBody.data.offsetLeft = undefined;
-            markerBody.data.offsetTop = undefined;
-            markerBody.data.theMap = this;
-            markerBody.data.svgGroup = { group: undefined, pathsArray: [] };
-            markerBody.style.zIndex = markerBody.data.zindex;
-            markerBody.id = 'parcelMarker_x_'+ markerBody.data.statePlaneCoordX +'_y_'+ markerBody.data.statePlaneCoordY+'_'+ ~~(Math.random() * 100);
 
-            markerBody.addEventListener('mouseover', lowerOpacityOfMarkersAroundThisMarker);
-            markerBody.addEventListener('mouseout', resetOpacityOfMarkersAroundThisMarker);
+        markerBody.data.wgs84XCoord = wsg84XYCoords.x;
+        markerBody.data.wgs84YCoord = wsg84XYCoords.y;
+        markerBody.data.offsetLeft = undefined;
+        markerBody.data.offsetTop = undefined;
+        markerBody.data.theMap = this;
+        markerBody.data.svgGroup = { group: undefined, pathsArray: [] };
 
-            markerBody.data.setOffSetWH = function(){
-                this.offsetLeft  = (this.markerBody.offsetWidth / 2);
-                this.offsetTop =  this.markerBody.offsetHeight + 30;
-            };
-            markerBody.addEventListener('click', function(){
-                theMap.pageHasFocus = true;
-            });
-            markerBody.data.removeSvgGroup = function(){
-                if (this.svgGroup.group && this.svgGroup.group.parentNode) {
-                    this.svgGroup.group.parentNode.removeChild(this.svgGroup.group);
-                }
-                this.svgGroup = null;
-            };
-            markerBody.data.changeBgColorAndzIndex = function(arg_color, arg_zIndex) {
-                this.markerBody.style.backgroundColor = arg_color;
-                this.markerBody.data.innerArrow.style.borderTopColor = arg_color;
-                this.markerBody.style.zIndex = arg_zIndex;
-            };
-            markerBody.data.apn = infoObject.a || undefined;
+        markerBody.style.zIndex = markerBody.data.zindex;
 
-            // markerBody.message and markerBody.imgUrl are used by utilities_module.makeUrl();
-            markerBody.data.message = infoObject.m || '';
-            markerBody.data.imgUrl = infoObject.i || '';
-            markerBody.addEventListener('mousedown', function(e) {
-                e.stopPropagation();
-            });
+        markerBody.id = 'parcelMarker'
+                        +'_x_'+ markerBody.data.statePlaneCoordX
+                        +'_y_'+ markerBody.data.statePlaneCoordY
+                        +'_'+ (++private_markerCounter);
+
+        markerBody.addEventListener('mouseover', lowerOpacityOfMarkersAroundThisMarker);
+        markerBody.addEventListener('mouseout', resetOpacityOfMarkersAroundThisMarker);
+
+        markerBody.data.setOffSetWH = function () {
+
+            this.offsetLeft  = (this.markerBody.offsetWidth / 2);
+
+            this.offsetTop =  this.markerBody.offsetHeight + 30;
+        };
+
+        markerBody.addEventListener('click', function () {
+
+            theMap.pageHasFocus = true;
+        });
+
+        markerBody.data.removeSvgGroup = function () {
+
+            if (this.svgGroup.group && this.svgGroup.group.parentNode) {
+
+                this.svgGroup.group.parentNode.removeChild(this.svgGroup.group);
+            }
+
+            this.svgGroup = null;
+        };
+
+        markerBody.data.changeBgColorAndzIndex = function (arg_color, arg_zIndex) {
+
+            this.markerBody.style.backgroundColor = arg_color;
+
+            this.markerBody.data.innerArrow.style.borderTopColor = arg_color;
+
+            this.markerBody.style.zIndex = arg_zIndex;
+        };
+
+        markerBody.data.apn = infoObject.a || undefined;
+
+        // markerBody.message and markerBody.imgUrl are used by utilities_module.makeUrl();
+        markerBody.data.message = infoObject.m || '';
+        markerBody.data.imgUrl = infoObject.i || '';
+
+        markerBody.addEventListener('mousedown', function (e) {
+
+            e.stopPropagation();
+        });
 
         var deleteButton = document.createElement('div');
-            deleteButton.className = 'markerDeleteButton';
-            deleteButton.innerHTML = '&#215;';
-            deleteButton.markerBody = markerBody;
-            deleteButton.addEventListener('click', function(){
-                var markerArray = theMap.markersArray,
-                    markerArrayLen = markerArray.length,
-                    parentId = this.markerBody.id;
+        deleteButton.className = 'markerDeleteButton';
+        deleteButton.innerHTML = '&#215;';
+        deleteButton.markerBody = markerBody;
+        deleteButton.addEventListener('click', function () {
+            var markerArray = theMap.markersArray,
+                markerArrayLen = markerArray.length,
+                parentId = this.markerBody.id;
 
-                while(markerArrayLen--) {
-                    if (markerArray[markerArrayLen].id === parentId) {
-                        markerArray.splice(markerArrayLen, 1);
-                    }
+            while (markerArrayLen--) {
+
+                if (markerArray[markerArrayLen].id === parentId) {
+
+                    markerArray.splice(markerArrayLen, 1);
                 }
-                resetOpacityOfMarkersAroundThisMarker.call(this.markerBody);
-                this.markerBody.data.removeSvgGroup();
-                this.markerBody.parentNode.removeChild(this.markerBody);
-                window.$('smallCountyMarker'+ parentId).parentNode.removeChild(window.$('smallCountyMarker'+ parentId));
-            });
+            }
+
+            resetOpacityOfMarkersAroundThisMarker.call(this.markerBody);
+
+            this.markerBody.data.removeSvgGroup();
+
+            this.markerBody.data.deleted = true;
+
+            this.markerBody.parentNode.removeChild(this.markerBody);
+
+            window.$('smallCountyMarker'+ parentId).parentNode.removeChild(window.$('smallCountyMarker'+ parentId));
+        });
         markerBody.appendChild(deleteButton);
 
         // var colorDiv = document.createElement('div');
@@ -145,21 +179,21 @@ theMap.marker_module = function(){
         // markerBody.data.colorDiv = colorDiv;
         // markerBody.appendChild(colorDiv);
 
-        if (infoObject && infoObject.a !== '') {
+        if (infoObject && infoObject.a && infoObject.a !== '') {
 
             var apnContainer = document.createElement('div');
-                apnContainer.style.marginTop = "-0.54em";
-                apnContainer.style.marginRight = "10px";
+            apnContainer.style.marginTop = "-0.54em";
+            apnContainer.style.marginRight = "10px";
 
             var apn = document.createElement('div');
-                apn.className = ('markerApnText');
-                apn.innerHTML = 'Apn:';
+            apn.className = ('markerApnText');
+            apn.innerHTML = 'Apn:';
 
             var anchor = document.createElement('a');
-                anchor.className = 'markerApnLink';
-                anchor.href = theMap.parameters.APN_URL + infoObject.a;
-                anchor.target = '_blank';
-                anchor.innerHTML= infoObject.a;
+            anchor.className = 'markerApnLink';
+            anchor.href = theMap.parameters.APN_URL + infoObject.a;
+            anchor.target = '_blank';
+            anchor.innerHTML= infoObject.a;
             markerBody.data.apnAnchor = anchor;
 
             apnContainer.appendChild(apn);
@@ -170,43 +204,50 @@ theMap.marker_module = function(){
 
 
         var editButton = document.createElement('a');
-            editButton.className = 'markerEdit';
-            editButton.href = "javascript:void(0);";
-            editButton.innerHTML = "edit";
-            editButton.theMap = this;
-            editButton.markerBody = markerBody;
-            editButton.addEventListener('click', private_markerMessageEditor, false);
+        editButton.className = 'markerEdit';
+        editButton.href = "javascript:void(0);";
+        editButton.innerHTML = "edit";
+        editButton.theMap = this;
+        editButton.markerBody = markerBody;
+        editButton.addEventListener('click', private_markerMessageEditor, false);
         markerBody.data.editButton = editButton;
 
         var editPinDiv = document.createElement('div');
-            editPinDiv.style.cssText = 'line-height: 20px; margin-bottom: 8px;';
+        editPinDiv.style.cssText = 'line-height: 20px; margin-bottom: 8px;';
         editPinDiv.appendChild(editButton);
 
         var pinButton = document.createElement('div');
-            pinButton.className = 'markerPinButton';
-            pinButton.title = 'Pin this marker';
-            pinButton.markerBody = markerBody;
-            pinButton.addEventListener('click', function(){
-                if (/pinned/i.test(this.className)) {
-                    this.className = this.className.replace(/ markerPinButtonPinned/ig, '');
-                    this.markerBody.className = this.markerBody.className.replace(/ dontdelete/ig, '');
-                } else {
-                    this.className += ' markerPinButtonPinned';
-                    this.markerBody.className = this.markerBody.className.replace(/ dontdelete/ig, '');
-                    this.markerBody.className += ' DONTDELETE';
-                }
-            });
+        pinButton.className = 'markerPinButton';
+        pinButton.title = 'Pin this marker';
+        pinButton.markerBody = markerBody;
+        pinButton.addEventListener('click', function () {
+
+            if (/pinned/i.test(this.className)) {
+
+                this.className = this.className.replace(/ markerPinButtonPinned/ig, '');
+
+                this.markerBody.className = this.markerBody.className.replace(/ dontdelete/ig, '');
+            } else {
+
+                this.className += ' markerPinButtonPinned';
+
+                this.markerBody.className = this.markerBody.className.replace(/ dontdelete/ig, '');
+
+                this.markerBody.className += ' DONTDELETE';
+            }
+        });
 
         markerBody.data.pinButton = pinButton;
         editPinDiv.appendChild(pinButton);
         markerBody.appendChild(editPinDiv);
 
         var arrow = document.createElement('div');
-            arrow.className = 'markerArrow';
+        arrow.className = 'markerArrow';
         markerBody.data.arrow = arrow;
         markerBody.appendChild(arrow);
+
         var innerArrow = document.createElement('div');
-            innerArrow.className = 'markerInnerArrow';
+        innerArrow.className = 'markerInnerArrow';
         markerBody.data.innerArrow = innerArrow;
         arrow.appendChild(innerArrow);
 
@@ -226,11 +267,11 @@ theMap.marker_module = function(){
 
             if (infoObject.g && !this.marker) {
 
-                private_makePolygonBoundary(infoObject.g, markerBody);
+                private_makePropertyBoundaryPolygon(infoObject.g, markerBody);
             }
         } else {
 
-            if(e.target.id.indexOf('street') !== -1){ // Did they click on a svg street path?
+            if (e.target.id.indexOf('street') !== -1) { // Did they click on a svg street path?
 
                 private_streetInfo.call(markerBody, markerBody.data.statePlaneCoordX, markerBody.data.statePlaneCoordY);
             } else {
@@ -244,16 +285,16 @@ theMap.marker_module = function(){
         return markerBody;
     }.bind(theMap);
 
-    var lowerOpacityOfMarkersAroundThisMarker =  function(){
-        var thisArrowRect  = this.data.arrow.getBoundingClientRect();
-        var thisMarkerRect = this.getBoundingClientRect();
+    var lowerOpacityOfMarkersAroundThisMarker =  function () {
+        var thisArrowRect       = this.data.arrow.getBoundingClientRect();
+        var thisArrowRectBottom = thisArrowRect.bottom + 200;
 
         var thatMarkerRect = undefined;
 
-        var markersArray = this.data.theMap.markersArray;
+        var markersArray    = this.data.theMap.markersArray;
         var markersArrayLen = markersArray.length;
 
-        var thisArrowRectBottom = thisArrowRect.bottom + 200;
+        var thisMarkerRect      = this.getBoundingClientRect();
         var thisMarkerRectTop   = thisMarkerRect.top   - 220; // Add 20 for the other markers arrow.
         var thisMarkerRectLeft  = thisMarkerRect.left  - 200;
         var thisMarkerRectRight = thisMarkerRect.right + 200;
@@ -268,7 +309,7 @@ theMap.marker_module = function(){
             thatMarkerRect = markersArray[m].getBoundingClientRect();
 
             if ((thisArrowRectBottom > thatMarkerRect.top && thisMarkerRectTop < thatMarkerRect.bottom) &&
-               (thisMarkerRectLeft < thatMarkerRect.right && thisMarkerRectRight > thatMarkerRect.left)){
+               (thisMarkerRectLeft < thatMarkerRect.right && thisMarkerRectRight > thatMarkerRect.left)) {
 
                 markersArray[m].style.opacity = 0;
             }
@@ -277,7 +318,7 @@ theMap.marker_module = function(){
         this.style.opacity = 1;
     };
 
-    var resetOpacityOfMarkersAroundThisMarker = function(){
+    var resetOpacityOfMarkersAroundThisMarker = function () {
         var len = theMap.markersArray.length;
 
         for (var m = 0; m < len; ++m) {
@@ -295,68 +336,95 @@ theMap.marker_module = function(){
             text = undefined,
             imageSrc = undefined,
             messageContainer = createElement('div'),
-            coordsDiv = createElement('div'),
-            textArea = createElement('textarea'),
-            imgSrcTextArea = createElement('textarea'),
-            imgAnchor = createElement('a');
+            coordsDiv        = createElement('div'),
+            textArea         = createElement('textarea'),
+            imgSrcTextArea   = createElement('textarea'),
+            imgAnchor        = createElement('a');
 
         if (e) {
+
             e.preventDefault();
+
             this.removeEventListener('click', private_markerMessageEditor);
+
             this.addEventListener('click', markerAddImageAndText);
+
             this.innerHTML = 'done';
         }
         if (this.markerBody.querySelector('.markerTextDiv')) {
+
             text = this.markerBody.querySelector('.markerTextDiv').innerHTML;
+
             if (this.markerBody.querySelector('.markerImg')) {
+
                 imageSrc = this.markerBody.querySelector('.markerImg').src;
             }
+
             this.markerBody.removeChild(this.markerBody.querySelector('.messageContainer'));
         }
+
         messageContainer.className = 'messageContainer';
+
         coordsDiv.innerHTML = 'x: '+ this.markerBody.data.wgs84XCoord +' y: '+ this.markerBody.data.wgs84YCoord;
         coordsDiv.className = 'coordsDiv';
         coordsDiv.title = 'Coordinates are approximate.';
         coordsDiv.setAttribute('data','');
         coordsDiv.markerBody = this.markerBody;
         coordsDiv.theMap = this.theMap;
-        coordsDiv.addEventListener('click', function(){
+
+        coordsDiv.addEventListener('click', function () {
 
             // TODO: Should minutes and seconds be an option also?
               if (this.getAttribute('data') === '') {
+
                 this.innerHTML = "x: "+ this.markerBody.data.statePlaneCoordX.toFixed(7) +" y: " + this.markerBody.data.statePlaneCoordY.toFixed(7);
+
                 this.setAttribute('data','sp');
+
                 this.title = 'State plane coordinates are approximate.';
               } else {
+
                 this.innerHTML = "x: "+ this.markerBody.data.wgs84XCoord +" y: " + this.markerBody.data.wgs84YCoord;
+
                 this.setAttribute('data','');
+
                 this.title = 'Coordinates are approximate.';
               }
+
               this.markerBody.data.setOffSetWH();
-              this.theMap.calculateMarkerPosition(this.markerBody);
+
+              this.theMap.calculateMarkersPositions(this.markerBody);
          });
+
         textArea.placeholder = "Enter message here";
         textArea.className = 'textArea';
         textArea.value = text || '';
+
         imgSrcTextArea.className = 'imgSrcTextArea';
         imgSrcTextArea.placeholder = "Enter image URL here";
         imgSrcTextArea.value = imageSrc || '';
+
         if (this.markerBody.data.apn) {
+
             imgAnchor.href = 'javascript:void(0);'; // TODO: This needs to be fixed.
             imgAnchor.innerHTML = 'Insert county image';
             imgAnchor.imgSrcTextArea = imgSrcTextArea;
             imgAnchor.markerBody = this.markerBody;
             imgAnchor.className = 'imgAnchor';
-            imgAnchor.onclick = function(){
+            imgAnchor.onclick = function () {
                 this.imgSrcTextArea.value = theMap.parameters.PROPERTY_IMG_URL + this.markerBody.data.apn.replace(/^(\d{4})\d*/, "$1") +"/"+ this.markerBody.data.apn +"R011.jpg";
             };
         }
+
         messageContainer.appendChild(coordsDiv);
         messageContainer.appendChild(textArea);
         messageContainer.appendChild(imgSrcTextArea);
         messageContainer.appendChild(imgAnchor);
+
         this.markerBody.insertBefore(messageContainer, this.parentNode);
+
         this.markerBody.data.setOffSetWH();
+
         calculatePosition.marker(this.markerBody);
     }
 
@@ -415,14 +483,14 @@ theMap.marker_module = function(){
         textDiv.className = 'markerTextDiv';
         textDiv.markerBody = this.markerBody;
 
-        Array.prototype.forEach.call(textDiv.getElementsByTagName('img'), function(img) {
+        Array.prototype.forEach.call(textDiv.getElementsByTagName('img'), function (img) {
 
             // There might be html img tags in the text which will mess up the markers position.
-            // So set a onload listener that will recalculate the width and height, then call calculateMarkerPosition again.
-            var load = function(){
+            // So set a onload listener that will recalculate the width and height, then call calculateMarkersPositions again.
+            var load = function () {
 
                 this.editButton.markerBody.data.setOffSetWH();
-                this.editButton.theMap.calculateMarkerPosition(this.editButton.markerBody);
+                this.editButton.theMap.calculateMarkersPositions(this.editButton.markerBody);
 
                 this.img.removeEventListener('load', load);
             }.bind({ editButton: this, img: img });
@@ -432,7 +500,18 @@ theMap.marker_module = function(){
 
         messageContainer.appendChild(textDiv);
 
-        textDiv.querySelector('.n') && textDiv.querySelector('.n').addEventListener((/Firefox/i.test(window.navigator.userAgent))? "DOMMouseScroll" : "mousewheel", function(e) { e.stopPropagation(); return false; });
+        if (textDiv.querySelector('.n')) {
+
+            textDiv.querySelector('.n').addEventListener(
+                (/Firefox/i.test(window.navigator.userAgent)? "DOMMouseScroll": "mousewheel"),
+                function (e) {
+
+                    e.stopPropagation();
+
+                    return false;
+                }
+            );
+        }
 
         // The div's with class '.m' are the single homes with owner name, address, ect.
         // don't touch the inline width style of "Apn:" it is set in the css.
@@ -448,20 +527,23 @@ theMap.marker_module = function(){
 
         if (imageSrc !== '') {
 
-            image.src = imageSrc;
-            image.normalWidth = '150px';
-            image.maxWidth = '640px';
-            image.style.width = (private_largeDefaultMarkerImages)? image.maxWidth : image.normalWidth; // height will automatically adjust;
-            image.className = 'markerImg';
-            image.theMap = this.theMap;
-            image.markerBody = this.markerBody;
+            image.src           = imageSrc;
+            image.normalWidth   = '150px';
+            image.maxWidth      = '640px';
+            image.style.width   = (private_largeDefaultMarkerImages)? image.maxWidth : image.normalWidth; // height will automatically adjust;
             image.style.display = 'none';
-            image.onload = function(){
+            image.className     = 'markerImg';
+            image.theMap        = this.theMap;
+            image.markerBody    = this.markerBody;
+            image.onerror       = markerImgError;
+
+            image.onload = function () {
                     this.style.display = '';
                     this.markerBody.data.setOffSetWH();
-                    this.theMap.calculateMarkerPosition(this.markerBody);
+                    this.theMap.calculateMarkersPositions(this.markerBody);
                 };
-            image.onclick = function(){
+
+            image.onclick = function () {
                     if (this.style.width !== '640px') {
                         this.style.width = '640px';
                         private_largeDefaultMarkerImages = true;
@@ -470,9 +552,8 @@ theMap.marker_module = function(){
                         private_largeDefaultMarkerImages = false;
                     }
                     this.markerBody.data.setOffSetWH();
-                    this.theMap.calculateMarkerPosition(this.markerBody);
+                    this.theMap.calculateMarkersPositions(this.markerBody);
                 };
-            image.onerror = markerImgError;
 
             messageContainer.appendChild(image);
         }
@@ -482,74 +563,96 @@ theMap.marker_module = function(){
         calculatePosition.marker(this.markerBody);
     }
 
-    function markerImgError(){
+    function markerImgError() {
         // what a mess..
         if (/http:\/\/www.snoco.org\/docs\/sas\/photos/.test(this.src)) {
+
             if (/R01/.test(this.src)) {
-                window.setTimeout(function(){
-                    this.parentNode.href = this.src.replace(/R01/, 'C01');
-                    this.src = this.src.replace(/R01/, 'C01');
+
+                window.setTimeout(function () {
+                    replaceImgInfo(this, 'R01', 'C01');
                 }.bind(this), 10);
+
             } else if (/C01/.test(this.src)) {
-                window.setTimeout(function(){
-                    this.parentNode.href = this.src.replace(/C01/, 'R02');
-                    this.src = this.src.replace(/C01/, 'R02');
+
+                window.setTimeout(function () {
+                    replaceImgInfo(this, 'C01', 'R02');
                 }.bind(this), 10);
+
             } else if (/R02/.test(this.src)) {
-                window.setTimeout(function(){
-                    this.parentNode.href = this.src.replace(/R02/, 'C02');
-                    this.src = this.src.replace(/R02/, 'C02');
+
+                window.setTimeout(function () {
+                    replaceImgInfo(this, 'R02', 'C02');
                 }.bind(this), 10);
+
             } else if (/C02/.test(this.src)) {
-                window.setTimeout(function(){
-                    this.parentNode.href = this.src.replace(/C02/, 'R03');
-                    this.src = this.src.replace(/C02/, 'R03');
+
+                window.setTimeout(function () {
+                    replaceImgInfo(this, 'C02', 'R03');
                 }.bind(this), 10);
+
             } else if (/R03/.test(this.src)) {
-                window.setTimeout(function(){
-                    this.parentNode.href = this.src.replace(/R03/, 'C03');
-                    this.src = this.src.replace(/R03/, 'C03');
+
+                window.setTimeout(function () {
+                    replaceImgInfo(this, 'R03', 'C03');
                 }.bind(this), 10);
+
             }  else {
 
                 // Must not be a county picture so delete the image element and re-calculate the coords.
-                window.setTimeout(function(){
+                window.setTimeout(function () {
 
                     this.container.data.setOffSetWH();
-                    this.theMap.calculateMarkerPosition(this.container);
+
+                    this.theMap.calculateMarkersPositions(this.container);
                 }.bind({ container: this.markerBody, theMap: this.theMap }), 10);
                 //this.parentNode.removeChild(this);
 
                 this.parentNode.href = 'javascript: void(0);';
+
                 this.src = 'css/images/House_Silhouette (1).svg';
+
                 this.style.width = this.normalWidth;
+
                 this.style.cursor = 'default';
-                this.onclick = function(){};
+
+                this.onclick = function () {};
             }
+        }
+
+        function replaceImgInfo(el, oldString, newString) {
+            var regExp = new RegExp(oldString);
+
+            el.parentNode.href = el.src.replace(regExp, newString);
+
+            el.src = el.src.replace(regExp, newString);
         }
     }
 
     var calculatePosition = {
-            marker: function(arg_singleMarker) {
+            marker: function (arg_singleMarker) {
                     var xMultiplier = (this.presentMaxX - this.presentMinX) / this._width, // For markers.
                         yMultiplier = (this.presentMaxY - this.presentMinY) / this._height, // For markers.
                         markersArray = (arg_singleMarker && arg_singleMarker.id)? [arg_singleMarker]: this.markersArray,
                         len = markersArray.length,
-                        styleLeft = undefined, styleTop = undefined,
-                        i = 0;
+                        x = undefined, y = undefined;
 
-                    for (; i < len; ++i) {
-                        styleLeft = (((markersArray[i].data.statePlaneCoordX - this.presentMinX) / xMultiplier) - markersArray[i].data.offsetLeft) + this._left;
-                        styleTop  = ((this.presentMaxY - markersArray[i].data.statePlaneCoordY) / yMultiplier) - markersArray[i].data.offsetTop + this._top;
+                    for (var i = 0; i < len; ++i) {
+
+                        x = (((markersArray[i].data.statePlaneCoordX - this.presentMinX) / xMultiplier) - markersArray[i].data.offsetLeft) + this._left;
+                        y = ((this.presentMaxY - markersArray[i].data.statePlaneCoordY) / yMultiplier) - markersArray[i].data.offsetTop + this._top;
+
                         if (this.BROWSER_IS_CHROME) { // Chrome fonts are blurry if left and top coords are floats.
-                            markersArray[i].style[this.CSSTRANSFORM] = 'translate('+ Math.round(styleLeft) +'px, '+ Math.round(styleTop )+'px)';
+
+                            markersArray[i].style[this.CSSTRANSFORM] = 'translate('+ Math.round(x) +'px, '+ Math.round(y)+'px)';
                         } else {
-                            markersArray[i].style[this.CSSTRANSFORM] = 'translate('+ styleLeft +'px, '+ styleTop +'px)';
+
+                            markersArray[i].style[this.CSSTRANSFORM] = 'translate('+ x +'px, '+ y +'px)';
                         }
                     }
                 }.bind(theMap),
 
-            svgHighlight: function(arg_singleMarker) {
+            svgHighlight: function (arg_singleMarker) {
                     var xMultiplier = (this.presentMaxX - this.presentMinX) / this.resizedMapWidth, // For paths.
                         yMultiplier = (this.presentMaxY - this.presentMinY) / this.resizedMapHeight, // For paths.
                         path = undefined, points = '',
@@ -604,23 +707,36 @@ theMap.marker_module = function(){
     var private_propertyInfo = function (arg_x, arg_y) {
 
         // 'this' equals the marker body.
-        var minX = arg_x, maxX = minX + 1, minY = arg_y, maxY = minY + 1,
-            propXML = '<?xml version="1.0" encoding="UTF-8" ?><ARCXML version="1.1"><REQUEST>'
+        var minX = arg_x,
+            maxX = minX + 1;
+
+        var minY = arg_y,
+            maxY = minY + 1;
+
+        var propXML = '<?xml version="1.0" encoding="UTF-8" ?><ARCXML version="1.1"><REQUEST>'
                       + '<GET_FEATURES outputmode="xml" envelope="false" geometry="true" compact="true" featurelimit="10000">'
                       + '<LAYER id="11" /><SPATIALQUERY subfields="'
-                      + private_xmlQueryParams + ' #SHAPE#'
+                      + private_xmlQueryParams
+                      + ' #SHAPE#'
                       + '"><SPATIALFILTER relation="area_intersection" >'
                       + '<ENVELOPE maxy="' + maxY + '" maxx="' + maxX + '" miny="' + minY + '" minx="' + minX + '"/>'
-                      + '</SPATIALFILTER></SPATIALQUERY></GET_FEATURES></REQUEST></ARCXML>',
-            propXMLPostRequest = window.encodeURIComponent("ArcXMLRequest") + "=" + encodeURIComponent(propXML),
-            propUrl = theMap.parameters.URL_PREFIX + theMap.parameters.PROPERTY_INFO_URL,
-            propInfoAjax = new XMLHttpRequest();
+                      + '</SPATIALFILTER></SPATIALQUERY></GET_FEATURES></REQUEST></ARCXML>';
+
+        var propXMLPostRequest = window.encodeURIComponent("ArcXMLRequest") + "=" + encodeURIComponent(propXML);
+
+        var propUrl = theMap.parameters.URL_PREFIX + theMap.parameters.PROPERTY_INFO_URL;
+
+        var propInfoAjax = new XMLHttpRequest();
 
         propInfoAjax.x = arg_x;
         propInfoAjax.y = arg_y;
+
         propInfoAjax.onload = private_propertyInfoAjaxOnload.bind(this, propInfoAjax);
+
         propInfoAjax.open("POST", propUrl, true);
+
         propInfoAjax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
         propInfoAjax.send(propXMLPostRequest);
     };
 
@@ -639,7 +755,7 @@ theMap.marker_module = function(){
             console.log(responseText.match(/<error.*<\/error/i));
 
             //private_streetInfo.call(this, arg_propInfoAjax.x, arg_propInfoAjax.y);
-
+            markerAddImageAndText.call(this.querySelector('.markerEdit'), null, { "m": "No APN found.", "i":"" });
             return;
         }
 
@@ -651,8 +767,9 @@ theMap.marker_module = function(){
 
               // It didn't find a property so check if it is a road/street/interstate ect.
               // private_streetInfo.call(this, arg_propInfoAjax.x, arg_propInfoAjax.y);
+              markerAddImageAndText.call(this.querySelector('.markerEdit'), null, { "m": "No parcel number found.", "i":"" });
 
-              private_makePolygonBoundary(arg_propInfoAjax.responseText, this);
+              private_makePropertyBoundaryPolygon(arg_propInfoAjax.responseText, this);
 
               return;
             }
@@ -694,8 +811,8 @@ theMap.marker_module = function(){
 
     // Test property = file:///C:/Users/admin/Desktop/website%20fork/index.htm?={%22x%22:1279569.055,%22X%22:1280969.055,%22y%22:296488.493,%22Y%22:297186.306,%22z%22:40}
     // Test property = file:///C:/Users/admin/Desktop/website%20fork/index.htm?={%22x%22:1308837.076,%22X%22:1311637.076,%22y%22:306289.22,%22Y%22:307684.845,%22z%22:60}
-    var private_makePolygonBoundary = function(arg_response, arg_marker) {
-        var features = arg_response.match(/(<FEATURE>)(.*?)<\/FEATURE>/g),
+    var private_makePropertyBoundaryPolygon = function (arg_response, arg_marker) {
+        var features = (arg_response.match(/(<FEATURE>)(.*?)<\/FEATURE>/g) || []),
             coordsArray = [],
             group = document.createElementNS("http://www.w3.org/2000/svg", "g"),
             path  = undefined,
@@ -704,7 +821,7 @@ theMap.marker_module = function(){
             tempCoords = [],
             splitXY = [], duplicateObj = {};
 
-        group.setAttribute('style', 'opacity: 0.3;');
+        group.setAttribute('style', 'fill-opacity: 0.3;');
 
         for (var g = 0; g < features.length; g++) {
 
@@ -714,7 +831,7 @@ theMap.marker_module = function(){
           path.spCoords = [];
 
           n = 0;
-          while(coordsArray[n]){
+          while (coordsArray[n]) {
 
               coords = coordsArray[n].replace(/..?coords./i, '').split(';');
 
@@ -734,7 +851,7 @@ theMap.marker_module = function(){
               }
 
               m = 0;
-              while(coords[m]) {
+              while (coords[m]) {
 
                   splitXY = coords[m].replace(/..?coords./i, '').split(' ');
 
@@ -749,7 +866,7 @@ theMap.marker_module = function(){
 
           if (path.spCoords.length > 0) {// Skip it if there are no coordinates.
 
-            path.style.fill = ['red', 'rgb(17, 85, 204)', 'rgb(51, 153, 51)'][(++private_makePolygonBoundary.fillColor > 2? (private_makePolygonBoundary.fillColor = 0): private_makePolygonBoundary.fillColor)];//'#'+((Math.random() * 0xFFFFFF << 0).toString(16));
+            group.style.fill = ['red', 'rgb(17, 85, 204)', 'rgb(51, 153, 51)'][(++private_makePropertyBoundaryPolygon.fillColor > 2? (private_makePropertyBoundaryPolygon.fillColor = 0): private_makePropertyBoundaryPolygon.fillColor)];//'#'+((Math.random() * 0xFFFFFF << 0).toString(16));
             //arg_marker.data.apnAnchor.style.color = path.style.fill;
 
             group.appendChild(path);
@@ -758,36 +875,62 @@ theMap.marker_module = function(){
           }
         }
 
-        if(arg_marker.data.svgGroup){ // arg_marker.svgGroup may be null if the person deleted the arg_marker quick enough.
+        if (arg_marker.data.svgGroup) { // arg_marker.svgGroup may be null if the person deleted the arg_marker quick enough.
 
             arg_marker.data.svgGroup.group = group;
 
             theMap.svgPropertyHightlightGroup.appendChild(group);
 
             calculatePosition.svgHighlight(arg_marker);
+
+            arg_marker.addEventListener('mouseover', function () {
+
+              this.data.svgGroup.group.style.strokeWidth = '3px';
+              this.data.svgGroup.group.style.stroke = this.data.svgGroup.group.style.fill;
+            });
+
+            arg_marker.addEventListener('mouseout', function () {
+
+              this.data.svgGroup.group.style.strokeWidth = '';
+              this.data.svgGroup.group.style.stroke = '';
+            });
         }
     }.bind(theMap);
 
-    private_makePolygonBoundary.fillColor = 0;
+    // This is a hack.
+    private_makePropertyBoundaryPolygon.fillColor = 0;
 
     var private_streetInfo = function (arg_x, arg_y) {
 
         // 'this' equals the marker body.
-        var minX = arg_x - 20, maxX = minX + 40, minY = arg_y - 20, maxY = minY + 40,
-            streetXML = '<?xml version="1.0" encoding="UTF-8" ?><ARCXML version="1.1"><REQUEST>'
+        var minX = arg_x - 20,
+            maxX = minX + 40;
+
+        var minY = arg_y - 20,
+            maxY = minY + 40;
+
+        var streetXML = '<?xml version="1.0" encoding="UTF-8" ?><ARCXML version="1.1"><REQUEST>'
                       + '<GET_FEATURES outputmode="xml" envelope="false" geometry="false" featurelimit="10000">'
                       + '<LAYER id="6" /><SPATIALQUERY subfields="'
                       + 'NAME FULLNAME STREETTYPE'
                       + '"><SPATIALFILTER relation="area_intersection" >'
                       + '<ENVELOPE maxy="' + maxY + '" maxx="' + maxX + '" miny="' + minY + '" minx="' + minX + '"/>'
-                      + '</SPATIALFILTER></SPATIALQUERY></GET_FEATURES></REQUEST></ARCXML>',
-            streetXMLPostRequest = window.encodeURIComponent("ArcXMLRequest") + "=" + encodeURIComponent(streetXML),
-            streetUrl = theMap.parameters.URL_PREFIX + theMap.parameters.PROPERTY_INFO_URL,
-            streetInfoAjax = new XMLHttpRequest();
+                      + '</SPATIALFILTER></SPATIALQUERY></GET_FEATURES></REQUEST></ARCXML>';
+
+        var streetXMLPostRequest =  window.encodeURIComponent("ArcXMLRequest")
+                                    + "="
+                                    + encodeURIComponent(streetXML);
+
+        var streetUrl = theMap.parameters.URL_PREFIX + theMap.parameters.PROPERTY_INFO_URL;
+
+        var streetInfoAjax = new XMLHttpRequest();
 
         streetInfoAjax.onload = private_streetInfoAjaxOnload.bind(this, streetInfoAjax);
+
         streetInfoAjax.open("POST", streetUrl, true);
+
         streetInfoAjax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
         streetInfoAjax.send(streetXMLPostRequest);
     };
 
@@ -852,7 +995,7 @@ theMap.marker_module = function(){
             return;
         }
 
-        Object.keys(noDuplicatesObject).forEach(function(arg_road) {
+        Object.keys(noDuplicatesObject).forEach(function (arg_road) {
 
             message += arg_road +'<br>';// TODO: Adds an unnecessary <br> after last road.
         });
@@ -866,7 +1009,7 @@ theMap.marker_module = function(){
         calculatePosition.marker(this);
     };
 
-    var searchByAPNs = function(e) {//lat,lng
+    var searchByAPNs = function (e) {//lat,lng
         var apnArray = document.querySelector('#search_apn_div  input').value.replace(/\s/g, '').split(','),
             url = theMap.parameters.URL_PREFIX + theMap.parameters.SEARCH_BY_APN_URL,
             xml = undefined,
@@ -884,12 +1027,10 @@ theMap.marker_module = function(){
         // Stick the APN's of the current markers into an object as a key so they
         // can be compared to what the user entered in text box. If an APN is already present
         // it will be skipped...because it already exists.
-        theMap.markersArray.forEach(
-            function(marker) {
+        theMap.markersArray.forEach(function (marker) {
 
               currentAPNs[marker.apn] = '';
-            }
-       );
+        });
 
         for (var i = 0; i < apnArray.length; i++) {
 
@@ -913,6 +1054,7 @@ theMap.marker_module = function(){
                 }
             }
         }
+
         xml =   '<?xml version="1.0" encoding="UTF-8" ?><ARCXML version="1.1">\n'
                 + '<REQUEST>\n<GET_FEATURES outputmode="xml" geometry="true" compact="true" '
                 + 'envelope="true" featurelimit="14000" beginrecord="1">\n'
@@ -921,10 +1063,13 @@ theMap.marker_module = function(){
                 + ' GIS_FEATURES.DBA.CADASTRAL_PARCELS_ASSESSOR.X_COORD'
                 + ' GIS_FEATURES.DBA.CADASTRAL_PARCELS_ASSESSOR.Y_COORD'
                 + "\" where=\"PARCEL_ID IN ("+ apnArray.join(',') +")\" \/>"
-                + '</GET_FEATURES></REQUEST></ARCXML>',
+                + '</GET_FEATURES></REQUEST></ARCXML>';
+
         xmlRequest = 'ArcXMLRequest=' + window.encodeURIComponent(xml);
+
         searchByAPNsAjax.open("POST", url, true);
-        searchByAPNsAjax.onreadystatechange = function(){
+
+        searchByAPNsAjax.onreadystatechange = function () {
 
             if (searchByAPNsAjax.readyState == 4 && searchByAPNsAjax.status == 200 && searchByAPNsAjax.responseText) {
 
@@ -936,7 +1081,9 @@ theMap.marker_module = function(){
                 private_assembleMarkerTextFromResponse(searchByAPNsAjax.responseText);
             }
         };
+
         searchByAPNsAjax.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
         searchByAPNsAjax.send(xmlRequest);
 
         // If there was at least one valid apn (hopefully) then zoom all the way out
@@ -956,19 +1103,35 @@ theMap.marker_module = function(){
             featureElement = undefined,
             marker = undefined;
 
-        while((parcelNumber = parcelNumberRegex.exec(arg_responseText)) !== null) {
+        while ((parcelNumber = parcelNumberRegex.exec(arg_responseText)) !== null) {
+
             parcelNumber = parcelNumber[1];
+
             lat = latRegex.exec(arg_responseText)[1];
             lng = lngRegex.exec(arg_responseText)[1];
+
             featureElement = featureRegex.exec(arg_responseText)[0] +' FEATURECOUNT count="1" ';
+
             html = makeInfoHtml(featureElement, null);
-            obj = { "a": parcelNumber, "x": lng, "y": lat, "m": html, "i": "" };
+
+            obj = {
+                "a": parcelNumber,
+                "x": lng,
+                "y": lat,
+                "m": html,
+                "i": ""
+            };
+
             if (theMap.optionsReference.showPropertyImage_CheckMark) {
+
                 obj.i = "http://www.snoco.org/docs/sas/photos/"+ obj.a.replace(/^(\d{4})\d*/, "$1") +"/"+ obj.a +"R011.jpg";
             }
+
             marker = theMap.marker_module.makeMarker(null, obj);
-            private_makePolygonBoundary(featureElement, marker);
+
+            private_makePropertyBoundaryPolygon(featureElement, marker);
         }
+
         theMap.zoom_module.zoomToMinExtent();
     }
 
@@ -984,15 +1147,15 @@ theMap.marker_module = function(){
             html = undefined,
             addBrIncrementorObj = { a: 0 },
             ownerName = private_normalize(arg_xml.match(/OWNERNAME="(.*?)"/)[1])
-                        .replace(/(\s)/g, function(match, p1, index) {
+                        .replace(/(\s)/g, function (match, p1, index) {
                                             if (index >= (this.a + 24)) {
                                                 this.a += 24;
                                                 return '<br>';
                                             }
                                             return p1;
                                           }.bind(addBrIncrementorObj)
-                               ),// <- End of replace method.
-            lineBreaks = /*Breaks up long owners name*/(function(o) { var a = ''; var s = o.indexOf("<br>");while(s != -1) {a += "<br>"; s = o.indexOf("<br>",s+1);}return a;})(ownerName);
+                              ),// <- End of replace method.
+            lineBreaks = /*Breaks up long owners name*/(function (o) { var a = ''; var s = o.indexOf("<br>");while (s != -1) {a += "<br>"; s = o.indexOf("<br>",s+1);}return a;})(ownerName);
 
         ownerName = private_upperCase(ownerName);
 
@@ -1000,20 +1163,20 @@ theMap.marker_module = function(){
 
             try {
 
-                if (!theMap.markersArray.some(function(makerParent) { return (arg_marker.data.apn == makerParent.data.apn) && makerParent.data.svgGroup && makerParent.data.svgGroup.group; })) {
+                if (!theMap.markersArray.some(function (makerParent) { return (arg_marker.data.apn == makerParent.data.apn) && makerParent.data.svgGroup && makerParent.data.svgGroup.group; })) {
 
-                    private_makePolygonBoundary(arg_xml, arg_marker);
+                    private_makePropertyBoundaryPolygon(arg_xml, arg_marker);
                 }
 
-            } catch(e){}
+            } catch(e) {}
 
             html =  '<div class="m"><div>Owner:<br>' + lineBreaks
                     + 'Address:<br><br>'
                     + 'Value:</div><div>'
                     + ((!ownerName || /unknown/i.test(ownerName))? 'Unknown'  : ownerName) +'<br>'
-                    + ((!addrLine1 || /unknown/i.test(addrLine1))? 'Unknown'  : addrLine1 ) +'<br>'
-                    + (( !addrCity || /unknown/i.test(addrCity) )? 'Unknown, ': addrCity +', ')
-                    + ((  !addrZip || /unknown/i.test(addrZip)  )? 'Unknown'  : addrZip) +'<br>'
+                    + ((!addrLine1 || /unknown/i.test(addrLine1))? 'Unknown'  : addrLine1) +'<br>'
+                    + ((!addrCity || /unknown/i.test(addrCity))? 'Unknown, ': addrCity +', ')
+                    + (( !addrZip || /unknown/i.test(addrZip) )? 'Unknown'  : addrZip) +'<br>'
                     + '$'+ marketValue +' <div>('+ sizeAcres +' acres)</div></div>';
 
         // Properties with many parcel numbers associated with it, for example condominium complex.
@@ -1023,7 +1186,7 @@ theMap.marker_module = function(){
 
             try{
 
-                private_makePolygonBoundary(arg_xml, arg_marker);
+                private_makePropertyBoundaryPolygon(arg_xml, arg_marker);
             } catch(e) {
 
               console.log(e);
@@ -1037,7 +1200,7 @@ theMap.marker_module = function(){
             marketValue = /MKTTL="(.*?)"/g;
             sizeAcres = /TAB_ACRES="(.*?)"/g;
 
-            while((parcelNumber = parcelNumberRegex.exec(arg_xml)) !== null) {
+            while ((parcelNumber = parcelNumberRegex.exec(arg_xml)) !== null) {
 
                 parcelNumber = parcelNumber[1];
 
@@ -1054,20 +1217,25 @@ theMap.marker_module = function(){
 
             html += '</div>';
         }
+
         return html;
     }
 
-    function deleteAllMarkers(){
-        var markersArray = theMap.markersArray,
-            i = markersArray.length;
+    function deleteAllMarkers() {
+        var markersArray = theMap.markersArray;
 
-        for (; i > -1; --i) {
+        for (var i = markersArray.length; i > -1; --i) {
             if (markersArray[i] && /markerParent|smallCountyMarker/.test(markersArray[i].className)) {
 
                 // Used a setTimeout for visual effect only, nothing special.
-                window.setTimeout(function(m) {
+                window.setTimeout(function (m) {
+
                     window.$('smallCountyMarker'+ m.id).parentNode.removeChild(window.$('smallCountyMarker'+ m.id));
+
                     m.data.removeSvgGroup();
+
+                    m.data.deleted = true;
+
                     m.parentNode.removeChild(m);
                   }, (window.Math.random() * 500), markersArray[i]);
 
@@ -1081,15 +1249,21 @@ theMap.marker_module = function(){
         // Only deletes markers with a className of 'parentMarker' unless they have a
         // className of 'DONTDELETE'.
         // Called when person clicks map to make a new marker, unless ctrl is held down.
-        var markersArray = theMap.markersArray,
-            i = 0;
+        var markersArray = theMap.markersArray;
 
-        for (; i < markersArray.length; ++i) {
-            if (markersArray[i] && /markerParent/.test(markersArray[i].className) &&
-                !/DONTDELETE/.test(markersArray[i].className)) {
+        for (var i = 0; i < markersArray.length; ++i) {
+
+            if (markersArray[i] && /markerParent/.test(markersArray[i].className)
+                && !/DONTDELETE/.test(markersArray[i].className)) {
+
                 window.$('smallCountyMarker'+ markersArray[i].id).parentNode.removeChild(window.$('smallCountyMarker'+ markersArray[i].id));
+
                 markersArray[i].data.removeSvgGroup();
+
+                markersArray[i].data.deleted = true;
+
                 markersArray[i].parentNode.removeChild(markersArray[i]);
+
                 markersArray.splice(i, 1);
             }
         }
@@ -1118,17 +1292,17 @@ theMap.marker_module = function(){
         }
 
         words = arg_ownerName.replace(/&amp;|\&|\+|\/| jr(?!\w)| sr(?!\w)|  /gi,
-                function(match) {
+                function (match) {
                   return ((/jr|sr/gi).test(match) === true) ? '' : ((/  /gi).test(match)) ? ' ' : ' & ';
                 });
         splitIt = ((words.split(' ').length === 3 || words.split(' ').length === 2) &&
                    (/\&|bank|corp|llc|credit|union|RESIDENCE|Mortgage|apart|condo|inc.?\w{0}|ASSOC/gi).test(words) === false)
                     ? words.replace(/([a-z]*)\s?(\w*)\s?(\w*)/i,
-                            function(match,a,b,c) {
+                            function (match,a,b,c) {
                               return (b.length > 1) ? [ b, a ].join(' ') : [ c,a ].join(' ');
                             }).split(' ')
                     : words.split(' ');
-        splitIt.forEach(function(value) {
+        splitIt.forEach(function (value) {
           if ((value.length > 1 && (/II/g).test(value) === false) || (/\&/g).test(value) === true) {
             value = value.charAt(0).toUpperCase() + value.substring(1).toLowerCase();
             if (value == 'Llc') {
@@ -1169,19 +1343,22 @@ theMap.marker_module = function(){
                                                +'>$2</font> ');
     }
 
-    var isSimpleMarkerOnImage = function(){
+    var isSimpleMarkerOnImage = function () {
         var markersArray = this.markersArray,
             len = markersArray.length;
 
         for (var i = 0; i < len; ++i) {
+
             if (/simpleMarker/.test(markersArray[i].className)) {
+
                 if (markersArray[i].data.statePlaneCoordX < this.presentMaxX &&
                     markersArray[i].data.statePlaneCoordY < this.presentMaxY &&
                     markersArray[i].data.statePlaneCoordX > this.presentMinX &&
-                    markersArray[i].data.statePlaneCoordY > this.presentMinY)
-                {
+                    markersArray[i].data.statePlaneCoordY > this.presentMinY) {
+
                     markersArray[i].style.visibility = 'visible';
                 } else {
+
                     markersArray[i].style.visibility = 'hidden';
                 }
             }
@@ -1242,7 +1419,7 @@ theMap.marker_module = function(){
         makeInterStateShields: makeInterStateShields,
         makeMarker: makeMarker,
         markerAddImageAndText: markerAddImageAndText,
-        calculateMarkerPosition: calculatePosition.marker,
+        calculateMarkersPositions: calculatePosition.marker,
         calculatePropHighlightPosition: calculatePosition.svgHighlight,
         makeInfoHtml: makeInfoHtml,
         deleteAllMarkers: deleteAllMarkers,
@@ -1254,11 +1431,11 @@ theMap.marker_module = function(){
 
 /* TODO
     * Add the mouse wheel event normalizer statement to a central location, theMap.mWheelEvt?
-    * Done: fix mouse calculateMarkerPositionning bug, make dozens of markers and try to calculateMarkerPosition, get error can't set style of undefined.
+    * Done: fix mouse calculateMarkersPositionsning bug, make dozens of markers and try to calculateMarkersPositions, get error can't set style of undefined.
     * Done: make it so the markers zoom in and out;
     * throttle ajax requests to maybe 500 milliseconds?
     * Done: make a box where someone can enter a message.
-    * redo the calculateMarkerPosition and make it more efficient.
+    * redo the calculateMarkersPositions and make it more efficient.
     * change "zooming" classname changes to smoothTransition();
     * Done???(added to the_Map): do something about minxOld ect. they are globals.
 
