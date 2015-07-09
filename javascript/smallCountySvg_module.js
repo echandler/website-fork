@@ -150,9 +150,9 @@ var theMap = window.theMap,
         this.box.data.offsetX = ((w / 2) - (this.box.data.width / 2));
 
         var h = (90 * mainMapHeightRatio);// TODO
-        var y = this.box.data.y -((h/2) - (this.box.data.height/2));// TODO
+        var y = this.box.data.y -((h / 2) - (this.box.data.height / 2));// TODO
 
-        this.box.data.offsetY = ((h/2) - (this.box.data.height/2));
+        this.box.data.offsetY = ((h / 2) - (this.box.data.height / 2));
 
         this.box.setAttribute('x', x);
         this.box.setAttribute('y', y);
@@ -161,14 +161,14 @@ var theMap = window.theMap,
       } else {
 
         var w = 90 * mainMapWidthRatio; // TODO
-        var x = this.box.data.x - ((w/2) - (this.box.data.width/2));// TODO
+        var x = this.box.data.x - ((w / 2) - (this.box.data.width / 2));// TODO
 
-        this.box.data.offsetX = ((w/2) - (this.box.data.width/2));
+        this.box.data.offsetX = ((w / 2) - (this.box.data.width / 2));
 
         var h = 90; // // TODOTODO
-        var y = this.box.data.y -((h/2) - (this.box.data.height/2)); // TODO
+        var y = this.box.data.y -((h / 2) - (this.box.data.height / 2)); // TODO
 
-        this.box.data.offsetY = ((h/2) - (this.box.data.height/2));
+        this.box.data.offsetY = ((h / 2) - (this.box.data.height / 2));
 
         this.box.setAttribute('x', x);
         this.box.setAttribute('y', y);

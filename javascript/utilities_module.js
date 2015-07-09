@@ -5,16 +5,20 @@ theMap.utilities_module = function () {
       var xMultiplier = (this.presentMaxX - this.presentMinX) / this.resizedMapWidth, // For paths.
           yMultiplier = (this.presentMaxY - this.presentMinY) / this.resizedMapHeight; // For paths.
 
-      return ((x - this.presentMinX ) / xMultiplier + this.currentMapImg._left) +','+ ((this.presentMaxY - y) / yMultiplier + this.currentMapImg._top) +' ';
+      return (((x - this.presentMinX ) / xMultiplier) + this.currentMapImg._left)
+            + ','
+            + (((this.presentMaxY - y) / yMultiplier) + this.currentMapImg._top)
+            + ' ';
     }.bind(theMap);
 
     var convertMouseCoordsToStatePlane = function (e) {
         var xMultiplier = (this.presentMaxX - this.presentMinX) / this._width;
         var yMultiplier = (this.presentMaxY - this.presentMinY) / this._height;
+
         var x = (((e.clientX - this.mapContainer._left) - (this.dragDiv._left + this._left)) * xMultiplier + this.presentMinX);
         var y = (this.presentMaxY - (((e.clientY - this.mapContainer._top) - (this.dragDiv._top + this._top)) * yMultiplier));
 
-        return { x: x, y: y };
+        return {x: x, y: y};
     }.bind(theMap);
 
     // firstMapLoad only gets called on the first map load.
@@ -26,33 +30,38 @@ theMap.utilities_module = function () {
 
         if (window.history.replaceState) {
             window.history.replaceState({
-                        minxOld: this.presentMinX,
-                        maxxOld: this.presentMaxX,
-                        minyOld: this.presentMinY,
-                        maxyOld: this.presentMaxY,
-                        zoom: theMap.sliderPosition,
-                        title: "SnoCo Interactive Map: Welcome!"
-                    },
-                    "title 1",
-                    (!window.theMap.infoFromUrl)
-                        ? '?={"x":' + this.presentMinX.toFixed(3)
-                            +',"X":'+ this.presentMaxX.toFixed(3)
-                            +',"y":'+ this.presentMinY.toFixed(3)
-                            +',"Y":'+ this.presentMaxY.toFixed(3)
-                            +',"z":'+ this.sliderPosition
-                            +'}'
-                        : window.location.search
+                minxOld: this.presentMinX,
+                maxxOld: this.presentMaxX,
+                minyOld: this.presentMinY,
+                maxyOld: this.presentMaxY,
+                zoom: theMap.sliderPosition,
+                title: "SnoCo Interactive Map: Welcome!"
+            },
+            "title 1",
+            (!window.theMap.infoFromUrl)?
+                ('?={"x":'+ this.presentMinX.toFixed(3)
+                +',"X":'+ this.presentMaxX.toFixed(3)
+                +',"y":'+ this.presentMinY.toFixed(3)
+                +',"Y":'+ this.presentMaxY.toFixed(3)
+                +',"z":'+ this.sliderPosition
+                +'}')
+                : window.location.search
            );
         }
 
         theMap.onPopState = true;
+
         theMap.citiesTownsSvg_module.resizeAllSvgCities(); //This sets the size of the svg container.
+
         theMap.marker_module.makeInterStateShields();
         theMap.marker_module.isSimpleMarkerOnImage();
+
         window.$('small_county_svg').style.opacity = 1;
         window.$('loading_div').parentNode.removeChild(window.$('loading_div'));
         window.$('zoom_control').style.visibility = 'visible';
+
         addListeners();// TODO: rename this.
+
         theMap.removeMapLoadListener(firstMapLoad);
     }
 
@@ -61,12 +70,17 @@ theMap.utilities_module = function () {
         // First check if the first char (after '?=') is a number, if so assume it is an APN that needs to be calculated,
         // otherwise assume it is a JSON object with pre-calculated marker information.
         if (checkUrlForApn().doesExist) {
+
             document.querySelector('#search_apn_div  input').value = checkUrlForApn().contents;
+
             theMap.marker_module.searchByAPNs();
         } else if (theMap.infoFromUrl && theMap.infoFromUrl.x) {
+
             //theMap.infoFromUrl = JSON.parse(window.decodeURIComponent(location.search.replace(/^\?=/,'')));
             if (theMap.infoFromUrl.mr) {
+
                 theMap.infoFromUrl.mr.forEach(function (mrker) {
+
                     theMap.marker_module.makeMarker(null, mrker);
                 });
             }
@@ -77,17 +91,23 @@ theMap.utilities_module = function () {
         if (/^\d/.test (document.querySelector('#search_apn_div  input').value)) {
              //window.$('document.querySelector('#search_apn_div  input'),').className = 'findParcelNumberBorder';
         }
-        setTimeout(function () { theMap.infoFromUrl = undefined; }, 500);
+        setTimeout(function () {
+
+            theMap.infoFromUrl = undefined;
+        }, 500);
     }
 
     function testProp(props) {// Got this from leaflet
         var style = document.documentElement.style;
 
         for (var i = 0; i < props.length; i++) {
+
             if (props[i] in style) {
+
                 return props[i];
             }
         }
+
         return false;
     }
 
@@ -97,13 +117,19 @@ theMap.utilities_module = function () {
         //  that will be checked for true/false then used to create the first map.
         try{
             if (/^\?=\{/.test(window.decodeURIComponent(window.location.search))) {
+
                 this.infoFromUrl = JSON.parse(window.decodeURIComponent(window.location.search.replace(/^\?=/,'')));
+
                 this.presentMinX = this.infoFromUrl.x;
                 this.presentMaxX = this.infoFromUrl.X;
+
                 this.presentMinY = this.infoFromUrl.y;
                 this.presentMaxY = this.infoFromUrl.Y;
+
                 this.sliderPosition = this.infoFromUrl.z;
+
                 if (this.infoFromUrl.$2 !== undefined) {
+
                     this.optionsReference.$12SaleRecord_CheckMark = this.infoFromUrl.$2;
                     this.optionsReference.$13SaleRecord_CheckMark = this.infoFromUrl.$3;
                     this.optionsReference.$14SaleRecord_CheckMark = this.infoFromUrl.$4;
@@ -116,50 +142,73 @@ theMap.utilities_module = function () {
                     this.optionsReference.showParcelBoundary_CheckMark = this.infoFromUrl.pb;
                     this.optionsReference.showParcelNumbers_CheckMark = this.infoFromUrl.pn;
                 }
+
                 if (this.infoFromUrl.l && this.infoFromUrl.l.length !== 0) {
+
                     this.addMapLoadListener('Creates svg lines from information in the url, deleted after first use.', theMap,
                             function makeLines() {
+
                                 theMap.drawSvgLine_module.createPolylinesFromUrl(theMap.infoFromUrl.l);
+
                                 theMap.removeMapLoadListener(makeLines);
                             });
                     //this.drawSvgLine_module.createPolylinesFromUrl(this.infoFromUrl.l);
                 }
+
                 if (this.infoFromUrl.ml && this.infoFromUrl.ml.length !== 0) {
+
                     this.addMapLoadListener('Creates svg lines from information in the url, deleted after first use.', theMap,
                             function makeLines() {
+
                                 theMap.measureSvgLine_module.createPolylinesFromUrl(this.infoFromUrl.ml);
+
                                 theMap.removeMapLoadListener(makeLines);
                             });
                 }
             } else if (checkUrlForApn().doesExist) {
+
                 this.infoFromUrl = checkUrlForApn().contents;
             }
 
             // Either way call call a function that will attempt to create markers if there is APN information.
             this.addMapLoadListener('Creates markers from information in the url, deleted after first use.', theMap,
                 function createMarkers() {
+
                     theMap.utilities_module.createMarkersFromInfoFromUrl();
+
                     theMap.removeMapLoadListener(createMarkers);
                 });
         } catch (error) {
-            window.alert(  'There appears to be a problem with the URL.\n\nCryptic Error Message:\n  "  '+
-                            error +'  "\n\n'+
-                            'The URL length is: '+ (location.pathname + location.search).length +
-                            ' characters.');
+
+            window.alert(  'There appears to be a problem with the URL.\n\nCryptic Error Message:\n  "  '
+                            + error
+                            + '  "\n\n'
+                            + 'The URL length is: '+ (location.pathname + location.search).length
+                            + ' characters.');
         }
     }.bind(theMap);
 
     // TODO: Can popState be re-factored in a smarter way?
     var popStateHandler = function (event) {
-        if (!event.state) { return false; }
+
+        if (!event.state) {
+
+            return false;
+        }
+
         document.title = event.state.title;
+
         this.parsedXMLFromServer.getElementsByTagName("ENVELOPE")[0].attributes[0].nodeValue = event.state.minxOld;
         this.parsedXMLFromServer.getElementsByTagName("ENVELOPE")[0].attributes[2].nodeValue = event.state.maxxOld;
         this.parsedXMLFromServer.getElementsByTagName("ENVELOPE")[0].attributes[1].nodeValue = event.state.minyOld;
         this.parsedXMLFromServer.getElementsByTagName("ENVELOPE")[0].attributes[3].nodeValue = event.state.maxyOld;
+
         window.$('zoom_slider').style.top = event.state.zoom +'px';
+
         this.sliderPosition = +event.state.zoom;
+
         this.ArcXML_module.makeArcXMLRequest(event.state.minxOld, event.state.maxxOld, event.state.minyOld, event.state.maxyOld, true);
+
         getInfoFromUrl();
     }.bind(theMap);
 
@@ -168,16 +217,22 @@ theMap.utilities_module = function () {
         // This controls pageHasFocus when the browser isn't focused (clicked outside the browser);
         // The visibility api doesn't fire off when someone clicks outside the browser.
         window.onblur = function () {
+
             theMap.pageHasFocus = false;// Mouse down event will set this to true, the click event will still fire.
+
             theMap.pageHasFocusForClick = false; // Used to prevent click events from firing.
 
             // This is used to set the pageHasFocus variable to true if the person uses the mousewheel to
             // zoom on the map. ThetheMap.zoom_module.zoomInOut function was setting pageHasFocus everytime
             // which was unnecessary.
             theMap.mapContainer.addEventListener(theMap.MOUSE_WHEEL_EVT, onFocusMouseWheelEvnt);
+
             function onFocusMouseWheelEvnt() {
+
                 theMap.pageHasFocus = true;
+
                 theMap.pageHasFocusForClick = false;
+
                 this.removeEventListener(theMap.MOUSE_WHEEL_EVT, onFocusMouseWheelEvnt);
             }
         };
@@ -186,28 +241,38 @@ theMap.utilities_module = function () {
         // This controls pageHasFocus when switching between tabs.
         // First window.onblur will set pageHasFocus = false, then when switching back the visibly api will set pageHasFocus = true.
         if (typeof document.hidden !== "undefined") { // Opera 12.10 and Firefox 18 and later support
+
             document.addEventListener("visibilitychange", setPageHasFocusToTrue);
         } else if (typeof document.mozHidden !== "undefined") {
+
             document.addEventListener("mozvisibilitychange", setPageHasFocusToTrue);
         } else if (typeof document.msHidden !== "undefined") {
+
             document.addEventListener("msvisibilitychange", setPageHasFocusToTrue);
         } else if (typeof document.webkitHidden !== "undefined") {
+
             document.addEventListener("webkitvisibilitychange", setPageHasFocusToTrue);
         }
 
         // This will set a "click" event listener that will set pageHasFocus = true if the person clicks on
         // the options panel or the zoom slider.
         window.$('options_container').addEventListener('click', setPageHasFocusToTrue);
+
         window.$('zoom_control').addEventListener('click', setPageHasFocusToTrue);
+
         function setPageHasFocusToTrue() {
+
             theMap.pageHasFocus = true;
+
             theMap.pageHasFocusForClick = true;
         }
     };
 
     function checkUrlForApn() {
-        return { doesExist: /^\?=\s*\d\d/.test(window.decodeURIComponent(window.location.search)) ,
-                 contents: window.decodeURIComponent(window.location.search).replace(/[\s|?=]/g, '') };
+        return {
+            doesExist: /^\?=\s*\d\d/.test(window.decodeURIComponent(window.location.search)),
+            contents: window.decodeURIComponent(window.location.search).replace(/[\s|?=]/g, '')
+        };
     }
 
     var private_addRemoveEventListenersObj = {
@@ -222,12 +287,13 @@ theMap.utilities_module = function () {
             [ window.$('theMap_container'), 'mousedown', theMap.mapControl_module.theMap_mouseDown],
         ],
         updateButton: window.$('update_button'),
-        saveButton: window.$('save_button'),
+        saveButton: window.$('save_button')
     };
 
     var addListeners = function () {// TODO = comment what this does.
 
         theMap.setTimeoutt(function () { theMap.options_module.svgController('finish Map Done Loading'); }, 2000);
+
         theMap.mapContainer.addEventListener(theMap.MOUSE_WHEEL_EVT, theMap.zoom_module.zoomInOut);
 
         for (var i = 0; i < this.array.length; ++i) {
@@ -245,17 +311,24 @@ theMap.utilities_module = function () {
 
         this.viewPortWidth  = window.innerWidth;
         this.viewPortHeight = window.innerHeight;
+
         calculateMaxWidthHeight();
+
         this.mapContainer.style.width  = this.resizedMapWidth +'px';
         this.mapContainer.style.height = this.resizedMapHeight +'px';
+
         this.svgContainer.style.width  = this.resizedMapWidth +'px';
         this.svgContainer.style.height = this.resizedMapHeight +'px';
+
         // This finds the top of the zoom slider on the screen, it changes when the screen resizes
         // because it's containers (#zoom_control) left and top are set as a percentage of the screen size.
         this.zoom_slider_container_styleTop = window.$('zoom_slider_container').getBoundingClientRect().top;
+
         this.overlayMap_module.resizeOverlayMapContainer();
+
         this.smallCountySvg_module.smallCountySvgResize();
-        this.zoom_module.zoomStart(middleOfContainerX, middleOfContainerY, this.viewPortWidth/2, this.viewPortHeight/2);
+
+        this.zoom_module.zoomStart(middleOfContainerX, middleOfContainerY, (this.viewPortWidth / 2), (this.viewPortHeight / 2));
     }.bind(theMap);
 
     var calculateMaxWidthHeight = function () {
@@ -268,15 +341,22 @@ theMap.utilities_module = function () {
             // By default it will try to reduce the width of the map and and not touch
             // the height so it will be full height.
             if (this.viewPortWidth < theMap.parameters.MAX_WIDTH) {
+
                 this.resizedMapWidth = (function (height, width, maxWidthHeight) {
+
                             while (true) {
+
                                 --width;
+
                                 if (height * width > maxWidthHeight) {
+
                                     continue;
                                 }
+
                                 return width;
                             }
                         })(this.viewPortHeight, this.viewPortWidth, maxWidthHeight);
+
                 this.resizedMapHeight = this.viewPortHeight;
             } else {
 
@@ -296,9 +376,15 @@ theMap.utilities_module = function () {
         // Try to center the div that contains the map (#theMap_container).
         this.mapContainer._left = (this.viewPortWidth - this.resizedMapWidth) / 2;
         this.mapContainer._top = (this.viewPortHeight - this.resizedMapHeight) / 2;
-        this.mapContainer._right =  this.resizedMapWidth + this.mapContainer._left; //not sure if right and bottom are necessary or used.
+
+        this.mapContainer._right  = this.resizedMapWidth + this.mapContainer._left; //not sure if right and bottom are necessary or used.
         this.mapContainer._bottom = this.resizedMapHeight + this.mapContainer._top;
-        this.mapContainer.setAttribute('style', 'opacity: 1; position:absolute; top:'+ this.mapContainer._top +'px; left:'+ this.mapContainer._left +'px; height:'+ this.resizedMapHeight +'px; width:'+ this.resizedMapWidth +'px; ');
+
+        this.mapContainer.setAttribute('style', 'opacity: 1; position:absolute;'
+                                       + 'top:'   + this.mapContainer._top  +'px;'
+                                       + 'left:'  + this.mapContainer._left +'px;'
+                                       + 'height:'+ this.resizedMapHeight   +'px;'
+                                       + 'width:' + this.resizedMapWidth    +'px;');
     }.bind(theMap);
 
     // TODO: This was experimental.
@@ -327,12 +413,18 @@ theMap.utilities_module = function () {
         var message = document.createElement('div');
 
         message.className = 'simpleMessageBox';
+
         message.style.width = (arg_width && (arg_width +'px')) || '300px';
         message.style.left = ((window.innerWidth / 2) - ((arg_width && (arg_width / 2)) || 150)) +'px';
+
         message.id = arg_id || 'simple_message_box';
+
         message.innerHTML = arg_innerHTML;
+
         message.onclick = function (e) { e.stopPropagation(); this.parentNode.removeChild(this); };
+
         document.body.appendChild(message);
+
         return message;
     }
 

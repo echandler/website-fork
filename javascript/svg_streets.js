@@ -307,11 +307,10 @@ var svg_streets = function () {
 
     streetNameDiv.style.display = 'block';
 
-    streetNameDiv.style.top  = ((bb.top + bb.bottom)/2) - 14 +'px';
+    streetNameDiv.style.top  = ((bb.top + bb.bottom) / 2) - 14 +'px';
     streetNameDiv.style.left = bb.right + 20 +'px';
 
-    streetNameDiv.innerHTML = this.textContent
-                      .replace(/(\d)(th|rd|nd|st) /,
+    streetNameDiv.innerHTML = this.textContent.replace(/(\d)(th|rd|nd|st) /,
                           '$1'
                         + '<font style="vertical-align: 30%; font-size: 65%; margin-left: 1px;">'
                         + '$2'

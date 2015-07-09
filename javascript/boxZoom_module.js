@@ -49,15 +49,15 @@ theMap.boxZoom_module = function () {
             this.dragDiv.removeChild(boxZoom);
         }.bind(this), 170);
 
-        if (e.clientX === boxZoom.start.clientX
-            && e.clientY === boxZoom.start.clientY) {
+        if (e.clientX === boxZoom.start.clientX &&
+            e.clientY === boxZoom.start.clientY) {
 
             return;
         }
 
         // Move city to the middle of the screen to set it up for the zoom.
-        var x = (e.clientX - this.mapContainer._left) - (widthOfBox/2);
-        var y = (e.clientY - this.mapContainer._top)  - (heightOfBox/2);
+        var x = (e.clientX - this.mapContainer._left) - (widthOfBox / 2);
+        var y = (e.clientY - this.mapContainer._top)  - (heightOfBox / 2);
 
         var halfMapWidth  = ((this._width  / 2) - x) / 2;
         var halfMapHeight = ((this._height / 2) - y) / 2;
