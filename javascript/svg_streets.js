@@ -13,10 +13,10 @@ var svg_streets = function () {
 
       if (theMap.state.waitingForAjax) {
 
-        theMap.addMapLoadListener("street loader" , theMap,
+        theMap.addMapLoadCallBack("street loader" , theMap,
           function streetLoader() { // function to run when map is done loading.
 
-            theMap.removeMapLoadListener(streetLoader);
+            theMap.removeMapLoadCallBack(streetLoader);
 
             createStreets(theMap.utils.arcXmlDOM(glob.streetInfoAjax.responseText));
           });
@@ -60,7 +60,7 @@ var svg_streets = function () {
     svg_container.insertBefore(filter, theMap.svgCitiesGroup);
 
     // Make the glob.streetLayers for the different roads
-    var layerOrderArray = [9,0,8,7,6,5,4,3,2,1];
+    var layerOrderArray = ["accessRd",9,0,8,7,6,5,4,3,2,1];
 
     var n = 0;
     while (n < layerOrderArray.length) {
@@ -175,10 +175,16 @@ var svg_streets = function () {
     var coords = undefined;
 
     var points = '';
+
     var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     var pathClone = undefined;
+
+    var group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    var groupClone = undefined;
+
     var text = document.createElementNS("http://www.w3.org/2000/svg", "text");
     var textClone = undefined;
+
     var textPath = document.createElementNS("http://www.w3.org/2000/svg", "textPath");
     var textPathClone = undefined;
 
@@ -193,55 +199,74 @@ var svg_streets = function () {
     textPath.setAttribute('startOffset', startOffset);
     textPath.style.cursor = 'pointer';
 
+    // Make the street SVG groups and SVG paths.
     for (var q = 0; q < keys.length; ++q) {
 
       streetName = keys[q];
+
       streetsCache = streets[streetName];
+
       coordsLen = streetsCache.coords.length;
 
+      // reset the streetWidth variable for the new street.
+      streetWidth = STREET_WIDTH;
+
+      // Change street width depending on street type.
+      switch (streetsCache.type) {
+
+        case '1': { // Interstate eg. I-5, I-405, SR-526 (<-boeing) ect.
+
+                    streetWidth *= 2.0;
+
+                    if (streetName.indexOf('SR') !== -1) {
+
+                      startOffset = '75%'; // Try to prevent name overlap on road.
+                    }
+                  } break;
+
+        case '2': { /* Same width as case 4 */ }  // TODO: What kind of street is this?
+        case '3': { /* Same width as case 4 */ }  // TODO: What kind of street is this?
+        case '4': { // TODO: What kind of street is this?
+
+                    streetWidth *= 1.5;
+
+                    if (streetName.indexOf('SR') !== -1) {
+
+                      startOffset = '75%'; // Try to prevent name overlap on road.
+                    }
+                  } break;
+
+        case '9': { // Interstate ramps. aka "Ramps".
+
+                    streetWidth *= 0.5;
+                  } break;
+      }
+
+      // Each street will have it's own SVG group element.
+      groupClone = group.cloneNode();
+      groupClone.setAttribute('class', 'road_'+ streetsCache.type);
+      groupClone.setAttribute('stroke-width', streetWidth +'px');
+
+      if (streetName === 'Access Rd') {
+
+        streetsCache.type = 'accessRd';
+
+        groupClone.setAttribute('class', 'road_access');
+      }
+
+      // Create the street SVG paths and add them to the street SVG group element.
       for (var m = 0; m < coordsLen; (++m, ++num)) { // <-Increment 'num' and 'm' at same time.
 
         coords = streetsCache.coords[m].split(';');
 
-        streetWidth = STREET_WIDTH;
-
         startOffset = '25%';
-
-        // Change street width depending on street type.
-        switch (streetsCache.type) {
-
-          case '1': { // Interstate eg. I-5, I-405, SR-526 (<-boeing) ect.
-
-            streetWidth *= 2.0;
-
-            if (streetName.indexOf('SR') !== -1) {
-
-              startOffset = '75%'; // Try to prevent name overlap on road.
-            }
-          } break;
-
-          case '2':
-          case '3':
-          case '4': {
-
-            streetWidth *= 1.5;
-
-            if (streetName.indexOf('SR') !== -1) {
-
-              startOffset = '75%'; // Try to prevent name overlap on road.
-            }
-          } break;
-
-          case '9': { // Interstate ramps. aka "Ramps".
-
-            streetWidth *= 0.5;
-          } break;
-        }
 
         cacheVar = coords[0].split(' ');
 
         points = ("M"+ theMap.utils.convertSPtoScreenPoints(cacheVar[0], cacheVar[1]));
 
+        // Convert the State Plane Coordinates from the server to screen points for the new street
+        // SVG path element.
         for (var n = 1; n < coords.length; ++n) { // Todo: cache .split(' ')'s.
 
           cacheVar = coords[n].split(' ');
@@ -249,13 +274,13 @@ var svg_streets = function () {
           points += "L"+ theMap.utils.convertSPtoScreenPoints(cacheVar[0], cacheVar[1]);
         }
 
+        // Create the SVG path element for the street.
         pathClone = path.cloneNode();
         pathClone.setAttribute('d', points);
         pathClone.setAttribute('id', 'street_'+ num); // 'num' added for unique name for textpath.
-        pathClone.setAttribute('stroke-width', streetWidth +'px');
-        pathClone.setAttribute('class', 'road_'+ streetsCache.type);
 
-        glob.streetLayers[streetsCache.type].appendChild(pathClone);
+        // Add the street SVG path to the street SVG group element.
+        groupClone.appendChild(pathClone);
 
         // Insert Street Names
         if (coordsLen === 1 || (m >= (coordsLen / 2) && m < (coordsLen / 2 + 1))) {
@@ -272,27 +297,31 @@ var svg_streets = function () {
           coords = points.match(/^M\s?(-?\d*).*L\s?(-?\d*)/); // Find first ([1]) and last ([2]) coordinate.
 
           // Reverse coordinates so text is facing correct direction.
-          if ((+coords[1] - +coords[2]) > 0) { // true === text is upside down.
+          if (((+coords[1]) - (+coords[2])) > 0) { // true === text is upside down.
 
             points = points // Split it, filter it, and reverse it.
-                      .split(' ')
-                      .filter(function (ele) {
-                        return ele !== '';
-                      })
-                      .reverse();
+                    .split(' ')
+                    .filter(function (ele) {
+                      return ele !== '';
+                    })
+                    .reverse();
 
             points[0] = points[0].replace(/L/,'M');
-            points[points.length - 1] = points[points.length - 1].replace(/M/,'L');
+            points[points.length - 1] = points[points.length - 1].replace(/M/, 'L');
 
             pathClone.setAttribute('d', points.join(' '));
           }
 
           textClone.appendChild(textPathClone);
+
+          // Add the street name SVG textpath element to the SVG group element that holds the street names.
           glob.streetNameGroup.appendChild(textClone);
         }
       }
+
+      glob.streetLayers[streetsCache.type].appendChild(groupClone);
     }
-  };
+  }
 
   function makeStreetNameDiv() {
     var bb = this.getBoundingClientRect(),
@@ -310,11 +339,12 @@ var svg_streets = function () {
     streetNameDiv.style.top  = ((bb.top + bb.bottom) / 2) - 14 +'px';
     streetNameDiv.style.left = bb.right + 20 +'px';
 
-    streetNameDiv.innerHTML = this.textContent.replace(/(\d)(th|rd|nd|st) /,
-                          '$1'
-                        + '<font style="vertical-align: 30%; font-size: 65%; margin-left: 1px;">'
-                        + '$2'
-                        + '</font> ');
+    streetNameDiv.innerHTML = this.textContent
+                              .replace(/(\d)(th|rd|nd|st) /,
+                              '$1'
+                            + '<font style="vertical-align: 30%; font-size: 65%; margin-left: 1px;">'
+                            + '$2'
+                            + '</font> ');
 
     document.body.appendChild(streetNameDiv);
   }

@@ -153,12 +153,14 @@ theMap.zoom_module = function () {
 
     // The main zoom function.
 
-   var zoomInOut = function zoomInOut1(arg_e, arg_slider, arg_zoomBox) {
+   var zoomInOut = function (arg_e, arg_slider, arg_zoomBox) {
         var markers = theMap.markersArray,
             markersArrayLength = markers.length;
 
         theMap.state.zooming = true;
+
         theMap.currentMapImg.className = 'smoothTransition';
+
         theMap.svgContainer.setAttribute('class', 'smoothTransition');
 
         if (markersArrayLength !== 0) {
@@ -169,13 +171,13 @@ theMap.zoom_module = function () {
             }
         }
 
-        theMap.currentMapImg.removeEventListener(theMap.MOUSE_WHEEL_EVT, zoomInOut);
-        theMap.currentMapImg.addEventListener(theMap.MOUSE_WHEEL_EVT, zoomInOut2);
+        theMap.mapContainer.removeEventListener(theMap.MOUSE_WHEEL_EVT, zoomInOut);
+        theMap.mapContainer.addEventListener(theMap.MOUSE_WHEEL_EVT, zoomInOut1);
 
-        zoomInOut2(arg_e, arg_slider, arg_zoomBox);
+        zoomInOut1(arg_e, arg_slider, arg_zoomBox);
     };
 
-    var zoomInOut2 = function (arg_e, arg_slider, arg_zoomBox) {
+    var zoomInOut1 = function (arg_e, arg_slider, arg_zoomBox) {
         var evt = undefined, // This is needed for the delta.
             ratio = undefined;
 
@@ -185,17 +187,28 @@ theMap.zoom_module = function () {
         var clientX = arg_e.clientX - this.mapContainer._left,
             clientY = arg_e.clientY - this.mapContainer._top;
 
-        var delta = (arg_e.wheelDelta?
-                     arg_e.wheelDelta:
-                     (evt = (window.event || arg_e), evt.detail * - 120));
+        var delta = arg_e.wheelDelta?
+                    arg_e.wheelDelta:
+                    ((evt = window.event || arg_e), evt.detail * -120);
 
             // Find where the mouse is on the map img its self, not where the mouse is in the viewport (aka screen).
         var XcoordOnMapImg = (clientX - this.dragDiv._left) - this._left,
             YcoordOnMapImg = (clientY - this.dragDiv._top) - this._top;
 
-        var markers = this.markersArray;
 
-        if (delta <= -120 && this.sliderPosition <= 200) { //zoom out
+        if (delta >= 120 && this.sliderPosition >= 0) { // zoom in
+
+            ratio = (this.sliderPosition  !== 0)? 2: 1;
+
+            if (!arg_slider && this.sliderPosition  !== 0) {
+
+                this.sliderPosition -= 20;
+                this.zoomSliderStyle.top = this.sliderPosition +'px';
+            } else if (!arg_slider) {
+
+               this.sliderPosition = 0;
+            }
+        } else if (delta <= -120 && this.sliderPosition <= 200) { //zoom out
 
             ratio = (this.sliderPosition  !== 200)? 0.5: 1;
 
@@ -207,18 +220,6 @@ theMap.zoom_module = function () {
 
                 this.sliderPosition = 200;
                 this.zoomSliderStyle.top = this.sliderPosition +'px';
-            }
-        } else if (delta >= 120 && this.sliderPosition >= 0) { // zoom in
-
-            ratio = (this.sliderPosition  !== 0)? 2: 1;
-
-            if (!arg_slider && this.sliderPosition  !== 0) {
-
-                this.sliderPosition -= 20;
-                this.zoomSliderStyle.top = this.sliderPosition +'px';
-            } else if (!arg_slider) {
-
-               this.sliderPosition = 0;
             }
         }
 
@@ -261,7 +262,7 @@ theMap.zoom_module = function () {
                     zoomStart(this.mousePositionOnMapX, this.mousePositionOnMapY, this.eClientX, this.eClientY);
                     theMap.utilities_module.removeTransitionFromMarkers();
 
-                    theMap.mapContainer.removeEventListener(theMap.MOUSE_WHEEL_EVT, zoomInOut2);
+                    theMap.mapContainer.removeEventListener(theMap.MOUSE_WHEEL_EVT, zoomInOut1);
                     theMap.mapContainer.addEventListener(theMap.MOUSE_WHEEL_EVT, zoomInOut);
                 }.bind({
                     mousePositionOnMapX: (arg_e.clientX - this.mapContainer._left - this.dragDiv._left - this._left),

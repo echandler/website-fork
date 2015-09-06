@@ -41,7 +41,11 @@ theMap.mapControl_module = function () {
         var xmlOutput = theMap.parsedXMLFromServer.getElementsByTagName("OUTPUT"),
             newMapImg = document.createElement('img');
 
-        if (this.state.panning || this.state.zooming) { return; }
+        if (this.state.panning || this.state.zooming) {
+
+            return;
+        }
+
         try{
 
             theMap.state.waitingForImage = true;
@@ -51,7 +55,7 @@ theMap.mapControl_module = function () {
             newMapImg.style.opacity = '0';
             newMapImg.style.zIndex = '1';
             newMapImg.style.imageRendering= 'pixelated'; // TODO: Test of new css feature in chrome.
-            newMapImg.className = 'theMap_primary transitionAll2sEaseOut';
+            newMapImg.className = 'theMap_primary ';
         } catch(error) {
 
             console.error(error);
@@ -109,7 +113,24 @@ theMap.mapControl_module = function () {
         theMap.svgContainer._top = theMap._top;
         theMap.svgContainer.setAttribute('viewBox', theMap._left +' '+ theMap._top +' '+ theMap._width +' '+ theMap._height);
         theMap.svgContainer.setAttribute('class', '');
-        theMap.svgContainer.style[theMap.CSSTRANSFORM] = theMap.baseCSSTransformValue;
+
+        // Chrome around version 40 locks up the tab when zoomed in a lot of times, found that
+        // resorting to using top and left on the svg container, then after a some milliseconds
+        // delete the top and left and apply the css transform.
+
+        theMap.svgContainer.style.top = theMap._top +'px'; // Chrome workaround
+        theMap.svgContainer.style.left = theMap._left +'px'; // Chrome workaround
+
+        setTimeout(function(){
+
+            theMap.svgContainer.style.top = '0px'; // Chrome workaround
+            theMap.svgContainer.style.left = '0px'; // Chrome workaround
+            theMap.svgContainer.style.transform = theMap.baseCSSTransformValue; // Apply this too early and tab locks up.
+        }, 100);
+
+        // End of chrome zoom CSS transform bug fix.
+
+        theMap.svgContainer.style[theMap.CSSTRANSFORM] = "";
 
         this.style[theMap.CSSTRANSFORM] = theMap.baseCSSTransformValue;
 
@@ -154,7 +175,7 @@ theMap.mapControl_module = function () {
 
             if (!this.onPopState) {
 
-                if (window.history.pushState) {
+                if (window.history.pushState && !document.location.origin === "file://") {
 
                     window.history.pushState({
                         minxOld : this.presentMinX,
@@ -218,7 +239,24 @@ theMap.mapControl_module = function () {
         this.pan.panningXYOld = undefined;
         this.pan.panningXYNew = undefined;
 
-        theMap.utilities_module.removeTransitionFromMarkers();
+        this.pan.points = []; // TODO: testing
+
+       // theMap.utilities_module.removeTransitionFromMarkers();
+
+        // This if block stops the animated panning of the map immediately.
+        if (Date.now() < this.panningObj.haltPanning.finishTime) {
+
+            var posOnBezierCurve = (this.calcBezier((Date.now() - this.panningObj.haltPanning.startTime) / this.panningObj.haltPanning.duration));
+
+            var finishX = Math.round((this.panningObj.haltPanning.startX * (1 - posOnBezierCurve)) + (this.panningObj.haltPanning.finishX * posOnBezierCurve)),
+                finishY = Math.round((this.panningObj.haltPanning.startY * (1 - posOnBezierCurve)) + (this.panningObj.haltPanning.finishY * posOnBezierCurve));
+
+            this.dragDiv.style.transition = '';
+            this.dragDiv.style[this.CSSTRANSFORM] = 'translate('+ finishX +'px,'+ finishY +'px)';
+
+            this.dragDiv._left = finishX;
+            this.dragDiv._top  = finishY;
+        }
 
         document.addEventListener('mouseout', private_mapMouseUp);
         document.addEventListener('mouseup', private_mapMouseUp);
@@ -233,11 +271,11 @@ theMap.mapControl_module = function () {
 
         e.preventDefault();
 
-        this.document.removeEventListener('mouseup', private_mapMouseUp);
-        this.document.removeEventListener('mouseout', private_mapMouseUp);
+        document.removeEventListener('mouseup', private_mapMouseUp);
+        document.removeEventListener('mouseout', private_mapMouseUp);
 
         document.removeEventListener('mousemove', mapInitialDragTasks);
-        this.document.removeEventListener('mousemove',  this.theMap.pan.mouseMoveFunction);
+        document.removeEventListener('mousemove',  this.theMap.pan.mouseMoveFunction);
 
         if (!theMap.pageHasFocus) {
             theMap.pageHasFocus = true;
@@ -249,8 +287,10 @@ theMap.mapControl_module = function () {
 
         if (e.clientY - this.theMap.pan.mouseDownStartY === 0 && e.clientX - this.theMap.pan.mouseDownStartX === 0) {
 
-            if (this.theMap.sliderPosition > 120 || document.body.style.cursor === "crosshair"
-                || (e && e.target.nodeName === 'circle')) {
+            if (this.theMap.sliderPosition > 120
+                || document.body.style.cursor === "crosshair"
+                || (e && e.target.nodeName === 'circle')
+                || this.theMap.state.panning) {
                 return;
             }
 
@@ -277,13 +317,19 @@ theMap.mapControl_module = function () {
             theMap.dragDiv._top  = +xyCoords[2];
             theMap.dragDiv._left = +xyCoords[1];
 
-            theMap.zoom_module.zoomStart(                (e.clientX - this.theMap.mapContainer._left - theMap.dragDiv._left - +this.theMap._left) ,
-                (e.clientY - this.theMap.mapContainer._top - theMap.dragDiv._top - +this.theMap._top),
-                e.clientX,  e.clientY);
+            theMap.zoom_module.zoomStart(
+                (e.clientX - this.theMap.mapContainer._left - theMap.dragDiv._left - (+this.theMap._left)) ,
+                (e.clientY - this.theMap.mapContainer._top  - theMap.dragDiv._top  - (+this.theMap._top)),
+                e.clientX,
+                e.clientY
+            );
         }
 
         this.theMap.state.panning = false;
-    }.bind({ theMap: theMap, document: window.document, panningAnimationMouseUp: theMap.panning_module.panningAnimationMouseUp });
+    }.bind({
+        theMap: theMap,
+        panningAnimationMouseUp: theMap.panning_module.panningAnimationMouseUp
+    });
 
     var mapDragOnly = function (e) {
 
@@ -296,12 +342,25 @@ theMap.mapControl_module = function () {
         var x = e.clientX - this.theMap.pan.mouseDownStartXpan,
             y = e.clientY - this.theMap.pan.mouseDownStartYpan;
 
-        this.theMap.pan.panningXYOld = this.theMap.pan.panningXYNew || {x: x, y: y};
+        // this.theMap.pan.panningXYOld = this.theMap.pan.panningXYNew || {x: x, y: y};
 
-        this.theMap.pan.panningXYNew = {x: x, y: y, time: this.date.now()};
+        // this.theMap.pan.panningXYNew = {
+        //     x: x,
+        //     y: y,
+        //     time: this.date.now()
+        // };
+
+        this.theMap.pan.points.push({ // TODO: testing
+            x: x,
+            y: y,
+            time: this.date.now()
+        });
 
         this.theMap.dragDiv.style[this.theMap.CSSTRANSFORM] = 'translate3d('+ (this.theMap.dragDiv._left + (e.clientX - this.theMap.pan.mouseDownStartX)) +'px,'+ (this.theMap.dragDiv._top + (e.clientY - this.theMap.pan.mouseDownStartY)) +'px,0px)';
-    }.bind({theMap: theMap, date: window.Date});
+    }.bind({
+        theMap: theMap,
+        date: window.Date
+    });
 
     // This function is called once and immediately removed just to make the panning feel smoother.
     // Math.round is for a bug in chrome, the text is blurry if the left and\or top coordinates
@@ -310,26 +369,14 @@ theMap.mapControl_module = function () {
 
         this.theMap.dragDiv.style.transition = '';
 
-        if (this.theMap.testObj && this.date.now() < this.theMap.testObj.finishTime) {
-
-            var posOnBezierCurve = (this.theMap.calcBezier((this.date.now() - this.theMap.testObj.start) / this.theMap.testObj.duration)),
-                startX = this.theMap.testObj.panNew.x,
-                startY = this.theMap.testObj.panNew.y,
-                finishX = this.round(((startX - this.theMap.testObj.panOld.x) * this.theMap.panningObj.panningAnimationMultiplier) * posOnBezierCurve + startX),
-                finishY = this.round(((startY - this.theMap.testObj.panOld.y) * this.theMap.panningObj.panningAnimationMultiplier) * posOnBezierCurve + startY);
-
-            this.theMap.dragDiv.style[this.theMap.CSSTRANSFORM] = 'translate('+ finishX +'px,'+ finishY +'px)';
-
-            this.theMap.dragDiv._left = finishX;
-            this.theMap.dragDiv._top  = finishY;
-        }
-
         this.theMap.clearTimeoutt(this.theMap.zoomStartTimer);
 
         this.theMap.state.panning = true;
 
         document.removeEventListener('mousemove', mapInitialDragTasks);
-    }.bind({ theMap: theMap, date: window.Date, round: window.Math.round });
+    }.bind({
+        theMap: theMap
+    });
 
     return {
             addFuncTo_mapLoadFuncArray: addFuncTo_mapLoadFuncArray,

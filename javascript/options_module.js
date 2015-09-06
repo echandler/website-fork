@@ -221,11 +221,20 @@ theMap.options_module = function () {
                         // This setTimeout is a work around for chrome 33.
                         setTimeout(function (currentClasses) {
 
+                            if (!theMap.state.waitingForAjax && !theMap.state.waitingForImage) {
+
+                                //this.setAttribute('class', currentClasses +' spinGearDownSlowly');
+                            }
+
+                            // Delete "spinGearDownSlowly" class from class list.
+                            setTimeout(function (currentClasses) {
+
                                 if (!theMap.state.waitingForAjax && !theMap.state.waitingForImage) {
 
-                                    this.setAttribute('class', currentClasses +' spinGearDownSlowly');
+                                    this.setAttribute('class', currentClasses.replace(/^\s|\s{2}/g,''));
                                 }
-                            }.bind(this), 50, currentClasses);
+                            }.bind(this), 2000, currentClasses);
+                        }.bind(this), 50, currentClasses);
                     } else {
 
                         if (!/gearAnimationOpen/i.test(currentClasses)) {
@@ -361,11 +370,11 @@ theMap.options_module = function () {
         private_retrieveAndSaveOptions();
         if (e && e.target.id === 'update_button') {
             if (theMap.state.waitingForImage || theMap.state.waitingForAjax) {// Wait until image has loaded them
-                theMap.addMapLoadListener(                'Waiting to update map(options panel), removes itself on first use.',
+                theMap.addMapLoadCallBack(                'Waiting to update map(options panel), removes itself on first use.',
                     theMap,
                     function options_updateMap() {
                         theMap.ArcXML_module.makeArcXMLRequest(theMap.presentMinX, theMap.presentMaxX, theMap.presentMinY, theMap.presentMaxY);
-                        theMap.removeMapLoadListener(options_updateMap);
+                        theMap.removeMapLoadCallBack(options_updateMap);
                     }
               );
             } else {

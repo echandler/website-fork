@@ -245,7 +245,7 @@ theMap.overlayMap_module = function () {
         window.setTimeout(function (arg_mapContainer) {
             arg_mapContainer.style.transition = 'opacity 100ms ease-in';
         }, 1700, private_overlayMapContainer);
-        theMap.addMapLoadListener('Updates the overlay map top and left coordinates.', theMap, updateTopLeftOnMapLoad);
+        theMap.addMapLoadCallBack('Updates the overlay map top and left coordinates.', theMap, updateTopLeftOnMapLoad);
         this.removeEventListener('load', overlayMapImgInitialLoad);
     }
 
@@ -266,7 +266,7 @@ theMap.overlayMap_module = function () {
         if (private_overlayMapContainer) {
             private_overlayMapContainer.parentNode.removeChild(private_overlayMapContainer);
             private_overlayMapContainer = false;
-            theMap.removeMapLoadListener(updateTopLeftOnMapLoad);
+            theMap.removeMapLoadCallBack(updateTopLeftOnMapLoad);
         }
     }
 

@@ -1,4 +1,4 @@
-MeasureSvgLine_module = function (arg_theMap, arg_button) {
+var MeasureSvgLine_module = function (arg_theMap, arg_button) {
     var obj = new DrawSVGLine_module(arg_theMap);
 
     //this.drawLineOptionsLabel = window.$('drawLine_Label');
@@ -41,7 +41,12 @@ MeasureSvgLine_module = function (arg_theMap, arg_button) {
         }
 
         feetDiv.className = 'feetDiv';
-        feetDiv.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+
+        feetDiv.addEventListener('mousedown', function (e) {
+
+            e.stopPropagation();
+        });
+
         feetDiv.polyline = arg_polyline;
         feetDiv.theMap = this.theMap;
         feetDiv.index = arg_polyline.feetDivsArray.length + 1;// Used to calculate position.
@@ -175,7 +180,7 @@ MeasureSvgLine_module = function (arg_theMap, arg_button) {
     obj.setDoublClickAToFalse = function () {
 
         this.doubleClickA = false;
-    }
+    };
 
     obj.resizeLines = function () {
         var linesArray = this.linesArray,
@@ -297,7 +302,7 @@ MeasureSvgLine_module = function (arg_theMap, arg_button) {
 
         window.$('measureLine_CheckBox').addEventListener('click', this.drawLineSetup.bind(this));
 
-        theMap.addMapLoadListener('Resizes the measuring lines when the map loads', this, this.resizeLines);
+        theMap.addMapLoadCallBack('Resizes the measuring lines when the map loads', this, this.resizeLines);
     };
 
     return obj;
