@@ -7,7 +7,10 @@
 
     theMap.panningObj = {
         panningAnimationMultiplier: theMap.parameters.PANNING_ANIMATION_MULTIPLIER,
-        panningAnimationTime: theMap.parameters.PANNING_ANIMATION_TIME
+        panningAnimationTime: theMap.parameters.PANNING_ANIMATION_TIME,
+        haltPanning: {
+            finishTime: Date.now()
+        }
     };
 
     theMap.pageHasFocus = true;
@@ -108,8 +111,8 @@
 
     theMap.mainAjaxHTTPRequest = new XMLHttpRequest();
 
-    theMap.addMapLoadListener = theMap.mapControl_module.addFuncTo_mapLoadFuncArray;
-    theMap.removeMapLoadListener = theMap.mapControl_module.removeFuncFrom_mapLoadFuncArray;
+    theMap.addMapLoadCallBack = theMap.mapControl_module.addFuncTo_mapLoadFuncArray;
+    theMap.removeMapLoadCallBack = theMap.mapControl_module.removeFuncFrom_mapLoadFuncArray;
 
     theMap.resetMapOnError = theMap.mapControl_module.resetMapOnError;
 
@@ -157,7 +160,7 @@ var main = function () {
     // wanted was just to get focus back on the map so they can zoom or what ever they wanted to do.
     theMap.utilities_module.addPageHasFocusClickHandling();
 
-    theMap.addMapLoadListener('Runs on first map load, remove banner, show small county svg ect., removes itself on first load.', window.theMap, theMap.utilities_module.firstMapLoad);
+    theMap.addMapLoadCallBack('Runs on first map load, remove banner, show small county svg ect., removes itself on first load.', window.theMap, theMap.utilities_module.firstMapLoad);
 
     theMap.options_module.init();
     theMap.citiesTownsSvg_module.init();

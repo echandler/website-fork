@@ -258,7 +258,7 @@ var theMap = window.theMap,
         this.mouseIsOver = false;
       });
 
-      theMap.addMapLoadListener('Recalculates the transparent square on the mini county map', window, smallCountySvgReCalc);
+      theMap.addMapLoadCallBack('Recalculates the transparent square on the mini county map', window, smallCountySvgReCalc);
 
       this.smallCountySvg.clientRect = undefined;
 

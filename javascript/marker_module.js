@@ -10,7 +10,9 @@ theMap.marker_module = function () {
                                 + ' GIS_FEATURES.DBA.CADASTRAL_PARCELS_ASSESSOR.SITUSCITY'
                                 + ' GIS_FEATURES.DBA.CADASTRAL_PARCELS_ASSESSOR.SITUSZIP'
                                 + ' GIS_FEATURES.DBA.CADASTRAL_PARCELS_ASSESSOR.OWNERNAME'
+                                + ' GIS_FEATURES.DBA.CADASTRAL_PARCELS_ASSESSOR.TAXPRNAME'
                                 + ' GIS_FEATURES.DBA.CADASTRAL_PARCELS_ASSESSOR.PARCEL_ID'
+                                + ' GIS_FEATURES.DBA.CADASTRAL_PARCELS_ASSESSOR.USECODE'
                                 + ' GIS_FEATURES.DBA.CADASTRAL_PARCELS_ASSESSOR.MKTTL';
 
     var private_defaultSimpleMarkerArray = [
@@ -1136,48 +1138,102 @@ theMap.marker_module = function () {
     }
 
     function makeInfoHtml(arg_xml, arg_marker) {
+        var html = undefined;
+
         var addrLine1 = private_upperCase(arg_xml.match(/SITUSLINE1="(.*?)"/)[1]),
             addrCity = private_upperCase(arg_xml.match(/SITUSCITY="(.*?)"/)[1]),
-            addrZip = arg_xml.match(/SITUSZIP="(.*?)"/)[1].replace(/-.*/, ''),
-            marketValue = (+arg_xml.match(/MKTTL="(.*?)"/)[1]).toLocaleString('en'),
-            parcelNumber = undefined,
-            parcelNumberRegex = /PARCEL_ID="(.*?)"/g,
-            sizeAcres = arg_xml.match(/TAB_ACRES="(.*?)"/)[1],
-            featureCount = +arg_xml.match(/FEATURECOUNT count="(.*?)"/)[1],
-            html = undefined,
-            addBrIncrementorObj = { a: 0 },
-            ownerName = private_normalize(arg_xml.match(/OWNERNAME="(.*?)"/)[1])
-                        .replace(/(\s)/g, function (match, p1, index) {
-                                            if (index >= (this.a + 24)) {
-                                                this.a += 24;
-                                                return '<br>';
-                                            }
-                                            return p1;
-                                          }.bind(addBrIncrementorObj)
-                              ),// <- End of replace method.
-            lineBreaks = /*Breaks up long owners name*/(function (o) { var a = ''; var s = o.indexOf("<br>");while (s != -1) {a += "<br>"; s = o.indexOf("<br>",s+1);}return a;})(ownerName);
+            addrZip = arg_xml.match(/SITUSZIP="(.*?)"/)[1].replace(/-.*/, '');
 
-        ownerName = private_upperCase(ownerName);
+        var marketValue = (+arg_xml.match(/MKTTL="(.*?)"/)[1]).toLocaleString('en');
+
+        var parcelNumber = undefined,
+            parcelNumberRegex = /PARCEL_ID="(.*?)"/g;
+
+        var sizeAcres = arg_xml.match(/TAB_ACRES="(.*?)"/)[1];
+
+        var featureCount = +arg_xml.match(/FEATURECOUNT count="(.*?)"/)[1];
+
+        var addBrIncrementorObj = { // TODO: Is this necessary?
+                incrementor: 0
+            };
+
+        var name_BR_Inserter = function (match, paren1, index) {
+            if (!paren1) { // Found end of string.
+                paren1 = '';
+                this.incrementor = 0;
+            } else if (index >= (this.incrementor + 24)) {
+                this.incrementor += 24;
+                return '<br>';
+            }
+            return paren1;
+        }.bind(addBrIncrementorObj) // TODO: Should addBrIncrementorObj still be used?
+
+        var BR_regex = /(\s)|$/g;
+
+        var useCode = private_upperCase(arg_xml.match(/USECODE="(.*?)"/)[1])
+                        .replace(BR_regex, name_BR_Inserter);
+
+        var ownerName = private_upperCase(private_normalize(arg_xml.match(/OWNERNAME="(.*?)"/)[1]))
+                            .replace(BR_regex, name_BR_Inserter);
+
+        var taxPayerName =  private_upperCase(private_normalize(arg_xml.match(/TAXPRNAME="(.*?)"/)[1]))
+                                .replace(BR_regex, name_BR_Inserter);
+
+        if (taxPayerName === ownerName){
+
+            taxPayerName = '<span style="color: grey"><i>Same as owner.</i></span>';
+        }
+
+        var additionalOwnerNameLineBreaks = /*Breaks up long owners name*/(function (o) { var a = ''; var s = o.indexOf("<br>");while (s != -1) {a += "<br>"; s = o.indexOf("<br>",s+1);}return a;})(ownerName),
+            additionalTaxPayerNameLineBreaks = /*Breaks up long tax payers name*/(function (o) { var a = ''; var s = o.indexOf("<br>");while (s != -1) {a += "<br>"; s = o.indexOf("<br>",s+1);}return a;})(taxPayerName),
+            additionalUseCodeLineBreaks = /*Breaks up long use code*/(function (o) { var a = ''; var s = o.indexOf("<br>");while (s != -1) {a += "<br>"; s = o.indexOf("<br>",s+1);}return a;})(useCode);
 
         if (featureCount === 0 || featureCount === 1) {
 
             try {
 
-                if (!theMap.markersArray.some(function (makerParent) { return (arg_marker.data.apn == makerParent.data.apn) && makerParent.data.svgGroup && makerParent.data.svgGroup.group; })) {
+                if (!theMap.markersArray.some(function (makerParent) {
+                        return (arg_marker.data.apn == makerParent.data.apn)
+                            && makerParent.data.svgGroup
+                            && makerParent.data.svgGroup.group;
+                    })) {
 
                     private_makePropertyBoundaryPolygon(arg_xml, arg_marker);
                 }
-
             } catch(e) {}
 
-            html =  '<div class="m"><div>Owner:<br>' + lineBreaks
-                    + 'Address:<br><br>'
-                    + 'Value:</div><div>'
-                    + ((!ownerName || /unknown/i.test(ownerName))? 'Unknown'  : ownerName) +'<br>'
-                    + ((!addrLine1 || /unknown/i.test(addrLine1))? 'Unknown'  : addrLine1) +'<br>'
-                    + ((!addrCity || /unknown/i.test(addrCity))? 'Unknown, ': addrCity +', ')
-                    + (( !addrZip || /unknown/i.test(addrZip) )? 'Unknown'  : addrZip) +'<br>'
-                    + '$'+ marketValue +' <div>('+ sizeAcres +' acres)</div></div>';
+            html =    '<div class="m">'
+                    + '<div>Owner:'
+                    +   '<br>'
+                    +   additionalOwnerNameLineBreaks
+                    +   'Tax Payer:'
+                    +   '<br>'
+                    +   additionalTaxPayerNameLineBreaks
+                    +   'Address:'
+                    +   '<br>'
+                    +   '<br>' // Second <br> for the city and zipcode.
+                    +   'Value:'
+                    +   '<br>'
+                    +   'Use Code:'
+                    +   additionalUseCodeLineBreaks
+                    + '</div>'
+                    + '<div>'
+                    +   ((!ownerName || /unknown/i.test(ownerName))? 'Unknown': ownerName)
+                    +   '<br>'
+                    +   ((!taxPayerName || /unknown/i.test(taxPayerName))? 'Unknown': taxPayerName)
+                    +   '<br>'
+                    +   ((!addrLine1 || /unknown/i.test(addrLine1))? 'Unknown': addrLine1)
+                    +   '<br>'
+                    +   ((!addrCity || /unknown/i.test(addrCity))? 'Unknown,&nbsp': addrCity +',&nbsp')
+                    +     ((!addrZip || /unknown/i.test(addrZip))? 'Unknown': addrZip)
+                    +   '<br>'
+                    +   '$'+ marketValue
+                    +   '<div>'
+                    +     '&nbsp('+ sizeAcres +' acres)'
+                    +   '</div>'
+                    +   '<br>'
+                    +   ((!useCode || /unknown/i.test(useCode))? 'Unknown'  : useCode)
+                    + '</div>';
 
         // Properties with many parcel numbers associated with it, for example condominium complex.
         // Makes anchor tags with the persons information in the data attribute, the makeMultiFamilyHouseingMesssage function
@@ -1189,7 +1245,7 @@ theMap.marker_module = function () {
                 private_makePropertyBoundaryPolygon(arg_xml, arg_marker);
             } catch(e) {
 
-              console.log(e);
+                console.log(e);
             }
 
             html = '<div class="n"style="'+ ((featureCount <= 8)? 'text-align:center;': 'height:200px;')+ '">';

@@ -28,7 +28,7 @@ theMap.utilities_module = function () {
         // uses the back button, then sets the onPopState variable to true so that an identical
         // "state" won't be pushed onto the history stack.
 
-        if (window.history.replaceState) {
+        if (window.history.replaceState && !document.location.origin === "file://") {
             window.history.replaceState({
                 minxOld: this.presentMinX,
                 maxxOld: this.presentMaxX,
@@ -62,7 +62,7 @@ theMap.utilities_module = function () {
 
         addListeners();// TODO: rename this.
 
-        theMap.removeMapLoadListener(firstMapLoad);
+        theMap.removeMapLoadCallBack(firstMapLoad);
     }
 
     function createMarkersFromInfoFromUrl() {
@@ -145,24 +145,24 @@ theMap.utilities_module = function () {
 
                 if (this.infoFromUrl.l && this.infoFromUrl.l.length !== 0) {
 
-                    this.addMapLoadListener('Creates svg lines from information in the url, deleted after first use.', theMap,
+                    this.addMapLoadCallBack('Creates svg lines from information in the url, deleted after first use.', theMap,
                             function makeLines() {
 
                                 theMap.drawSvgLine_module.createPolylinesFromUrl(theMap.infoFromUrl.l);
 
-                                theMap.removeMapLoadListener(makeLines);
+                                theMap.removeMapLoadCallBack(makeLines);
                             });
                     //this.drawSvgLine_module.createPolylinesFromUrl(this.infoFromUrl.l);
                 }
 
                 if (this.infoFromUrl.ml && this.infoFromUrl.ml.length !== 0) {
 
-                    this.addMapLoadListener('Creates svg lines from information in the url, deleted after first use.', theMap,
+                    this.addMapLoadCallBack('Creates svg lines from information in the url, deleted after first use.', theMap,
                             function makeLines() {
 
                                 theMap.measureSvgLine_module.createPolylinesFromUrl(this.infoFromUrl.ml);
 
-                                theMap.removeMapLoadListener(makeLines);
+                                theMap.removeMapLoadCallBack(makeLines);
                             });
                 }
             } else if (checkUrlForApn().doesExist) {
@@ -171,12 +171,12 @@ theMap.utilities_module = function () {
             }
 
             // Either way call call a function that will attempt to create markers if there is APN information.
-            this.addMapLoadListener('Creates markers from information in the url, deleted after first use.', theMap,
+            this.addMapLoadCallBack('Creates markers from information in the url, deleted after first use.', theMap,
                 function createMarkers() {
 
                     theMap.utilities_module.createMarkersFromInfoFromUrl();
 
-                    theMap.removeMapLoadListener(createMarkers);
+                    theMap.removeMapLoadCallBack(createMarkers);
                 });
         } catch (error) {
 
@@ -555,7 +555,7 @@ theMap.utilities_module = function () {
                     //if (t2 > t1) { return ((((ay * t1) + by) * t1) + cy) * t1; }
                     while (t0 < t1) {
                         x2 = (((ax * t2) + bx) * t2 + cx) * t2;
-                        if (abs(x2 - arg_percentCompleted) < 0.001) {
+                        if (abs(x2 - arg_percentCompleted) < 0.00001) {
                             return ((((ay * t2) + by) * t2) + cy) * t2;
                         }
                         if (arg_percentCompleted > x2) { t0 = t2; }

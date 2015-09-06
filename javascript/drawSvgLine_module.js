@@ -7,6 +7,12 @@ var DrawSVGLine_module = function (arg_theMap) {
     this.drawLineOptionsCheckMark = window.$('drawLine_CheckMark');
 
     this.SVGContainer = window.$('theMap_svg_container');
+
+    /* These cached functions for the event listeners that are atached to the document object.
+    // example:
+    //   document.body.addEventListener('click', this.SVGContainerClickHandler)...
+    //    ("this" won't point to document, it will point the new instance of DrawSVGLine)
+    */
     this.SVGContainerClickHandler = this.bindSVGContainerClickHandlerTo_this();
     this.SVGContainerMouseDownHandler = this.bindSVGContainerMouseDownHandlerTo_this();
     this.SVGContainerDeleteLastVertex = this.bindSVGContainerDeleteLastVertexTo_this();
@@ -499,5 +505,5 @@ DrawSVGLine_module.prototype.createNewPolyline = function (e) {
 
         this.drawLineOptionsLabel.addEventListener('click', this.drawLineSetup.bind(this));
 
-        this.theMap.addMapLoadListener('Resize lines when map loads', this, this.resizeLines);
+        this.theMap.addMapLoadCallBack('Resize lines when map loads', this, this.resizeLines);
     };

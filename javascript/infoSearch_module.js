@@ -197,6 +197,8 @@ theMap.infoSearch_module = function () {
 
         containerDiv.markerBody = undefined;
 
+        // Associate any current marker with the new results, if any. If a marker for a
+        // parcel already exists then there is no need to make a new one.
         theMap.markersArray.forEach(function (forEachArg_marker) {
 
             if (forEachArg_marker.data.apn == arg_infoObj.a) {
@@ -289,7 +291,7 @@ theMap.infoSearch_module = function () {
 
         theMap.zoom_module.zoomToStatePlaneXY(maxX, minX, maxY, minY);
 
-        theMap.addMapLoadListener(
+        theMap.addMapLoadCallBack(
             'creates new marker after clicking in search window. Deletes itself on first use.',
             theMap,
             function makeSearchMarker() {
@@ -310,7 +312,7 @@ theMap.infoSearch_module = function () {
                     }
                 }
 
-                theMap.removeMapLoadListener(makeSearchMarker);
+                theMap.removeMapLoadCallBack(makeSearchMarker);
             }
         );
     }

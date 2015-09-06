@@ -2,7 +2,9 @@
 theMap.options_module = function () {
     var private_checkMarkArray = [],
         theMap = window.theMap,
-        private_bothMapYearsAreCheckedAlertBollean = undefined;
+        private_bothMapYearsAreCheckedAlertBollean = undefined,
+        spinGearDownSlowlyTimer = undefined,
+        optionsGear = document.getElementById('options_svg_gear');
 
     var private_retrieveAndSaveOptions = function () {
         var checkMarks = private_checkMarkArray,
@@ -221,11 +223,24 @@ theMap.options_module = function () {
                         // This setTimeout is a work around for chrome 33.
                         setTimeout(function (currentClasses) {
 
+                            if (!theMap.state.waitingForAjax && !theMap.state.waitingForImage) {
+
+                                this.setAttribute('class', currentClasses +' spinGearDownSlowly');
+                            }
+
+                            // Stop last timer from deleting "spinGearDownSlowly" class from
+                            // class list.
+                            clearTimeout(spinGearDownSlowlyTimer);
+
+                            // Delete "spinGearDownSlowly" class from class list.
+                            spinGearDownSlowlyTimer = setTimeout(function (currentClasses) {
+
                                 if (!theMap.state.waitingForAjax && !theMap.state.waitingForImage) {
 
-                                    this.setAttribute('class', currentClasses +' spinGearDownSlowly');
+                                    this.setAttribute('class', currentClasses.replace(/^\s|\s{2}/g,''));
                                 }
-                            }.bind(this), 50, currentClasses);
+                            }.bind(this), 2000, currentClasses);
+                        }.bind(this), 50, currentClasses);
                     } else {
 
                         if (!/gearAnimationOpen/i.test(currentClasses)) {
@@ -361,11 +376,11 @@ theMap.options_module = function () {
         private_retrieveAndSaveOptions();
         if (e && e.target.id === 'update_button') {
             if (theMap.state.waitingForImage || theMap.state.waitingForAjax) {// Wait until image has loaded them
-                theMap.addMapLoadListener(                'Waiting to update map(options panel), removes itself on first use.',
+                theMap.addMapLoadCallBack(                'Waiting to update map(options panel), removes itself on first use.',
                     theMap,
                     function options_updateMap() {
                         theMap.ArcXML_module.makeArcXMLRequest(theMap.presentMinX, theMap.presentMaxX, theMap.presentMinY, theMap.presentMaxY);
-                        theMap.removeMapLoadListener(options_updateMap);
+                        theMap.removeMapLoadCallBack(options_updateMap);
                     }
               );
             } else {
@@ -484,13 +499,6 @@ theMap.options_module = function () {
                             ((/%(?![0-9a-f][0-9a-f])/i.test(url))? '  *Atleast one % (percent sign) was found.':''));
             }
         });
-
-        if (theMap.parameters.PANNING_ANIMATION_TRUE_OR_FALSE) {
-
-            $('panning_control_slider').addEventListener('mousedown', theMap.panning_module.panningControlsliderMouseDown);
-
-            $('panning_control_slider_rail').addEventListener('mousedown', theMap.panning_module.panningControlsliderMouseDown);
-        }
 
         //$('find_parcel_number_input').addEventListener('keyup', private_SearchByAPNEventListener);
         //$('find_parcel_number_input').addEventListener('paste', private_SearchByAPNEventListener);
