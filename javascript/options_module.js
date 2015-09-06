@@ -225,7 +225,6 @@ theMap.options_module = function () {
 
                             if (!theMap.state.waitingForAjax && !theMap.state.waitingForImage) {
 
-<<<<<<< HEAD
                                 this.setAttribute('class', currentClasses +' spinGearDownSlowly');
                             }
 
@@ -235,13 +234,6 @@ theMap.options_module = function () {
 
                             // Delete "spinGearDownSlowly" class from class list.
                             spinGearDownSlowlyTimer = setTimeout(function (currentClasses) {
-=======
-                                //this.setAttribute('class', currentClasses +' spinGearDownSlowly');
-                            }
-
-                            // Delete "spinGearDownSlowly" class from class list.
-                            setTimeout(function (currentClasses) {
->>>>>>> origin/master
 
                                 if (!theMap.state.waitingForAjax && !theMap.state.waitingForImage) {
 

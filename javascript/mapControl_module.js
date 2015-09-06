@@ -115,10 +115,6 @@ theMap.mapControl_module = function () {
         // Chrome around version 40 locks up the tab when zoomed in a lot of times, found that
         // resorting to using top and left on the svg container, then after a some milliseconds
         // delete the top and left and apply the css transform.
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/master
         theMap.svgContainer.style.top = theMap._top +'px'; // Chrome workaround
         theMap.svgContainer.style.left = theMap._left +'px'; // Chrome workaround
 
@@ -277,11 +273,7 @@ theMap.mapControl_module = function () {
         document.removeEventListener('mouseout', private_mapMouseUp);
 
         document.removeEventListener('mousemove', mapInitialDragTasks);
-<<<<<<< HEAD
         document.removeEventListener('mousemove', this.theMap.pan.mouseMoveFunction);
-=======
-        document.removeEventListener('mousemove',  this.theMap.pan.mouseMoveFunction);
->>>>>>> origin/master
 
         if (!theMap.pageHasFocus) {
             theMap.pageHasFocus = true;
@@ -299,13 +291,6 @@ theMap.mapControl_module = function () {
                 || (e && e.target.nodeName === 'circle')
                 || this.theMap.state.panning) {
 
-<<<<<<< HEAD
-=======
-            if (this.theMap.sliderPosition > 120
-                || document.body.style.cursor === "crosshair"
-                || (e && e.target.nodeName === 'circle')
-                || this.theMap.state.panning) {
->>>>>>> origin/master
                 return;
             }
 
@@ -358,7 +343,6 @@ theMap.mapControl_module = function () {
             y = e.clientY - this.theMap.pan.mouseDownStartYpan;
 
         // this.theMap.pan.panningXYOld = this.theMap.pan.panningXYNew || {x: x, y: y};
-<<<<<<< HEAD
 
         // this.theMap.pan.panningXYNew = {
         //     x: x,
@@ -366,15 +350,6 @@ theMap.mapControl_module = function () {
         //     time: this.date.now()
         // };
 
-=======
-
-        // this.theMap.pan.panningXYNew = {
-        //     x: x,
-        //     y: y,
-        //     time: this.date.now()
-        // };
-
->>>>>>> origin/master
         this.theMap.pan.points.push({ // TODO: testing
             x: x,
             y: y,
