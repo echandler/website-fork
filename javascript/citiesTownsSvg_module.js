@@ -243,7 +243,7 @@ theMap.citiesTownsSvg_module = function () {
 
             var citiesMouseMove = function (e) {
 
-                if (e.clientY - this.theMap.pan.mouseDownStartY < 5 && e.clientX - this.theMap.pan.mouseDownStartX < 5) { return; }
+                if (e.clientY - this.theMap.pan.mouseDownY < 5 && e.clientX - this.theMap.pan.mouseDownX < 5) { return; }
 
                 this.self.clickAble = false;
 

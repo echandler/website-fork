@@ -1,17 +1,10 @@
 
     // Load up theMap object with goodies.
+    var theMap = theMap || {};
 
-    theMap.timeToLoadArray = [],  // Used to calculate panning duration.
+    theMap.timeToLoadArray = [];  // Used to calculate panning duration.
 
-    theMap.startSend = undefined, // Used to calculate panning duration.
-
-    theMap.panningObj = {
-        panningAnimationMultiplier: theMap.parameters.PANNING_ANIMATION_MULTIPLIER,
-        panningAnimationTime: theMap.parameters.PANNING_ANIMATION_TIME,
-        haltPanning: {
-            finishTime: Date.now()
-        }
-    };
+    theMap.startSend = undefined; // Used to calculate panning duration.
 
     theMap.pageHasFocus = true;
     theMap.pageHasFocusForClick = true;
@@ -68,10 +61,19 @@
     theMap.presentMinY = theMap.parameters.FULL_ZOOM_MIN_Y;
     theMap.presentMaxY = theMap.parameters.FULL_ZOOM_MAX_Y;
 
-    theMap.pan = {  panningXYOld: undefined, panningXYNew: undefined,
-                    oldMouseY: undefined, oldMouseX: undefined,
-                    oldMouseXpan: undefined, oldMouseYpan: undefined,
-                    mouseMoveFunction: undefined };
+    theMap.pan = {
+        panningAnimationTime: theMap.parameters.PANNING_ANIMATION_TIME,
+        haltPanning: {
+            finishTime: Date.now()
+        },
+        oldMouseY: undefined, // TODO: should these be part of this pan object?
+        oldMouseX: undefined, // TODO: should these be part of this pan object?
+        panningFunction: undefined,
+        mouseDownX: undefined,
+        mouseDownY: undefined,
+        mouseDownXOffset: undefined,
+        mouseDownYOffset: undefined
+    };
 
     theMap.sliderPosition = 200; // 200 is full zoom out (county wide zoom level).
 
@@ -126,10 +128,10 @@ var main = function () {
 
     if (theMap.parameters.PANNING_ANIMATION_TRUE_OR_FALSE) {
 
-        theMap.pan.mouseMoveFunction = theMap.mapControl_module.mapDragAndAnimation;
+        theMap.pan.panningFunction = theMap.mapControl_module.mapDragAndAnimation;
     } else {
 
-        theMap.pan.mouseMoveFunction = theMap.mapControl_module.mapDragOnly;
+        theMap.pan.panningFunction = theMap.mapControl_module.mapDragOnly;
     }
 
     theMap.utilities_module.calculateMaxWidthHeight();
@@ -183,7 +185,7 @@ var main = function () {
     //theMap.utilities_module.makeArcXMLRequest(theMap.presentMinX, theMap.presentMaxX, theMap.presentMinY, theMap.presentMaxY);
 };
 
-window.onresize = function (e) {
+window.onresize = function () {
 
     window.clearTimeout(theMap.throttleResize);
     theMap.throttleResize = setTimeout(function () { theMap.utilities_module.handleResize(); }, 500);

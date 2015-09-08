@@ -239,7 +239,7 @@ theMap.options_module = function () {
 
                                     this.setAttribute('class', currentClasses.replace(/^\s|\s{2}/g,''));
                                 }
-                            }.bind(this), 2000, currentClasses);
+                            }.bind(this), 2000 + 100, currentClasses);
                         }.bind(this), 50, currentClasses);
                     } else {
 

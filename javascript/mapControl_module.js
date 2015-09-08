@@ -230,24 +230,24 @@ theMap.mapControl_module = function () {
 
         e.preventDefault();
 
-        this.pan.mouseDownStartX = e.clientX;
-        this.pan.mouseDownStartY = e.clientY;
-        this.pan.mouseDownStartXpan = e.clientX - this.dragDiv._left;
-        this.pan.mouseDownStartYpan = e.clientY - this.dragDiv._top;
-        this.pan.panningXYOld = undefined;
-        this.pan.panningXYNew = undefined;
+        this.pan.mouseDownX = e.clientX;
+        this.pan.mouseDownY = e.clientY;
+        this.pan.mouseDownXOffset = e.clientX - this.dragDiv._left;
+        this.pan.mouseDownYOffset = e.clientY - this.dragDiv._top;
 
         this.pan.points = []; // TODO: testing
 
        // theMap.utilities_module.removeTransitionFromMarkers();
 
         // This if block stops the animated panning of the map immediately.
-        if (Date.now() < this.panningObj.haltPanning.finishTime) {
+        if (Date.now() < this.pan.haltPanning.finishTime) {
 
-            var posOnBezierCurve = (this.calcBezier((Date.now() - this.panningObj.haltPanning.startTime) / this.panningObj.haltPanning.duration));
+            var posOnBezierCurve = (this.calcBezier((Date.now() - this.pan.haltPanning.startTime) / this.pan.haltPanning.duration));
 
-            var finishX = Math.round((this.panningObj.haltPanning.startX * (1 - posOnBezierCurve)) + (this.panningObj.haltPanning.finishX * posOnBezierCurve)),
-                finishY = Math.round((this.panningObj.haltPanning.startY * (1 - posOnBezierCurve)) + (this.panningObj.haltPanning.finishY * posOnBezierCurve));
+            var finishX = Math.round((this.pan.haltPanning.start.x * (1 - posOnBezierCurve))
+                                        + (this.pan.haltPanning.finish.x * posOnBezierCurve)),
+                finishY = Math.round((this.pan.haltPanning.start.y * (1 - posOnBezierCurve))
+                                        + (this.pan.haltPanning.finish.y * posOnBezierCurve));
 
             this.dragDiv.style.transition = '';
             this.dragDiv.style[this.CSSTRANSFORM] = 'translate('+ finishX +'px,'+ finishY +'px)';
@@ -259,7 +259,7 @@ theMap.mapControl_module = function () {
         document.addEventListener('mouseout', private_mapMouseUp);
         document.addEventListener('mouseup', private_mapMouseUp);
         document.addEventListener('mousemove', mapInitialDragTasks);
-        document.addEventListener('mousemove', this.pan.mouseMoveFunction);
+        document.addEventListener('mousemove', this.pan.panningFunction);
     }.bind(window.theMap);
 
     var private_mapMouseUp = function (e) {// mouse up for the image
@@ -273,18 +273,18 @@ theMap.mapControl_module = function () {
         document.removeEventListener('mouseout', private_mapMouseUp);
 
         document.removeEventListener('mousemove', mapInitialDragTasks);
-        document.removeEventListener('mousemove', this.theMap.pan.mouseMoveFunction);
+        document.removeEventListener('mousemove', this.theMap.pan.panningFunction);
 
         if (!theMap.pageHasFocus) {
             theMap.pageHasFocus = true;
-            if (e.clientY - this.theMap.pan.mouseDownStartY === 0 && e.clientX - this.theMap.pan.mouseDownStartX === 0) {
+            if (e.clientY - this.theMap.pan.mouseDownY === 0 && e.clientX - this.theMap.pan.mouseDownX === 0) {
                 this.theMap.state.panning = false;
                 return;
             }
         }
 
-        if (e.clientY - this.theMap.pan.mouseDownStartY === 0
-            && e.clientX - this.theMap.pan.mouseDownStartX === 0) {
+        if (e.clientY - this.theMap.pan.mouseDownY === 0
+            && e.clientX - this.theMap.pan.mouseDownX === 0) {
 
             if (this.theMap.sliderPosition > 120
                 || document.body.style.cursor === "crosshair"
@@ -334,13 +334,13 @@ theMap.mapControl_module = function () {
     var mapDragOnly = function (e) {
 
         this.dragDiv.style[this.CSSTRANSFORM] = 'translate('
-                                    + (this.dragDiv._left + (e.clientX - this.pan.mouseDownStartX)) +'px,'
-                                    + (this.dragDiv._top  + (e.clientY - this.pan.mouseDownStartY)) +'px)';
+                                    + (this.dragDiv._left + (e.clientX - this.pan.mouseDownX)) +'px,'
+                                    + (this.dragDiv._top  + (e.clientY - this.pan.mouseDownY)) +'px)';
     }.bind(theMap);
 
     var mapDragAndAnimation = function (e) {
-        var x = e.clientX - this.theMap.pan.mouseDownStartXpan,
-            y = e.clientY - this.theMap.pan.mouseDownStartYpan;
+        var x = e.clientX - this.theMap.pan.mouseDownXOffset,
+            y = e.clientY - this.theMap.pan.mouseDownYOffset;
 
         // this.theMap.pan.panningXYOld = this.theMap.pan.panningXYNew || {x: x, y: y};
 
@@ -356,7 +356,7 @@ theMap.mapControl_module = function () {
             time: this.date.now()
         });
 
-        this.theMap.dragDiv.style[this.theMap.CSSTRANSFORM] = 'translate3d('+ (this.theMap.dragDiv._left + (e.clientX - this.theMap.pan.mouseDownStartX)) +'px,'+ (this.theMap.dragDiv._top + (e.clientY - this.theMap.pan.mouseDownStartY)) +'px,0px)';
+        this.theMap.dragDiv.style[this.theMap.CSSTRANSFORM] = 'translate3d('+ (this.theMap.dragDiv._left + (e.clientX - this.theMap.pan.mouseDownX)) +'px,'+ (this.theMap.dragDiv._top + (e.clientY - this.theMap.pan.mouseDownY)) +'px,0px)';
     }.bind({
         theMap: theMap,
         date: window.Date
