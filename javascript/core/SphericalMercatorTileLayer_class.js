@@ -37,6 +37,8 @@ export class SphericalMercatorTileLayer extends BaseTileLayer {
 
 
 function Transformation(a, b, c, d) {
+    // Transformation constructor copied from Leaflet.js
+   
     // if (Util.isArray(a)) {
     //     // use array properties
     //     this._a = a[0];

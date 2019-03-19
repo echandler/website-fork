@@ -1,8 +1,8 @@
-import { BasicEventSystem } from "./BasicEventSystem_class";
-import { panning_module } from "./panning_module";
-import { boxZoom_module } from "./boxZoom_module";
-import { Zoom_class } from "./Zoom_class";
-import * as utils from "./utils";
+import {BasicEventSystem} from './BasicEventSystem_class';
+import {panning_module} from './panning_module';
+import {boxZoom_module} from './boxZoom_module';
+import {Zoom_class} from './Zoom_class';
+import * as utils from './utils';
 
 export class NewMap extends BasicEventSystem {
     constructor(spPoint, p_zoom, parameters) {
@@ -14,7 +14,8 @@ export class NewMap extends BasicEventSystem {
     init(spPoint, p_zoom) {
         let params = this.parameters;
         this.zoomIndex = params.zoomIndex;
-        this.maxZoom = params.maxZoom || (this.zoomIndex && this.zoomIndex.length) || 24;
+        this.maxZoom =
+            params.maxZoom || (this.zoomIndex && this.zoomIndex.length) || 24;
         this.minZoom = params.minZoom || 0;
         this.zoomDelta = params.zoomDelta || 1;
 
@@ -28,7 +29,7 @@ export class NewMap extends BasicEventSystem {
 
         this.extent = {
             visible: {},
-            full: {} // TODO: Currently not used by anything.
+            full: {}, // TODO: Currently not used by anything.
         };
 
         this.state = {}; // Todo: Delete eventually.
@@ -46,19 +47,21 @@ export class NewMap extends BasicEventSystem {
         this.Zoom_class.setZoomLvl(zoom, false);
 
         let heightRatio = this.mapContainer.height / this.mapContainer.width;
-        let resolution = this.mapContainer.width /*window.innerWidth*/ * this.getResolution(zoom); /*17.36111111111111;*/
+        let resolution =
+            this.mapContainer.width /*window.innerWidth*/ *
+            this.getResolution(zoom); /*17.36111111111111;*/
         this.extent.visible = {
             x: spPoint.x - resolution / 2,
             X: spPoint.x + resolution / 2,
-            y: spPoint.y - resolution / 2 * heightRatio,
-            Y: spPoint.y + resolution / 2 * heightRatio
+            y: spPoint.y - (resolution / 2) * heightRatio,
+            Y: spPoint.y + (resolution / 2) * heightRatio,
         };
 
         if (!this.state.loaded) {
             this.state.loaded = true;
-            this.event.fire("loaded");
+            this.event.fire('loaded');
         } else {
-            this.event.fire("update everything"); // Todo: Maybe the event should be "setview"?
+            this.event.fire('update everything'); // Todo: Maybe the event should be "setview"?
         }
     }
 
@@ -71,24 +74,31 @@ export class NewMap extends BasicEventSystem {
 
         //this.mapContainer.element.style.top = this.mapContainer.top + "px";
         //this.mapContainer.element.style.left = this.mapContainer.left + "px";
-        this.mapContainer.element.style.height = this.mapContainer.height + "px";
-        this.mapContainer.element.style.width = this.mapContainer.width + "px";
+        this.mapContainer.element.style.height =
+            this.mapContainer.height + 'px';
+        this.mapContainer.element.style.width = this.mapContainer.width + 'px';
 
         let midPoint = {
-            x: this.extent.visible.x + (this.extent.visible.X - this.extent.visible.x) / 2,
-            y: this.extent.visible.y + (this.extent.visible.Y - this.extent.visible.y) / 2
+            x:
+                this.extent.visible.x +
+                (this.extent.visible.X - this.extent.visible.x) / 2,
+            y:
+                this.extent.visible.y +
+                (this.extent.visible.Y - this.extent.visible.y) / 2,
         };
 
         let heightRatio = this.mapContainer.height / this.mapContainer.width;
-        let resolution = this.mapContainer.width /*window.innerWidth*/ * this.getResolution(this.zoom); /*17.36111111111111;*/
+        let resolution =
+            this.mapContainer.width /*window.innerWidth*/ *
+            this.getResolution(this.zoom); /*17.36111111111111;*/
         this.extent.visible = {
             x: this.extent.visible.x,
             X: this.extent.visible.x + resolution,
             y: this.extent.visible.Y - resolution * heightRatio,
-            Y: this.extent.visible.Y
+            Y: this.extent.visible.Y,
         };
 
-        this.event.fire("updateContainerSize", this);
+        this.event.fire('updateContainerSize', this);
 
         if (panToMid) {
             this.panning_module.panTo(midPoint);
@@ -96,19 +106,29 @@ export class NewMap extends BasicEventSystem {
     }
 
     makeContainers() {
-        this.mapContainer = this.makeContainer(document.createElement("div"));
-        this.mapContainer.element.className = "_theMapContainer_";
+        this.mapContainer = this.makeContainer(document.createElement('div'));
+        this.mapContainer.element.className = '_theMapContainer_';
 
-        this.mainContainer = this.makeContainer(document.createElement("div"));
-        this.mainContainer.element.style.cssText = "position: absolute; width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px) scale3d(1,1,1);";
+        this.mainContainer = this.makeContainer(document.createElement('div'));
+        this.mainContainer.element.style.cssText =
+            'position: absolute; width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px) scale3d(1,1,1);';
 
-        this.svgContainer = this.makeContainer(document.createElementNS("http://www.w3.org/2000/svg", "svg"));
-        this.svgContainer.element.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
-        this.svgContainer.element.style.cssText = "position: absolute; top: 0px; left: 0px; width: 10000000px; height: 100000px; overflow: hidden;";
+        this.svgContainer = this.makeContainer(
+            document.createElementNS('http://www.w3.org/2000/svg', 'svg'),
+        );
+        this.svgContainer.element.setAttribute(
+            'xmlns:xlink',
+            'http://www.w3.org/1999/xlink',
+        );
+        this.svgContainer.element.style.cssText =
+            'position: absolute; top: 0px; left: 0px; width: 10000000px; height: 100000px; overflow: hidden;';
 
-        this.markerContainer = this.makeContainer(document.createElement("div"));
-        this.markerContainer.element.style.cssText = "position: relative; z-index: 1000;";
-        this.markerContainer.element.className = "_markerContainer_";
+        this.markerContainer = this.makeContainer(
+            document.createElement('div'),
+        );
+        this.markerContainer.element.style.cssText =
+            'position: relative; z-index: 1000;';
+        this.markerContainer.element.className = '_markerContainer_';
 
         this.mainContainer.element.appendChild(this.svgContainer.element);
         this.mainContainer.element.appendChild(this.markerContainer.element);
@@ -126,7 +146,7 @@ export class NewMap extends BasicEventSystem {
             left: null,
             top: null,
             width: null,
-            height: null
+            height: null,
         };
     }
 
@@ -154,49 +174,75 @@ export class NewMap extends BasicEventSystem {
                 // prettier-ignore
                 evt.___delta = evt.wheelDelta
                     ? evt.wheelDelta
-                        : evt.deltaY // Newish firefox?
+                    : evt.deltaY // Newish firefox?
                             ? evt.deltaY * -120
                             : ((_evt_ = window.event || evt), _evt_.detail * -120);
 
-                evt.___delta = evt.___delta > 0? 120 : -120; // Normalize delta.
+                evt.___delta = evt.___delta > 0 ? 120 : -120; // Normalize delta.
 
                 evt.zoomDelta = evt.zoomDelta || this.zoomDelta;
 
                 this.eventDelgationHandler(evt, this.MOUSE_WHEEL_EVT);
             },
-            false
+            false,
         );
 
         mapContEl.addEventListener(
-            "mousedown",
+            'mousedown',
             evt => {
+                //let evt = e.__event__;
+
+                if (evt.which !== 1 || evt.which === 0 /*touch*/) {
+                    return;
+                }
+
+                if (evt.shiftKey) {
+                    this.boxZoom_module.boxZoom_mouseDown(evt);
+                    return false;
+                }
+
                 this.pan.mouseDownX = evt.clientX; // Checked in the mouse click listener, obvious hack is obvious.
                 this.pan.mouseDownY = evt.clientY; // Checked in the mouse click listener, obvious hack is obvious.
                 this.eventDelgationHandler(evt);
             },
-            false
+            false,
         );
 
-        mapContEl.addEventListener("mouseup", e => this.eventDelgationHandler, false);
-        mapContEl.addEventListener("mouseover", e => this.eventDelgationHandler, false);
-        mapContEl.addEventListener("mouseout", e => this.eventDelgationHandler, false);
         mapContEl.addEventListener(
-            "mousemove",
+            'mouseup',
+            e => this.eventDelgationHandler,
+            false,
+        );
+        mapContEl.addEventListener(
+            'mouseover',
+            e => this.eventDelgationHandler,
+            false,
+        );
+        mapContEl.addEventListener(
+            'mouseout',
+            e => this.eventDelgationHandler,
+            false,
+        );
+        mapContEl.addEventListener(
+            'mousemove',
             e => {
                 this.eventDelgationHandler(e);
             },
-            false
+            false,
         );
 
         mapContEl.addEventListener(
-            "click",
+            'click',
             e => {
                 // todo: Find better way to check if it is "safe" to click.
-                if (e.clientY === this.pan.mouseDownY && e.clientX === this.pan.mouseDownX) {
+                if (
+                    e.clientY === this.pan.mouseDownY &&
+                    e.clientX === this.pan.mouseDownX
+                ) {
                     this.eventDelgationHandler(e);
                 }
             },
-            false
+            false,
         );
     }
 
@@ -220,11 +266,13 @@ export class NewMap extends BasicEventSystem {
             spPoint: null,
             stopPropagation: function() {
                 stopPropagatting = true;
-            }
+            },
         };
 
         while (parentElement && parentElement !== this.mapContainer.element) {
-            if (!(parentElement._marker_obj && parentElement._marker_obj.fire)) {
+            if (
+                !(parentElement._marker_obj && parentElement._marker_obj.fire)
+            ) {
                 parentElement = parentElement.parentElement;
                 continue;
             }
@@ -248,16 +296,27 @@ export class NewMap extends BasicEventSystem {
             new_evt.spPoint = this.screenPointToProjection(pointInContainer); // Halting panning animation changes extent..
 
             let _zoom = this.Zoom_class._zoomLevel;
-            let _zoomDelta = this.Zoom_class.calcZoomDelta(_zoom, new_evt.zoomDelta, this.minZoom, this.maxZoom);
-            let _zoomAdder = e.___delta >= 120 ? _zoomDelta.maxDelta : -_zoomDelta.minDelta;
+            let _zoomDelta = this.Zoom_class.calcZoomDelta(
+                _zoom,
+                new_evt.zoomDelta,
+                this.minZoom,
+                this.maxZoom,
+            );
+            let _zoomAdder =
+                e.___delta >= 120 ? _zoomDelta.maxDelta : -_zoomDelta.minDelta;
 
             this.Zoom_class._zoomLevel += _zoomAdder;
             _zoom = this.Zoom_class._zoomLevel;
 
             let _resolution = this.getResolution(_zoom);
-            new_evt.scale = this.getResolution(_zoom - _zoomAdder) / _resolution;
+            new_evt.scale =
+                this.getResolution(_zoom - _zoomAdder) / _resolution;
 
-            this.updateVisExtentByOriginAndResolution(new_evt.spPoint, new_evt.scale, _resolution);
+            this.updateVisExtentByOriginAndResolution(
+                new_evt.spPoint,
+                new_evt.scale,
+                _resolution,
+            );
         } else {
             new_evt.spPoint = this.screenPointToProjection(pointInContainer);
         }
@@ -273,12 +332,12 @@ export class NewMap extends BasicEventSystem {
             callBack();
         } else {
             this.event.on(
-                "loaded",
+                'loaded',
                 function _fn_(e) {
                     this.addTo.apply(this, args);
-                    this.event.off("loaded", _fn_);
+                    this.event.off('loaded', _fn_);
                 },
-                this
+                this,
             );
         }
 

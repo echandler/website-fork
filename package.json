@@ -1,0 +1,19 @@
+{
+  "name": "ArcXml_map_project",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rollup -c",
+    "rollupWatch": "rollup -c -w",
+    "rollupOpts": "rollup",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "rollup": "^0.58.2"
+  },
+  "dependencies": {}
+}
