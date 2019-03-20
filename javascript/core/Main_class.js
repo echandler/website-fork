@@ -1,6 +1,5 @@
 import {BasicEventSystem} from './BasicEventSystem_class';
 import {panning_module} from './panning_module';
-import {Zoom_class} from './Zoom_class';
 import * as utils from './utils';
 
 export class NewMap extends BasicEventSystem {
@@ -11,7 +10,10 @@ export class NewMap extends BasicEventSystem {
     }
 
     init(spPoint, p_zoom) {
+        this.zoom = 0;
+
         let params = this.parameters;
+
         this.zoomIndex = params.zoomIndex;
         this.maxZoom =
             params.maxZoom || (this.zoomIndex && this.zoomIndex.length) || 24;
@@ -31,7 +33,7 @@ export class NewMap extends BasicEventSystem {
             full: {}, // TODO: Currently not used by anything.
         };
 
-        this.state = {}; // Todo: Delete eventually.
+        this.state = {zooming: false}; // Todo: Delete eventually.
 
         this.updateContainerSize(); // Todo: Is this the best way?
 
@@ -43,7 +45,7 @@ export class NewMap extends BasicEventSystem {
     setView(spPoint, zoom) {
         spPoint = this.toPoint(spPoint);
 
-        this.Zoom_class.setZoomLvl(zoom, false);
+        this.zoom = zoom;
 
         let heightRatio = this.mapContainer.height / this.mapContainer.width;
         let resolution =
@@ -153,8 +155,8 @@ export class NewMap extends BasicEventSystem {
         this.event = new BasicEventSystem(); // TODO: Change this in future;
 
         this.panning_module = panning_module(this);
-       // this.boxZoom_module = boxZoom_module(this);
-        this.Zoom_class = new Zoom_class(this);
+        // this.boxZoom_module = boxZoom_module(this);
+        // this.Zoom_class = new Zoom_class(this);
     }
 
     createEventListeners() {
@@ -243,6 +245,12 @@ export class NewMap extends BasicEventSystem {
             },
             false,
         );
+
+        this.event.on(
+            utils.MOUSE_WHEEL_EVT,
+            p_evt => this.zoomInOut(p_evt),
+            this,
+        );
     }
 
     eventDelgationHandler(e, type) {
@@ -290,26 +298,27 @@ export class NewMap extends BasicEventSystem {
         }
 
         if (e.___delta) {
+            // Map is zooming.
             this.panning_module.stopPanAnimation(new_evt);
 
             new_evt.spPoint = this.screenPointToProjection(pointInContainer); // Halting panning animation changes extent..
 
-            let _zoom = this.Zoom_class._zoomLevel;
-            let _zoomDelta = this.Zoom_class.calcZoomDelta(
-                _zoom,
+            let _zoomDelta = this.calcZoomDelta(
+                this.zoom,
                 new_evt.zoomDelta,
                 this.minZoom,
                 this.maxZoom,
             );
+
             let _zoomAdder =
                 e.___delta >= 120 ? _zoomDelta.maxDelta : -_zoomDelta.minDelta;
 
-            this.Zoom_class._zoomLevel += _zoomAdder;
-            _zoom = this.Zoom_class._zoomLevel;
+            this.zoom += _zoomAdder;
 
-            let _resolution = this.getResolution(_zoom);
+            let _resolution = this.getResolution(this.zoom);
+
             new_evt.scale =
-                this.getResolution(_zoom - _zoomAdder) / _resolution;
+                this.getResolution(this.zoom - _zoomAdder) / _resolution;
 
             this.updateVisExtentByOriginAndResolution(
                 new_evt.spPoint,
