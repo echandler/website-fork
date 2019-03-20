@@ -1,6 +1,5 @@
 import {BasicEventSystem} from './BasicEventSystem_class';
 import {panning_module} from './panning_module';
-import {boxZoom_module} from './boxZoom_module';
 import {Zoom_class} from './Zoom_class';
 import * as utils from './utils';
 
@@ -154,7 +153,7 @@ export class NewMap extends BasicEventSystem {
         this.event = new BasicEventSystem(); // TODO: Change this in future;
 
         this.panning_module = panning_module(this);
-        this.boxZoom_module = boxZoom_module(this);
+       // this.boxZoom_module = boxZoom_module(this);
         this.Zoom_class = new Zoom_class(this);
     }
 
@@ -197,7 +196,7 @@ export class NewMap extends BasicEventSystem {
                 }
 
                 if (evt.shiftKey) {
-                    this.boxZoom_module.boxZoom_mouseDown(evt);
+                    this.boxZoom_mouseDown(evt);
                     return false;
                 }
 

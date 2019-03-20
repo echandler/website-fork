@@ -1,156 +1,163 @@
-export function boxZoom_module(thisMap) {
-    var boxZoom = undefined;
-    var boxZoomCenter = undefined;
+import {NewMap} from './Main_class';
 
-    // TODO: Re-factor these 'box' functions.
-    function boxZoom_mouseDown(e) {
-        if (boxZoom) {
-            boxZoom = null;
-            boxZoom.parentElement.removeChild(boxZoom);
-            return;
-        }
+Object.assign(
+    NewMap.prototype,
+    boxZoom_mouseDown,
+    boxZoom_mouseUp,
+    boxZoom_doZoom,
+    boxZoom_mouseMove,
+    boxZoomCenter_mouseMove,
+);
 
-        thisMap.panning_module.disablePanning();
-
-        e.preventDefault();
-        e.stopPropagation();
-
-        boxZoom = document.createElement('div');
-        boxZoom.id = 'boxZoom';
-        boxZoom.className = 'boxZoom';
-
-        boxZoomCenter = document.createElement('div');
-        boxZoomCenter.id = 'boxZoomCenter';
-        boxZoomCenter.className = 'boxZoomCenter';
-        boxZoomCenter.style.cssText =
-            'position:absolute; top:0px; left:0px; width: 5px; height: 5px; border: 1px solid red;';
-
-        boxZoom.appendChild(boxZoomCenter);
-
-        thisMap.mainContainer.element.insertBefore(
-            boxZoom,
-            thisMap.markerContainer.element,
-        );
-
-        boxZoom.offset = {
-            x: thisMap.mapContainer.left + thisMap.mainContainer.left,
-            y: thisMap.mapContainer.top + thisMap.mainContainer.top,
-        };
-
-        boxZoom.style.left = e.clientX - boxZoom.offset.x + 'px';
-        boxZoom.style.top = e.clientY - boxZoom.offset.y + 'px';
-        boxZoom.style.zIndex = 500;
-
-        boxZoom.start = {
-            x: e.clientX,
-            y: e.clientY,
-        };
-
-        thisMap.pageHasFocus = true;
-
-        document.addEventListener('mousemove', private_boxZoom_mouseMove);
-        document.addEventListener('mouseup', private_boxZoom_mouseUp);
+function boxZoom_mouseDown(e) {
+    if (this.boxZoom) {
+        this.boxZoom = null;
+        this.boxZoom.parentElement.removeChild(boxZoom);
+        return;
     }
 
-    function private_boxZoom_mouseMove(e) {
-        if (e.clientX > boxZoom.start.x) {
-            boxZoom.style.left = boxZoom.start.x - boxZoom.offset.x + 'px';
-            if (e.clientY > boxZoom.start.y) {
-                boxZoom.style.top = boxZoom.start.y - boxZoom.offset.y + 'px';
-                boxZoom.style.width = e.clientX - boxZoom.start.x + 'px';
-                boxZoom.style.height = e.clientY - boxZoom.start.y + 'px';
-            } else {
-                boxZoom.style.top = e.clientY - boxZoom.offset.y + 'px';
-                boxZoom.style.width = e.clientX - boxZoom.start.x + 'px';
-                boxZoom.style.height = boxZoom.start.y - e.clientY + 'px';
-            }
-        } else if (boxZoom.start.x > e.clientX) {
-            boxZoom.style.left = e.clientX - boxZoom.offset.x + 'px';
-            if (e.clientY > boxZoom.start.y) {
-                boxZoom.style.top = boxZoom.start.y - boxZoom.offset.y + 'px';
-                boxZoom.style.width = boxZoom.start.x - e.clientX + 'px';
-                boxZoom.style.height = e.clientY - boxZoom.start.y + 'px';
-            } else {
-                boxZoom.style.top = e.clientY - boxZoom.offset.y + 'px';
-                boxZoom.style.width = boxZoom.start.x - e.clientX + 'px';
-                boxZoom.style.height = boxZoom.start.y - e.clientY + 'px';
-            }
+    this.panning_module.disablePanning();
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    // TODO: Make boxZoom it's own object with a element property, instead of 
+    //       adding properties to the html element itself.
+    this.boxZoom = document.createElement('div');
+    this.boxZoom.id = 'boxZoom';
+    this.boxZoom.className = 'boxZoom';
+
+    this.boxZoomCenter = document.createElement('div');
+    this.boxZoomCenter.id = 'boxZoomCenter';
+    this.boxZoomCenter.className = 'boxZoomCenter';
+    this.boxZoomCenter.style.cssText =
+        'position:absolute; top:0px; left:0px; width: 5px; height: 5px; border: 1px solid red;';
+
+    this.boxZoom.appendChild(this.boxZoomCenter);
+
+    this.mainContainer.element.insertBefore(
+        this.boxZoom,
+        this.markerContainer.element,
+    );
+
+    this.boxZoom.offset = {
+        x: this.mapContainer.left + this.mainContainer.left,
+        y: this.mapContainer.top + this.mainContainer.top,
+    };
+
+    this.boxZoom.style.left = e.clientX - boxZoom.offset.x + 'px';
+    this.boxZoom.style.top = e.clientY - boxZoom.offset.y + 'px';
+    this.boxZoom.style.zIndex = 500;
+
+    this.boxZoom.start = {
+        x: e.clientX,
+        y: e.clientY,
+    };
+
+    this.pageHasFocus = true;
+
+    // TODO: Change name of mouse move and mouse up eventlisteners.
+    this.boxZoom.mv = e => this.boxZoom_mouseMove(e);
+    this.boxZoom.mup = e => this.boxZoom_mouseUp(e);
+
+    document.addEventListener('mousemove', this.boxZoom.mv);
+    document.addEventListener('mouseup', this.boxZoom.mup);
+}
+
+function boxZoom_mouseMove(e) {
+    if (e.clientX > this.boxZoom.start.x) {
+        this.boxZoom.style.left =
+            this.boxZoom.start.x - this.boxZoom.offset.x + 'px';
+        if (e.clientY > this.boxZoom.start.y) {
+            this.boxZoom.style.top =
+                this.boxZoom.start.y - this.boxZoom.offset.y + 'px';
+            this.boxZoom.style.width = e.clientX - this.boxZoom.start.x + 'px';
+            this.boxZoom.style.height = e.clientY - this.boxZoom.start.y + 'px';
+        } else {
+            this.boxZoom.style.top = e.clientY - this.boxZoom.offset.y + 'px';
+            this.boxZoom.style.width = e.clientX - this.boxZoom.start.x + 'px';
+            this.boxZoom.style.height = this.boxZoom.start.y - e.clientY + 'px';
         }
-        private_boxZoomCenter_mouseMove(
-            boxZoom.style.height,
-            boxZoom.style.width,
-        );
+    } else if (this.boxZoom.start.x > e.clientX) {
+        this.boxZoom.style.left = e.clientX - this.boxZoom.offset.x + 'px';
+        if (e.clientY > this.boxZoom.start.y) {
+            this.boxZoom.style.top =
+                this.boxZoom.start.y - this.boxZoom.offset.y + 'px';
+            this.boxZoom.style.width = this.boxZoom.start.x - e.clientX + 'px';
+            this.boxZoom.style.height = e.clientY - this.boxZoom.start.y + 'px';
+        } else {
+            this.boxZoom.style.top = e.clientY - this.boxZoom.offset.y + 'px';
+            this.boxZoom.style.width = this.boxZoom.start.x - e.clientX + 'px';
+            this.boxZoom.style.height = this.boxZoom.start.y - e.clientY + 'px';
+        }
+    }
+    this.boxZoomCenter_mouseMove(
+        this.boxZoom.style.height,
+        this.boxZoom.style.width,
+    );
+}
+
+function boxZoom_mouseUp(e) {
+    var width = Math.abs(e.clientX - this.boxZoom.start.x);
+    var height = Math.abs(e.clientY - this.boxZoom.start.y);
+    var x = e.clientX > this.boxZoom.start.x ? e.clientX : boxZoom.start.x;
+    var y = e.clientY > this.boxZoom.start.y ? e.clientY : boxZoom.start.y;
+    var center = this.getPixelPointInMapContainer(
+        this.toPoint(x - width / 2, y - height / 2),
+    );
+
+    document.removeEventListener('mousemove', this.boxZoom.mv);
+    document.removeEventListener('mouseup', this.boxZoom.mup);
+
+    this.boxZoom.style[this.CSS_TRANSITION] = 'opacity 0.15s ease-in-out';
+    this.boxZoom.style.opacity = 0;
+
+    this.panning_module.enablePanning();
+
+    this.boxZoom.parentElement.removeChild(boxZoom);
+
+    if (
+        e.clientX === this.boxZoom.start.clientX &&
+        e.clientY === this.boxZoom.start.clientY
+    ) {
+        this.boxZoom = null;
+        return;
     }
 
-    function private_boxZoom_mouseUp(e) {
-        var width = Math.abs(e.clientX - boxZoom.start.x);
-        var height = Math.abs(e.clientY - boxZoom.start.y);
-        var x = e.clientX > boxZoom.start.x ? e.clientX : boxZoom.start.x;
-        var y = e.clientY > boxZoom.start.y ? e.clientY : boxZoom.start.y;
-        var center = thisMap.getPixelPointInMapContainer(
-            thisMap.toPoint(x - width / 2, y - height / 2),
-        );
+    this.boxZoom = null;
 
-        document.removeEventListener('mousemove', private_boxZoom_mouseMove);
-        document.removeEventListener('mouseup', private_boxZoom_mouseUp);
+    this.boxZoom_doZoom({
+        height,
+        width,
+        center,
+    });
+}
 
-        boxZoom.style[thisMap.CSS_TRANSITION] = 'opacity 0.15s ease-in-out';
-        boxZoom.style.opacity = 0;
+function boxZoom_doZoom(obj) {
+    let projectedCenter = this.screenPointToProjection(obj.center);
+    let height = null;
+    let width = null;
+    let multiplier = null;
 
-        thisMap.panning_module.enablePanning();
-
-        boxZoom.parentElement.removeChild(boxZoom);
+    for (let h = 0; h < 50 /*prevent endless loop*/; h++) {
+        multiplier = Math.pow(2, h);
+        width = obj.width * multiplier;
+        height = obj.height * multiplier;
 
         if (
-            e.clientX === boxZoom.start.clientX &&
-            e.clientY === boxZoom.start.clientY
+            height > this.mapContainer.height ||
+            width > this.mapContainer.width
         ) {
-            boxZoom = null;
-            return;
-        }
-
-        boxZoom = null;
-
-        private_doZoom({
-            height,
-            width,
-            center,
-        });
-        //thisMap.Zoom_class.zoomToBox(center, width, height);
-    }
-
-    function private_doZoom(obj) {
-        let projectedCenter = thisMap.screenPointToProjection(obj.center);
-        let height = null;
-        let width = null;
-        let multiplier = null;
-
-        for (let h = 0; h < 50 /*prevent endless loop*/; h++) {
-            multiplier = Math.pow(2, h);
-            width = obj.width * multiplier;
-            height = obj.height * multiplier;
-
-            if (
-                height > thisMap.mapContainer.height ||
-                width > thisMap.mapContainer.width
-            ) {
-                h -= 1;
-                thisMap.zoomTo(projectedCenter, thisMap.zoom + h);
-                // let zoom = Math.min(thisMap.zoom + h, thisMap.maxZoom);
-                //thisMap.setView(projectedCenter, zoom);
-                break;
-            }
+            h -= 1;
+            this.zoomTo(projectedCenter, this.zoom + h);
+            break;
         }
     }
+}
 
-    function private_boxZoomCenter_mouseMove(height, width) {
-        height = height.replace('px', '');
-        width = width.replace('px', '');
-        boxZoomCenter.style.transform =
-            'translate(' + (width / 2 - 3) + 'px, ' + (height / 2 - 3) + 'px)';
-    }
-
-    return {
-        boxZoom_mouseDown: boxZoom_mouseDown,
-    };
+function boxZoomCenter_mouseMove(height, width) {
+    height = height.replace('px', '');
+    width = width.replace('px', '');
+    this.boxZoomCenter.style.transform =
+        'translate(' + (width / 2 - 3) + 'px, ' + (height / 2 - 3) + 'px)';
 }
