@@ -18,7 +18,7 @@ export default {
     output: {
         //globals: 'newMap',
         format: "umd",
-        name: "NewMap",
+        name: "NewMap", // TODO: Change this name.
         sourcemap: "inline",
         // extend : true,
         file: "./dist/bundle.js",

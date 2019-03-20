@@ -10,7 +10,7 @@ export class NewMap extends BasicEventSystem {
     }
 
     init(spPoint, p_zoom) {
-        this.zoom = 0;
+        //this.zoom = 0;
 
         let params = this.parameters;
 
@@ -40,6 +40,26 @@ export class NewMap extends BasicEventSystem {
         if (spPoint) {
             this.setView(spPoint, p_zoom);
         }
+
+        if (this.init.initArr) {
+
+            let A = this.init.initArr;
+
+            for (let n = 0; n < A.length; n++) {
+                // Call additional functions an extension
+                // might have added.
+                A[n].fn.call(A[n].ctx || this);
+            }
+        }
+    }
+
+    static onInitDone(fn, ctx) {
+        // Testing an idea about how to extend the init function.
+        let A = this.prototype.init.initarr;
+        if (!A) {
+            A = this.prototype.init.initArr = [];
+        }
+        A.push({fn, ctx});
     }
 
     setView(spPoint, zoom) {

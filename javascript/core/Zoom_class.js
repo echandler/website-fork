@@ -1,9 +1,14 @@
 import * as utils from './utils';
 import {NewMap} from './Main_class';
 
+NewMap.onInitDone(function(){
+    // Testing an idea about how to exend the init function.
+    this.zoom = 0;
+});
+
 NewMap.prototype.calcZoomDelta = function(
     zoomLvl,
-    zoomDelta,
+    zoomDelta, 
     minZoom,
     maxZoom,
 ) {
