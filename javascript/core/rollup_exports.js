@@ -13,7 +13,9 @@ export * from "./SphericalMercatorTileLayer_class.js";
 
 
 export * from "./coordinate_module";
-export * from "./marker_module";
 export * from "./panning_module";
 export * from "./boxZoom_module";
 
+export * from "./marker/BaseMarker_class";
+export * from "./marker/MarkerPopup_class";
+export * from "./marker/Marker_class";

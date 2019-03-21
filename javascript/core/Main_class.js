@@ -43,23 +43,23 @@ export class NewMap extends BasicEventSystem {
 
         if (this.init.initArr) {
 
-            let A = this.init.initArr;
+            let ary = this.init.initArr;
 
-            for (let n = 0; n < A.length; n++) {
+            for (let n = 0; n < ary.length; n++) {
                 // Call additional functions an extension
                 // might have added.
-                A[n].fn.call(A[n].ctx || this);
+                ary[n].fn.call(ary[n].ctx || this);
             }
         }
     }
 
     static onInitDone(fn, ctx) {
         // Testing an idea about how to extend the init function.
-        let A = this.prototype.init.initarr;
-        if (!A) {
-            A = this.prototype.init.initArr = [];
+        let ary = this.prototype.init.initarr;
+        if (!ary) {
+            ary = this.prototype.init.initArr = [];
         }
-        A.push({fn, ctx});
+        ary.push({fn, ctx});
     }
 
     setView(spPoint, zoom) {

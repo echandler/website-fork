@@ -1,51 +1,71 @@
-import { NewMap } from "./Main_class";
-import { transformation } from "./SphericalMercatorTileLayer_class.js";
+import {NewMap} from './Main_class';
+import {transformation} from './SphericalMercatorTileLayer_class.js';
+
+Object.assign(NewMap.prototype, {
+    toPoint,
+    convertProjPointToPixelPoint,
+    convertProjPointToOffsetPixelPoint,
+    screenPointToProjection,
+    convertSPToWGS84,
+    convertWGS84ProjectionToWGS84LatLon,
+    minutes,
+    updateStatePlaneCoordsByDistance,
+    updateStatePlaneCoordsByOrigin,
+    updateVisExtentByOriginAndResolution,
+    getPixelPointInMapContainer,
+    getPanOffsetPoint,
+    distanceBetween,
+    convertSPToWGS84Proj,
+    getResolution,
+});
 
 export function toPoint(x, y) {
     if (Array.isArray(x)) {
         return {
             x: x[0],
-            y: x[1]
+            y: x[1],
         };
     }
     if (x === Object(x)) {
         //https://stackoverflow.com/questions/8511281/check-if-a-value-is-an-object-in-javascript
         return {
             x: x.x || x.X,
-            y: x.y || x.Y
+            y: x.y || x.Y,
         };
     }
     return {
         x: x,
-        y: y
+        y: y,
     };
 }
 
-NewMap.prototype.toPoint = toPoint;
-
-NewMap.prototype.convertProjPointToPixelPoint = function(spPoint) {
-    var xRatio = this.mapContainer.width / (this.extent.visible.X - this.extent.visible.x), // For paths.
-        yRatio = this.mapContainer.height / (this.extent.visible.Y - this.extent.visible.y); // For paths.
+function convertProjPointToPixelPoint(spPoint) {
+    var xRatio =
+            this.mapContainer.width /
+            (this.extent.visible.X - this.extent.visible.x), // For paths.
+        yRatio =
+            this.mapContainer.height /
+            (this.extent.visible.Y - this.extent.visible.y); // For paths.
     //var resolution = this.zoomIndex[this.zoom].resolution;
 
     //console.log(xRatio, resolution, (spPoint.x - this.extent.visible.x) * xRatio)
 
     return {
         x: (spPoint.x - this.extent.visible.x) * xRatio,
-        y: (this.extent.visible.Y - spPoint.y) * yRatio
+        y: (this.extent.visible.Y - spPoint.y) * yRatio,
     };
-};
+}
 
-NewMap.prototype.convertProjPointToOffsetPixelPoint = function(point) {
+function convertProjPointToOffsetPixelPoint(point) {
     var screenPoint = this.convertProjPointToPixelPoint(point);
 
     return {
         x: screenPoint.x - this.mainContainer.left,
-        y: screenPoint.y - this.mainContainer.top
+        y: screenPoint.y - this.mainContainer.top,
     };
-};
+}
 
-NewMap.prototype.screenPointToProjection = function(point) {
+function screenPointToProjection(point) {
     var spWidth = this.extent.visible.X - this.extent.visible.x;
     var spHeight = this.extent.visible.Y - this.extent.visible.y;
 
@@ -54,9 +74,9 @@ NewMap.prototype.screenPointToProjection = function(point) {
 
     return {
         x: this.extent.visible.x + spWidth * originLR,
-        y: this.extent.visible.Y - spHeight * originTB
+        y: this.extent.visible.Y - spHeight * originTB,
     };
-};
+}
 
 // Convert state plane coordinates to wgs 84 coordinates...I'm guessing anyway, not sure.
 export function convertSPToWGS84(spPoint) {
@@ -90,15 +110,15 @@ export function convertSPToWGS84(spPoint) {
     lat1 = 1.5707963267948966 - 2 * atan(txy * pow(part1, 0.08181905782 / 2));
     while (abs(lat1 - lat0) > 0.000000002) {
         lat0 = lat1;
-        part1 = (1 - 0.08181905782 * sin(lat0)) / (1 + 0.08181905782 * sin(lat0));
-        lat1 = 1.5707963267948966 - 2 * atan(txy * pow(part1, 0.08181905782 / 2));
+        part1 =
+            (1 - 0.08181905782 * sin(lat0)) / (1 + 0.08181905782 * sin(lat0));
+        lat1 =
+            1.5707963267948966 - 2 * atan(txy * pow(part1, 0.08181905782 / 2));
     }
     Lat = lat1 / 0.01745329252;
     Lon = lon / 0.01745329252;
-    return { lat: Lat, lng: Lon };
+    return {lat: Lat, lng: Lon};
 }
-
-NewMap.prototype.convertSPToWGS84 = convertSPToWGS84;
 
 /*
 function convertSP(uX, uY) {
@@ -179,7 +199,7 @@ function convertSP(uX, uY) {
 
 */
 
-NewMap.prototype.convertWGS84ProjectionToWGS84LatLon = function(mercator) {
+function convertWGS84ProjectionToWGS84LatLon(mercator) {
     // https://gis.stackexchange.com/questions/69208/trying-to-convert-coordinates-from-wgs84-web-mercator-auxiliary-sphere-to-wgs84
     // https://wiki.openstreetmap.org/wiki/Mercator#Java
     //         if (Math.abs(mercator[0]) < 180 && Math.Abs(mercator[1]) < 90)
@@ -194,12 +214,13 @@ NewMap.prototype.convertWGS84ProjectionToWGS84LatLon = function(mercator) {
     var num4 = num3 * 57.295779513082323;
     var num5 = Math.floor((num4 + 180.0) / 360.0);
     var num6 = num4 - num5 * 360.0;
-    var num7 = 1.5707963267948966 - 2.0 * Math.atan(Math.exp(-1.0 * y / 6378137.0));
+    var num7 =
+        1.5707963267948966 - 2.0 * Math.atan(Math.exp((-1.0 * y) / 6378137.0));
     mercator[0] = num6;
     mercator[1] = num7 * 57.295779513082323;
-};
+}
 
-NewMap.prototype.minutes = function(num) {
+function minutes(num) {
     // For converting convertSPToWGS84(x,y) points to minutes, also borrowed from Scopi!
     num = Math.abs(num);
     var floor = Math.floor(num);
@@ -212,10 +233,10 @@ NewMap.prototype.minutes = function(num) {
     seconds *= 100;
     seconds = Math.round(seconds);
     seconds /= 100; // accurate to 2 decimal places
-    return floor + "\u00B0 " + floor2 + "\u2032 " + seconds + "\u2033";
-};
+    return floor + '\u00B0 ' + floor2 + '\u2032 ' + seconds + '\u2033';
+}
 
-NewMap.prototype.updateStatePlaneCoordsByDistance = function(distanceX, distanceY, spCoords) {
+function updateStatePlaneCoordsByDistance(distanceX, distanceY, spCoords) {
     var spWidth = this.extent.visible.X - this.extent.visible.x;
     var spHeight = this.extent.visible.Y - this.extent.visible.y;
 
@@ -237,20 +258,9 @@ NewMap.prototype.updateStatePlaneCoordsByDistance = function(distanceX, distance
     this.extent.visible.X -= left;
     this.extent.visible.y -= top;
     this.extent.visible.Y -= top;
-};
+}
 
-NewMap.prototype.updateStatePlaneCoordsByDistance1 = function(_x, _y, spCoords) {
-    let resolution = this.getResolution(this.zoom);
-    let __x = _x * resolution;
-    let __y = _y * resolution;
-console.log(_x)
-    this.extent.visible.x += __x;
-    this.extent.visible.X += __x;
-    this.extent.visible.y += __y;
-    this.extent.visible.Y += __y;
-};
-
-NewMap.prototype.updateStatePlaneCoordsByOrigin = function(p_origin, p_scale) {
+function updateStatePlaneCoordsByOrigin(p_origin, p_scale) {
     var spWidth = this.extent.visible.X - this.extent.visible.x;
     var spHeight = this.extent.visible.Y - this.extent.visible.y;
 
@@ -264,15 +274,14 @@ NewMap.prototype.updateStatePlaneCoordsByOrigin = function(p_origin, p_scale) {
     this.extent.visible.y -= spHeight * p_origin.y;
     this.extent.visible.Y += spHeight * (1 - p_origin.y);
     console.log(this.extent.visible);
-};
+}
 
-NewMap.prototype.updateVisExtentByOriginAndResolution = function(p_origin, p_scale, p_resolution) {
+function updateVisExtentByOriginAndResolution(p_origin, p_scale, p_resolution) {
     let vis = this.extent.visible;
-    //let resolution = this.getResolution(p_zoom);
     let spWidth = this.mapContainer.width * p_resolution;
     let spHeight = this.mapContainer.height * p_resolution;
 
-    let ratioX = (vis.X - p_origin.x ) / (vis.X - vis.x);
+    let ratioX = (vis.X - p_origin.x) / (vis.X - vis.x);
     let ratioY = (vis.Y - p_origin.y) / (vis.Y - vis.y);
 
     if (p_scale >= 1) {
@@ -285,37 +294,36 @@ NewMap.prototype.updateVisExtentByOriginAndResolution = function(p_origin, p_sca
     vis.x = vis.X - spWidth;
     vis.Y -= spHeight * p_scale * ratioY;
     vis.y = vis.Y - spHeight;
-};
+}
 
-NewMap.prototype.getPixelPointInMapContainer = function(point) {
+function getPixelPointInMapContainer(point) {
     return {
         x: point.x - this.mapContainer.left,
-        y: point.y - this.mapContainer.top
+        y: point.y - this.mapContainer.top,
     };
-};
+}
 
-NewMap.prototype.getPanOffsetPoint = function(point) {
+function getPanOffsetPoint(point) {
     var panOffsetX = this.mainContainer.left; //+ this.mapImg.left; // Should be zero if not panning.
     var panOffsetY = this.mainContainer.top; //+ this.mapImg.top;
 
     return {
         x: point.x - panOffsetX, // This will set the origin to)/2the center -> - this.mapContainer.width / 2;
-        y: point.y - panOffsetY
+        y: point.y - panOffsetY,
     };
-};
+}
 
-NewMap.prototype.distanceBetween = function(a, b) {
+function distanceBetween(a, b) {
     // Good old pythagorean theorem.
     return Math.sqrt(Math.pow(b[0] - a[0], 2) + Math.pow(b[1] - a[1], 2));
-};
+}
 
-NewMap.prototype.convertSPToWGS84Proj = function(spPoint) {
+function convertSPToWGS84Proj(spPoint) {
     let wsg85LatLon = this.convertSPToWGS84(spPoint);
-    //console.log(wsg85LatLon, this.LeafletSphericalMercator.project(wsg85LatLon));
     return this.LeafletSphericalMercator.projectFromWSG84Geo(wsg85LatLon);
-};
+}
 
-NewMap.prototype.getResolution = function(zoom) {
+function getResolution(zoom) {
     if (this.zoomIndex) {
         return this.zoomIndex[zoom].resolution;
     }
@@ -325,12 +333,12 @@ NewMap.prototype.getResolution = function(zoom) {
     // let PixelsAtZoom = 256 * Math.pow(2, zoom);
     // let degPerMeter = RadiusxPi * 2 / EarthRadius;
     // let degPerPixel = EarthRadius / PixelsAtZoom * degPerMeter;
-    var pixels = 256 * Math.pow(2, zoom) / 2;
+    var pixels = (256 * Math.pow(2, zoom)) / 2;
     var extent = 20037508.342789244;
     var res = extent / pixels;
 
     return res;
-};
+}
 
 NewMap.prototype.LeafletSphericalMercator = {
     // https://github.com/Leaflet/Leaflet/blob/master/src/geo/projection/Projection.SphericalMercator.js
@@ -348,7 +356,7 @@ NewMap.prototype.LeafletSphericalMercator = {
 
         return {
             x: this.RADIUS * latlng.lng * d,
-            y: this.RADIUS * Math.log((1 + sin) / (1 - sin)) / 2
+            y: (this.RADIUS * Math.log((1 + sin) / (1 - sin))) / 2,
         };
     },
 
@@ -358,7 +366,7 @@ NewMap.prototype.LeafletSphericalMercator = {
 
         return {
             lat: (2 * Math.atan(Math.exp(point.y / R)) - Math.PI / 2) * d,
-            lng: point.x * d / R
+            lng: (point.x * d) / R,
         };
     },
 };

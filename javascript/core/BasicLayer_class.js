@@ -12,7 +12,7 @@ export class BasicLayer extends BasicEventSystem {
         this.zoomTimer = null;
         this.zoomIndex = null;
         this.zoomEndms = 200;
-        this.fractionOffset = { x: 0, y: 0 };
+       // this.fractionOffset = { x: 0, y: 0 }; TODO: Remove this whenever.
         this.viewPortTopLeftWorldPxls = { x: 0, y: 0 };
     }
 
