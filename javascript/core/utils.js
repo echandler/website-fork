@@ -52,11 +52,7 @@ export let CSS_TRANSITION = testProp([
 //https://developer.mozilla.org/en-US/docs/Web/Events/wheel#Browser_compatibility
 export let MOUSE_WHEEL_EVT =
     'onwheel' in document.createElement('div')
-    ? 'wheel' // Modern browsers support "wheel"
-    : document.onmousewheel !== undefined
-    ? 'mousewheel' // Webkit and IE support at least "mousewheel"
-    : 'DOMMouseScroll'; // let's assume that remaining browsers are older Firefox
-
-
-
-
+        ? 'wheel' // Modern browsers support "wheel"
+        : document.onmousewheel !== undefined
+        ? 'mousewheel' // Webkit and IE support at least "mousewheel"
+        : 'DOMMouseScroll'; // let's assume that remaining browsers are older Firefox

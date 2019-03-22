@@ -1,4 +1,4 @@
-import { BaseTileLayer } from "./BaseTileLayer_class";
+import {BaseTileLayer} from './BaseTileLayer_class';
 
 export class ArcGISTileLayer extends BaseTileLayer {
     constructor(src, zIndex) {
@@ -8,7 +8,10 @@ export class ArcGISTileLayer extends BaseTileLayer {
     getTileInfo() {
         // Override this for WSG84.
         let vis = this.map.extent.visible;
-        let corner = this.getContainingArcTileCoords(this.map.zoom, { x: vis.x, y: vis.Y });
+        let corner = this.getContainingArcTileCoords(this.map.zoom, {
+            x: vis.x,
+            y: vis.Y,
+        });
 
         return corner;
 
@@ -29,14 +32,14 @@ export class ArcGISTileLayer extends BaseTileLayer {
     }
 
     getContainingArcTileCoords(z, b) {
-        let d = { x: -1.171043e8, y: 1.379498e8 }; // This needs to be changed.
+        let d = {x: -1.171043e8, y: 1.379498e8}; // This needs to be changed.
         let zoomI = this.zoomIndex[z];
 
         let colRow = {
             row: Math.floor((d.y - b.y) / (this.tileSize * zoomI.resolution)),
             col: Math.floor((b.x - d.x) / (this.tileSize * zoomI.resolution)),
             spX: undefined,
-            spY: undefined
+            spY: undefined,
         };
 
         colRow.spX = colRow.col * (this.tileSize * zoomI.resolution) + d.x;

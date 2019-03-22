@@ -1,5 +1,5 @@
-import { BasicEventSystem } from "../BasicEventSystem_class";
-import * as utils from "../utils";
+import {BasicEventSystem} from '../BasicEventSystem_class';
+import * as utils from '../utils';
 
 export class BasicLayer extends BasicEventSystem {
     constructor(hideDuringZoom) {
@@ -7,13 +7,13 @@ export class BasicLayer extends BasicEventSystem {
         this.map = null;
         this.container = null;
         this.hideDuringZoom = hideDuringZoom;
-        this.zoomObj = { xOffset: 0, yOffset: 0 };
+        this.zoomObj = {xOffset: 0, yOffset: 0};
         this.zoomLvl = null;
         this.zoomTimer = null;
         this.zoomIndex = null;
         this.zoomEndms = 200;
-       // this.fractionOffset = { x: 0, y: 0 }; TODO: Remove this whenever.
-        this.viewPortTopLeftWorldPxls = { x: 0, y: 0 };
+        // this.fractionOffset = { x: 0, y: 0 }; TODO: Remove this whenever.
+        this.viewPortTopLeftWorldPxls = {x: 0, y: 0};
     }
 
     setZoomIndex(index) {
@@ -26,28 +26,39 @@ export class BasicLayer extends BasicEventSystem {
 
     addEventListeners() {
         if (this.hideDuringZoom) {
-            this.map.event.on(utils.MOUSE_WHEEL_EVT, this._hideContainerDuringMouseWheelEvt, this);
+            this.map.event.on(
+                utils.MOUSE_WHEEL_EVT,
+                this._hideContainerDuringMouseWheelEvt,
+                this,
+            );
         } else {
             this.map.event.on(utils.MOUSE_WHEEL_EVT, this._mouseWheelEvt, this);
         }
 
-        this.map.event.on("updateContainerSize", this.updateContainer, this);
-        this.map.event.on("update everything", this.fire.bind(this, "update everything"), this);
+        this.map.event.on('updateContainerSize', this.updateContainer, this);
+        this.map.event.on(
+            'update everything',
+            this.fire.bind(this, 'update everything'),
+            this,
+        );
 
-        this.on("zoom end", this._zoomEndEvt, this);
+        this.on('zoom end', this._zoomEndEvt, this);
 
-        this.fire("add event listeners");
+        this.fire('add event listeners');
     }
 
     _zoomEndEvt(p_evt) {
         clearTimeout(this.zoomTimer);
 
-        this.zoomTimer = setTimeout(() => this.fire("zoom delay end", p_evt), this.zoomEndms);
+        this.zoomTimer = setTimeout(
+            () => this.fire('zoom delay end', p_evt),
+            this.zoomEndms,
+        );
     }
 
     _hideContainerDuringMouseWheelEvt() {
-        this.container.element.style.display = "none";
-        this.fire("zoom end");
+        this.container.element.style.display = 'none';
+        this.fire('zoom end');
     }
 
     _mouseWheelEvt(p_evt) {
@@ -55,20 +66,20 @@ export class BasicLayer extends BasicEventSystem {
 
         if (p_evt.scale === 1) {
             p_evt.noZoom = true;
-            this.fire("zoom end", p_evt);
+            this.fire('zoom end', p_evt);
             return;
         }
 
         if (p_evt.__event__.___delta >= 120) {
-            this.zoomInOut(p_evt, "zoom in");
+            this.zoomInOut(p_evt, 'zoom in');
         } else if (p_evt.__event__.___delta <= -120) {
-            this.zoomInOut(p_evt, "zoom out");
+            this.zoomInOut(p_evt, 'zoom out');
         }
     }
 
     addTo(map) {
         if (this.map === map) {
-            console.error("Layer already added to map", this);
+            console.error('Layer already added to map', this);
             return this;
         }
 
@@ -78,16 +89,18 @@ export class BasicLayer extends BasicEventSystem {
 
         map.addTo(this.container.element, map.mainContainer.element, () => {
             this.addEventListeners();
-            this.fire("appended to map");
+            this.fire('appended to map');
         });
 
         return this;
     }
 
     remove() {
-        this.container.element.parentElement.removeChild(this.container.element);
+        this.container.element.parentElement.removeChild(
+            this.container.element,
+        );
         this.map.event.allOff(this);
-        this.fire("remove", this);
+        this.fire('remove', this);
         this.map = null;
     }
 
@@ -97,29 +110,36 @@ export class BasicLayer extends BasicEventSystem {
 
     updateContainer() {
         // To be implimented by classes that extend this class.
-        console.log("The method 'updateContainer' in " + this.constructor.name + " wasn't implimented", this);
-        this.fire("update everything");
+        console.log(
+            "The method 'updateContainer' in " +
+                this.constructor.name +
+                " wasn't implimented",
+            this,
+        );
+        this.fire('update everything');
     }
 
     createContainer() {
         let cont = {
-            element: document.createElement("div"),
+            element: document.createElement('div'),
             left: 0 - this.map.mainContainer.left,
             top: 0 - this.map.mainContainer.top,
-            updateTransform: undefined
+            updateTransform: undefined,
         };
 
-        cont.updateTransform = this.updateContainerTransform.bind({ container: cont });
+        cont.updateTransform = this.updateContainerTransform.bind({
+            container: cont,
+        });
 
-        cont.element.className = "_tileContainer_";
-        cont.element.style.position = "absolute";
-        cont.element.style.left = "0px";
-        cont.element.style.top = "0px";
-        cont.element.style.height = "100%";
-        cont.element.style.width = "100%";
+        cont.element.className = '_tileContainer_';
+        cont.element.style.position = 'absolute';
+        cont.element.style.left = '0px';
+        cont.element.style.top = '0px';
+        cont.element.style.height = '100%';
+        cont.element.style.width = '100%';
         cont.element.style.zIndex = this.zIndex;
-        cont.element.style.backfaceVisibility = "hidden";
-        cont.element.style.transformOrigin = "top left";
+        cont.element.style.backfaceVisibility = 'hidden';
+        cont.element.style.transformOrigin = 'top left';
 
         return cont;
     }
@@ -150,7 +170,10 @@ export class BasicLayer extends BasicEventSystem {
             this.container.element.appendChild(childElement);
         }
 
-        this.map.mainContainer.element.insertBefore(contNew.element, contOld.element);
+        this.map.mainContainer.element.insertBefore(
+            contNew.element,
+            contOld.element,
+        );
 
         // setInterval(function(){
         // Todo: Just for testing purposes.
@@ -165,7 +188,7 @@ export class BasicLayer extends BasicEventSystem {
             clearTimeout(swapTimer);
             this.doSwap = null;
             this.map.event.off(utils.MOUSE_WHEEL_EVT, tileLoadListener, this);
-            this.map.event.off("tile loaded", doSwap, this);
+            this.map.event.off('tile loaded', doSwap, this);
 
             if (contOld.element.parentElement) {
                 contOld.element.parentElement.removeChild(contOld.element);
@@ -185,8 +208,20 @@ export class BasicLayer extends BasicEventSystem {
         let ___that = this;
         function tileLoadListener(e) {
             // TODO: testing
-            ___that.map.event.off(utils.MOUSE_WHEEL_EVT, tileLoadListener, ___that);
-            setTimeout(___that.map.event.on.bind(___that.map.event, "tile loaded", doSwap, ___that), 100);
+            ___that.map.event.off(
+                utils.MOUSE_WHEEL_EVT,
+                tileLoadListener,
+                ___that,
+            );
+            setTimeout(
+                ___that.map.event.on.bind(
+                    ___that.map.event,
+                    'tile loaded',
+                    doSwap,
+                    ___that,
+                ),
+                100,
+            );
         }
 
         return this;
@@ -201,14 +236,14 @@ export class BasicLayer extends BasicEventSystem {
 
         if (this.zoomObj.isZooming) {
             // First time calling zoomEnd since starting zooming.
-            this.fire("pre zoom end", this);
+            this.fire('pre zoom end', this);
         }
 
         this.__zoom = this.map.zoom;
 
         this.zoomObj = {};
 
-        this.fire("post zoom end");
+        this.fire('post zoom end');
 
         return this;
     }
@@ -218,7 +253,7 @@ export class BasicLayer extends BasicEventSystem {
             scale: 1,
             isZooming: false,
             x: this.container.left,
-            y: this.container.top
+            y: this.container.top,
         };
 
         return this;
@@ -226,17 +261,20 @@ export class BasicLayer extends BasicEventSystem {
 
     zoomInOut(evt, zoomDirection) {
         if (this.zoomObj.isZooming) {
-            requestAnimationFrame(this._zoomInOut.bind(this,evt, zoomDirection));
+            requestAnimationFrame(
+                this._zoomInOut.bind(this, evt, zoomDirection),
+            );
             return this;
         }
 
-        this.container.element.className = (evt.css && evt.css.className) || "smoothTransition";
+        this.container.element.className =
+            (evt.css && evt.css.className) || 'smoothTransition';
 
         this.resetZoomObj();
 
         this.zoomObj.isZooming = true;
 
-        requestAnimationFrame(this._zoomInOut.bind(this,evt, zoomDirection));
+        requestAnimationFrame(this._zoomInOut.bind(this, evt, zoomDirection));
 
         return this;
     }
@@ -261,12 +299,12 @@ export class BasicLayer extends BasicEventSystem {
                                 ${ y }px, 0px)
                     scale3d(${ zObj.scale }, ${ zObj.scale }, 1)`;
 
-        this.fire("zoom end", evt);
+        this.fire('zoom end', evt);
 
         return this;
     }
 
-    getScale(zoomDirection, zoomDelta){
+    getScale(zoomDirection, zoomDelta) {
         let getRes = this.map.getResolution.bind(this.map);
         let scale = 1;
         // prettier-ignore

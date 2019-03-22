@@ -8,13 +8,12 @@ export class BasicEventSystem {
             this.eventsObj[p_type] = [];
         }
 
-        this.eventsObj[p_type].push({ fn: p_func, _this: opt_this });
+        this.eventsObj[p_type].push({fn: p_func, _this: opt_this});
 
         return true;
     }
 
     off(p_type, p_func, opt_this) {
-
         if (!this.eventsObj.hasOwnProperty(p_type)) {
             return false;
         }
@@ -30,7 +29,7 @@ export class BasicEventSystem {
     }
 
     _zombieFn() {
-        return "Zombie callback works real hard.";
+        return 'Zombie callback works real hard.';
     }
 
     clean(p_type) {

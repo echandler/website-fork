@@ -42,7 +42,6 @@ export class NewMap extends BasicEventSystem {
         }
 
         if (this.init.initArr) {
-
             let ary = this.init.initArr;
 
             for (let n = 0; n < ary.length; n++) {

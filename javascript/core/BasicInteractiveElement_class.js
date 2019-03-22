@@ -1,4 +1,4 @@
-import { BasicEventSystem } from "./BasicEventSystem_class";
+import {BasicEventSystem} from './BasicEventSystem_class';
 
 export class BasicInteractiveElement extends BasicEventSystem {
     constructor(elem) {
