@@ -4,12 +4,12 @@ export * from "./BasicEventSystem_class";
 export * from "./BasicInteractiveElement_class";
 export * from "./Zoom_class.js";
 
-export * from "./BasicLayer_class";
-export * from "./ArcRenderLayer_class";
-export * from "./ArcXMLLayer_class";
-export * from "./BaseTileLayer_class.js";
-export * from "./ArcGISTileLayer_class";
-export * from "./SphericalMercatorTileLayer_class.js";
+export * from "./layers/BasicLayer_class";
+export * from "./layers/ArcRenderLayer_class";
+export * from "./layers/ArcXMLLayer_class";
+export * from "./layers/BaseTileLayer_class.js";
+export * from "./layers/ArcGISTileLayer_class";
+export * from "./layers/SphericalMercatorTileLayer_class.js";
 
 
 export * from "./coordinate_module";

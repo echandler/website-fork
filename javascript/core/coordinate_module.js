@@ -1,5 +1,5 @@
 import {NewMap} from './Main_class';
-import {transformation} from './SphericalMercatorTileLayer_class.js';
+import {transformation} from './layers/SphericalMercatorTileLayer_class.js';
 
 Object.assign(NewMap.prototype, {
     toPoint,

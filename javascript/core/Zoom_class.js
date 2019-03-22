@@ -1,17 +1,18 @@
 import * as utils from './utils';
 import {NewMap} from './Main_class';
 
-NewMap.onInitDone(function(){
+Object.assign(NewMap.prototype, {
+    calcZoomDelta,
+    zoomTo,
+    zoomInOut,
+});
+
+NewMap.onInitDone(function() {
     // Testing an idea about how to exend the init function.
     this.zoom = 0;
 });
 
-NewMap.prototype.calcZoomDelta = function(
-    zoomLvl,
-    zoomDelta, 
-    minZoom,
-    maxZoom,
-) {
+function calcZoomDelta(zoomLvl, zoomDelta, minZoom, maxZoom) {
     let zoomInLvl = zoomLvl + zoomDelta;
     let zoomOutLvl = zoomLvl - zoomDelta;
 
@@ -23,7 +24,7 @@ NewMap.prototype.calcZoomDelta = function(
                 ? zoomDelta + (zoomOutLvl - minZoom)
                 : zoomDelta,
     };
-};
+}
 
 NewMap.prototype.zoomTo = function(projPoint, zoom, projOrigin) {
     let convertPoint = this.convertProjPointToPixelPoint.bind(this);

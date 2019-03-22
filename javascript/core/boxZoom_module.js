@@ -1,13 +1,12 @@
 import {NewMap} from './Main_class';
 
-Object.assign(
-    NewMap.prototype,
+Object.assign(NewMap.prototype, {
     boxZoom_mouseDown,
     boxZoom_mouseUp,
     boxZoom_doZoom,
     boxZoom_mouseMove,
     boxZoomCenter_mouseMove,
-);
+});
 
 function boxZoom_mouseDown(e) {
     if (this.boxZoom) {
@@ -21,7 +20,7 @@ function boxZoom_mouseDown(e) {
     e.preventDefault();
     e.stopPropagation();
 
-    // TODO: Make boxZoom it's own object with a element property, instead of 
+    // TODO: Make boxZoom it's own object with a element property, instead of
     //       adding properties to the html element itself.
     this.boxZoom = document.createElement('div');
     this.boxZoom.id = 'boxZoom';

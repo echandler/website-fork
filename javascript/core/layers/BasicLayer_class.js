@@ -1,5 +1,5 @@
-import { BasicEventSystem } from "./BasicEventSystem_class";
-import * as utils from "./utils";
+import { BasicEventSystem } from "../BasicEventSystem_class";
+import * as utils from "../utils";
 
 export class BasicLayer extends BasicEventSystem {
     constructor(hideDuringZoom) {

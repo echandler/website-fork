@@ -1,5 +1,5 @@
-import { BasicLayer } from "./BasicLayer_class";
-import * as utils from "./utils";
+import {BasicLayer} from './BasicLayer_class';
+import * as utils from '../utils';
 
 export class ArcRenderLayer extends BasicLayer {
     constructor(imgUrl, reqTemplate, zIndex, hideDuringZoom) {
@@ -12,18 +12,26 @@ export class ArcRenderLayer extends BasicLayer {
 
         this.setZindex(zIndex);
 
-        this.on("add event listeners", () => {
-            this.on("appended to map", this.update, this);
-            this.on("zoom delay end", this.startUpdateTimer.bind(this, 1000), this);
+        this.on('add event listeners', () => {
+            this.on('appended to map', this.update, this);
+            this.on(
+                'zoom delay end',
+                this.startUpdateTimer.bind(this, 1000),
+                this,
+            );
             // prettier-ignore
             this.on( "update everything", () => {
                     this.container.element.style.display = "none";
                     this.update();
                 }, this);
             this.map.event.on(utils.MOUSE_WHEEL_EVT, this.cancelRequest, this);
-            this.map.event.on("pan initial", this.cancelRequest, this);
-            this.map.event.on("pan end", this.startUpdateTimer.bind(this, 1000), this);
-            this.map.event.on("stopPanAnimation", this.cancelRequest, this);
+            this.map.event.on('pan initial', this.cancelRequest, this);
+            this.map.event.on(
+                'pan end',
+                this.startUpdateTimer.bind(this, 1000),
+                this,
+            );
+            this.map.event.on('stopPanAnimation', this.cancelRequest, this);
         });
     }
 
@@ -41,7 +49,10 @@ export class ArcRenderLayer extends BasicLayer {
     startUpdateTimer(milliseconds) {
         clearTimeout(this.updateTimer);
         this.cancelRequest();
-        this.updateTimer = setTimeout(this.update.bind(this), milliseconds || 1000);
+        this.updateTimer = setTimeout(
+            this.update.bind(this),
+            milliseconds || 1000,
+        );
     }
 
     setImgReqUrl(imgUrl) {
@@ -68,8 +79,11 @@ export class ArcRenderLayer extends BasicLayer {
             }
         };
 
-        this.ajaxRequest.open("POST", this.imgReqUrl, true);
-        this.ajaxRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        this.ajaxRequest.open('POST', this.imgReqUrl, true);
+        this.ajaxRequest.setRequestHeader(
+            'Content-type',
+            'application/x-www-form-urlencoded',
+        );
 
         this.ajaxRequest.send(req);
     }
@@ -79,7 +93,7 @@ export class ArcRenderLayer extends BasicLayer {
             return;
         }
 
-        this.fire("ajax load", httpReqObj);
+        this.fire('ajax load', httpReqObj);
 
         var parsedRes = JSON.parse(httpReqObj.responseText);
 
@@ -87,13 +101,19 @@ export class ArcRenderLayer extends BasicLayer {
     }
 
     createTheImage(imgSrc, httpReqObj) {
-        var newMapImg = document.createElement("img");
-        newMapImg.addEventListener("load", this.mapLoadHandler.bind(this, newMapImg, httpReqObj));
-        newMapImg.addEventListener("error", this.mapErrorHandler.bind(this, newMapImg, httpReqObj));
+        var newMapImg = document.createElement('img');
+        newMapImg.addEventListener(
+            'load',
+            this.mapLoadHandler.bind(this, newMapImg, httpReqObj),
+        );
+        newMapImg.addEventListener(
+            'error',
+            this.mapErrorHandler.bind(this, newMapImg, httpReqObj),
+        );
         newMapImg.src = imgSrc;
-        newMapImg.style.zIndex = "1";
-        newMapImg.style.position = "absolute";
-        newMapImg.style.imageRendering = "pixelated"; // TODO: Test of new css feature in chrome.
+        newMapImg.style.zIndex = '1';
+        newMapImg.style.position = 'absolute';
+        newMapImg.style.imageRendering = 'pixelated'; // TODO: Test of new css feature in chrome.
 
         return this;
     }
@@ -102,13 +122,13 @@ export class ArcRenderLayer extends BasicLayer {
         var obj = {
             ...this.map.extent.visible,
             width: this.map.mapContainer.width,
-            height: this.map.mapContainer.height
+            height: this.map.mapContainer.height,
         };
 
         var req = encodeURI(
             this.reqTemplate.replace(/\${(.+?)}/g, function(a, match) {
                 return obj[match];
-            })
+            }),
         );
         //`bbox=${spCoords.x},${spCoords.y},${spCoords.X},${spCoords.Y}&bboxSR=102748&layers=show:4&layerDefs=&size=${zeeMap.mapContainer.width},${zeeMap.mapContainer
         //    .height}&imageSR=102748&format=png8&transparent=true&dpi=&time=&layerTimeOptions=&dynamicLayers=&gdbVersion=&mapScale=&f=pjson`
@@ -129,12 +149,12 @@ export class ArcRenderLayer extends BasicLayer {
 
         this.swapContainer(mapImg, 0 /*milliseconds*/);
 
-        this.fire("map img load", httpReqObj);
+        this.fire('map img load', httpReqObj);
     }
 
     mapErrorHandler(mapImg, httpReqObj) {
         console.error(this, mapImg, httpReqObj);
-        this.fire("map img error", httpReqObj);
+        this.fire('map img error', httpReqObj);
     }
 
     _zoomInOut(evt, zoomDirection) {
@@ -144,7 +164,7 @@ export class ArcRenderLayer extends BasicLayer {
 
         let newPoint = {
             x: evt.x - this.map.mainContainer.left + zObj.x, // This will set the origin to 1/2 the center: - this.map.mapContainer.width / 2;
-            y: evt.y - this.map.mainContainer.top + zObj.y
+            y: evt.y - this.map.mainContainer.top + zObj.y,
         };
 
         zObj.x = zObj.x + (zObj.x - (newPoint.x - zObj.x)) * (scale - 1);
@@ -157,7 +177,7 @@ export class ArcRenderLayer extends BasicLayer {
                         scale3d(${ zObj.scale }, ${ zObj.scale }, 1)
                     `;
 
-        this.fire("zoom end", evt);
+        this.fire('zoom end', evt);
 
         return this;
     }
