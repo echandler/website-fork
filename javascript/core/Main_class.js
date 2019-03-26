@@ -67,9 +67,8 @@ export class NewMap extends BasicEventSystem {
         this.zoom = zoom;
 
         let heightRatio = this.mapContainer.height / this.mapContainer.width;
-        let resolution =
-            this.mapContainer.width /*window.innerWidth*/ *
-            this.getResolution(zoom); /*17.36111111111111;*/
+        let resolution = this.mapContainer.width * this.getResolution(zoom);
+
         this.extent.visible = {
             x: spPoint.x - resolution / 2,
             X: spPoint.x + resolution / 2,
@@ -85,42 +84,38 @@ export class NewMap extends BasicEventSystem {
         }
     }
 
-    updateContainerSize(panToMid) {
-        let containerRect = this.mapContainer.element.getBoundingClientRect();
-        this.mapContainer.width = this.parameters.container.clientWidth;
-        this.mapContainer.height = this.parameters.container.clientHeight;
-        this.mapContainer.left = containerRect.left;
-        this.mapContainer.top = containerRect.top;
+    updateContainerSize(doPanToMidPoint) {
+        let visibleExtent = this.extent.visible;
+        let mapContainer = this.mapContainer;
+        let containerRect = mapContainer.element.getBoundingClientRect();
 
-        //this.mapContainer.element.style.top = this.mapContainer.top + "px";
-        //this.mapContainer.element.style.left = this.mapContainer.left + "px";
-        this.mapContainer.element.style.height =
-            this.mapContainer.height + 'px';
-        this.mapContainer.element.style.width = this.mapContainer.width + 'px';
+        mapContainer.width = this.parameters.container.clientWidth;
+        mapContainer.height = this.parameters.container.clientHeight;
+
+        mapContainer.left = containerRect.left;
+        mapContainer.top = containerRect.top;
+
+        mapContainer.element.style.height = mapContainer.height + 'px';
+        mapContainer.element.style.width = mapContainer.width + 'px';
 
         let midPoint = {
-            x:
-                this.extent.visible.x +
-                (this.extent.visible.X - this.extent.visible.x) / 2,
-            y:
-                this.extent.visible.y +
-                (this.extent.visible.Y - this.extent.visible.y) / 2,
+            x: visibleExtent.x + (visibleExtent.x - visibleExtent.x) / 2,
+            y: visibleExtent.y + (visibleExtent.Y - visibleExtent.y) / 2,
         };
 
-        let heightRatio = this.mapContainer.height / this.mapContainer.width;
-        let resolution =
-            this.mapContainer.width /*window.innerWidth*/ *
-            this.getResolution(this.zoom); /*17.36111111111111;*/
+        let heightRatio = mapContainer.height / mapContainer.width;
+        let resolution = mapContainer.width * this.getResolution(this.zoom);
+
         this.extent.visible = {
-            x: this.extent.visible.x,
-            X: this.extent.visible.x + resolution,
-            y: this.extent.visible.Y - resolution * heightRatio,
-            Y: this.extent.visible.Y,
+            x: visibleExtent.x,
+            X: visibleExtent.x + resolution,
+            y: visibleExtent.Y - resolution * heightRatio,
+            Y: visibleExtent.Y,
         };
 
         this.event.fire('updateContainerSize', this);
 
-        if (panToMid) {
+        if (doPanToMidPoint) {
             this.panning_module.panTo(midPoint);
         }
     }
@@ -128,8 +123,11 @@ export class NewMap extends BasicEventSystem {
     makeContainers() {
         this.mapContainer = this.makeContainer(document.createElement('div'));
         this.mapContainer.element.className = '_theMapContainer_';
+        this.mapContainer.element.style.cssText =
+            'position: relative; overflow: hidden; background-color: white;';
 
         this.mainContainer = this.makeContainer(document.createElement('div'));
+        t;
         this.mainContainer.element.style.cssText =
             'position: absolute; width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px) scale3d(1,1,1);';
 

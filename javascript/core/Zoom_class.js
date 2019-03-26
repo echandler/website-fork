@@ -26,7 +26,7 @@ function calcZoomDelta(zoomLvl, zoomDelta, minZoom, maxZoom) {
     };
 }
 
-NewMap.prototype.zoomTo = function(projPoint, zoom, projOrigin) {
+function zoomTo(projPoint, zoom, projOrigin) {
     let convertPoint = this.convertProjPointToPixelPoint.bind(this);
     let _point = convertPoint(projPoint);
     let zoomSign = zoom > this.zoom ? 1 : -1;
@@ -64,7 +64,7 @@ NewMap.prototype.zoomTo = function(projPoint, zoom, projOrigin) {
     );
 };
 
-NewMap.prototype.zoomInOut = function(p_evt) {
+function zoomInOut(p_evt) {
     if (p_evt.scale === 1) {
         return;
     }

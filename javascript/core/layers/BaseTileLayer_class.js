@@ -92,6 +92,7 @@ export class BaseTileLayer extends BasicLayer {
     }
 
     updateContainer() {
+        this.makeTileGrid();
         this.swapContainer();
         this.resetTiles();
         this.update();
