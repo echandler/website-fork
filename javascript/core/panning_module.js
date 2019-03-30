@@ -1,207 +1,234 @@
 import * as utils from './utils';
+import {NewMap} from './Main_class';
 
-export function panning_module(thisMap) {
-    let transitionResetTimeout = undefined;
+Object.assign(NewMap.prototype, {
+    panMouseDown,
+    _panMouseDown,
+    panMouseUp,
+    _panMouseUp,
+    panRemoveEventListeners,
+    panInitialTasks,
+    panDragOnly,
+    panDragAndAnimation,
+    panTo,
+    panByPixels,
+    panStartAnimation,
+    panStopAnimation,
+    enablePanning,
+    disablePanning,
+});
 
-    thisMap.pan = {
+NewMap.onInitDone(function() {
+    this.enablePanning();
+
+    this.pan = {
         mainContainerXY: null,
         mouseDownX: null,
         mouseDownXOffset: null,
         mouseDownY: null,
         mouseDownYOffset: null,
-        panningFunction: mapDragAndAnimation,
         points: null,
         spCoords: null,
+        transitionResetTimeout: null,
+        panningFunction: this.panDragAndAnimation.bind(this),
+        boundEventListeners: {
+            panMouseUp: this.panMouseUp.bind(this),
+            panInitialTasks: this.panInitialTasks.bind(this),
+            panRemoveEventListeners: this.panRemoveEventListeners.bind(this),
+        },
     };
 
-    function mouseDown(e) {
-        // Do something here?
-        private_panningMouseDown(e);
+    this.pan.boundEventListeners.panningFunction = this.pan.panningFunction.bind(
+        this,
+    );
+}, null);
+
+function panMouseDown(e) {
+    // Do something here?
+    this._panMouseDown(e);
+}
+
+function _panMouseDown(e) {
+    let evt = e.__event__;
+    let pan = this.pan;
+    let listeners = this.pan.boundEventListeners;
+
+    evt.preventDefault();
+    pan.mouseDownX = evt.clientX;
+    pan.mouseDownY = evt.clientY;
+    pan.mouseDownXOffset = evt.clientX - this.mainContainer.left;
+    pan.mouseDownYOffset = evt.clientY - this.mainContainer.top;
+
+    pan.points = []; // TODO: testing
+
+    this.panStopAnimation();
+
+    pan.mainContainerXY = {
+        x: this.mainContainer.left,
+        y: this.mainContainer.top,
+    };
+
+    pan.spCoords = {
+        x: this.extent.visible.x,
+        X: this.extent.visible.X,
+        y: this.extent.visible.y,
+        Y: this.extent.visible.Y,
+    };
+
+    // TODO: create add eventlistener function.
+    document.addEventListener('mouseup', listeners.panMouseUp);
+    document.addEventListener('mouseout', listeners.panRemoveEventListeners);
+    document.addEventListener('mousemove', listeners.panInitialTasks);
+    document.addEventListener('mousemove', listeners.panningFunction);
+}
+
+function panMouseUp(e) {
+    // mouse up for the image
+    if (e.relatedTarget) {
+        return;
     }
 
-    function private_panningMouseDown(e) {
-        let evt = e.__event__;
-        let pan = thisMap.pan;
+    e.preventDefault();
 
-        evt.preventDefault();
-        pan.mouseDownX = evt.clientX;
-        pan.mouseDownY = evt.clientY;
-        pan.mouseDownXOffset = evt.clientX - thisMap.mainContainer.left;
-        pan.mouseDownYOffset = evt.clientY - thisMap.mainContainer.top;
+    this.panRemoveEventListeners(e);
 
-        pan.points = []; // TODO: testing
+    this._panMouseUp(e);
+    //this.event.fire("map mouse up", e);
+}
 
-        stopPanAnimation();
+function _panMouseUp(e) {
+    let evt = e.__event__ || e;
+    let pan = this.pan;
 
-        pan.mainContainerXY = {
-            x: thisMap.mainContainer.left,
-            y: thisMap.mainContainer.top,
-        };
+    if (
+        evt.clientY - pan.mouseDownY !== 0 ||
+        evt.clientX - pan.mouseDownX !== 0
+    ) {
+        this.panStartAnimation(evt);
 
-        pan.spCoords = {
-            x: thisMap.extent.visible.x,
-            X: thisMap.extent.visible.X,
-            y: thisMap.extent.visible.y,
-            Y: thisMap.extent.visible.Y,
-        };
-
-        document.addEventListener(
-            'mouseout',
-            private_removePanningEventListeners,
-        );
-        document.addEventListener('mouseup', private_mapMouseUp);
-        document.addEventListener('mousemove', mapInitialDragTasks);
-        document.addEventListener('mousemove', thisMap.pan.panningFunction);
-    }
-
-    function private_mapMouseUp(e) {
-        // mouse up for the image
-        if (e.relatedTarget) {
-            return;
-        }
-
-        e.preventDefault();
-
-        private_removePanningEventListeners(e);
-
-        private_panningMouseUp(e);
-        //thisMap.event.fire("map mouse up", e);
-    }
-
-    function private_panningMouseUp(e) {
-        let evt = e.__event__ || e;
-        let pan = thisMap.pan;
-
-        if (
-            evt.clientY - pan.mouseDownY !== 0 ||
-            evt.clientX - pan.mouseDownX !== 0
-        ) {
-            thisMap.panning_module.panningFinishedAnimation(evt);
-
-            // prettier-ignore
-            thisMap.updateStatePlaneCoordsByDistance(
-                thisMap.mainContainer.left - pan.mainContainerXY.x,
-                thisMap.mainContainer.top - pan.mainContainerXY.y,
+        // prettier-ignore
+        this.updateStatePlaneCoordsByDistance(
+                this.mainContainer.left - pan.mainContainerXY.x,
+                this.mainContainer.top - pan.mainContainerXY.y,
                 pan.spCoords
             );
 
-            thisMap.event.fire('pan end');
-        }
-
-        thisMap.state.panning = false;
+        this.event.fire('pan end');
     }
 
-    function private_removePanningEventListeners(e) {
-        if (e.relatedTarget) {
-            return;
-        }
+    this.state.panning = false;
+}
 
-        e.preventDefault();
+function panRemoveEventListeners(e) {
+    let listeners = this.pan.boundEventListeners;
 
-        document.removeEventListener('mouseup', private_mapMouseUp);
-        document.removeEventListener('mouseout', private_mapMouseUp);
-
-        document.removeEventListener('mousemove', mapInitialDragTasks);
-        document.removeEventListener('mousemove', thisMap.pan.panningFunction);
+    if (e.relatedTarget) {
+        return;
     }
 
-    function mapInitialDragTasks(e) {
-        // This function is called once and immediately removed just to make the
-        // panning feel smoother.
-        if (
-            e.clientY - thisMap.pan.mouseDownY === 0 &&
-            e.clientX - thisMap.pan.mouseDownX === 0
-        ) {
-            // A bug in chrome will call this function if a mousedown event happens.
-            // Bug hasn't been fixed in atleast chrome version 51.0.2704.103
-            // and earlier.
+    e.preventDefault();
 
-            return;
-        }
+    document.removeEventListener('mouseup', listeners.panMouseUp);
+    document.removeEventListener('mouseout', listeners.panRemoveEventListeners);
+    document.removeEventListener('mousemove', listeners.panInitialTasks);
+    document.removeEventListener('mousemove', listeners.panningFunction);
+}
 
-        thisMap.mainContainer.element.style[utils.CSS_TRANSITION] = '';
+function panInitialTasks(e) {
+    // This function is called once and immediately removed just to make the
+    // panning feel smoother.
+    if (
+        e.clientY - this.pan.mouseDownY === 0 &&
+        e.clientX - this.pan.mouseDownX === 0
+    ) {
+        // A bug in chrome will call this function if a mousedown event happens.
+        // Bug hasn't been fixed in atleast chrome version 51.0.2704.103
+        // and earlier.
 
-        // End any zooming activity
-        //thisMap.Zoom_class.zoomStop();
-
-        thisMap.state.panning = true;
-
-        document.removeEventListener('mousemove', mapInitialDragTasks);
-        thisMap.event.fire('pan initial', e);
+        return;
     }
 
-    function mapDragOnly(e) {
-        let mainCont = thisMap.mainContainer;
-        let x = mainCont.left + (e.clientX - thisMap.pan.mouseDownX);
-        let y = mainCont.top + (e.clientY - thisMap.pan.mouseDownY);
+    this.mainContainer.element.style[utils.CSS_TRANSITION] = '';
 
-        // prettier-ignore
-        mainCont.element.style[utils.CSS_TRANSFORM] = 
+    // End any zooming activity
+    //this.Zoom_class.zoomStop();
+
+    this.state.panning = true;
+
+    document.removeEventListener('mousemove', panInitialTasks);
+    this.event.fire('pan initial', e);
+}
+
+function panDragOnly(e) {
+    let mainCont = this.mainContainer;
+    let x = mainCont.left + (e.clientX - this.pan.mouseDownX);
+    let y = mainCont.top + (e.clientY - this.pan.mouseDownY);
+
+    // prettier-ignore
+    mainCont.element.style[utils.CSS_TRANSFORM] = 
                                "translate("+ x +"px, "+ y +"px)";
-    }
+}
 
-    function mapDragAndAnimation(e) {
-        let mainCont = thisMap.mainContainer;
-        let pan = thisMap.pan;
+function panDragAndAnimation(e) {
+    let mainCont = this.mainContainer;
+    let pan = this.pan;
 
-        let distanceX = pan.mainContainerXY.x + e.clientX - pan.mouseDownX,
-            distanceY = pan.mainContainerXY.y + e.clientY - pan.mouseDownY;
+    let distanceX = pan.mainContainerXY.x + e.clientX - pan.mouseDownX,
+        distanceY = pan.mainContainerXY.y + e.clientY - pan.mouseDownY;
 
-        mainCont.top = distanceY;
-        mainCont.left = distanceX;
+    mainCont.top = distanceY;
+    mainCont.left = distanceX;
 
-        thisMap.pan.points.push({
-            x: distanceX,
-            y: distanceY,
-            time: Date.now(),
-        });
+    this.pan.points.push({
+        x: distanceX,
+        y: distanceY,
+        time: Date.now(),
+    });
 
-        // prettier-ignore
-        mainCont.element.style[utils.CSS_TRANSFORM] =
+    // prettier-ignore
+    mainCont.element.style[utils.CSS_TRANSFORM] =
             "translate3d("+ distanceX +"px, "+ distanceY +"px, 0px)";
 
-        thisMap.event.fire('pan', e);
-    }
+    this.event.fire('pan', e);
+}
 
-    function panTo(spPoint, panTime) {
-        let pxlPoint = thisMap.getPixelPointInMapContainer.bind(thisMap);
-        let convertSpToPxl = thisMap.convertProjPointToPixelPoint.bind(thisMap);
+function panTo(spPoint, panTime) {
+    let pxlPoint = this.getPixelPointInMapContainer.bind(this);
+    let convertSpToPxl = this.convertProjPointToPixelPoint.bind(this);
 
-        let centerPxls = pxlPoint({
-            x: thisMap.mapContainer.left + thisMap.mapContainer.width / 2,
-            y: thisMap.mapContainer.top + thisMap.mapContainer.height / 2,
-        });
-        let pointOfInterestPxl = convertSpToPxl(spPoint);
-        let distance = {
-            x: centerPxls.x - pointOfInterestPxl.x,
-            y: centerPxls.y - pointOfInterestPxl.y,
-        };
+    let centerPxls = pxlPoint({
+        x: this.mapContainer.left + this.mapContainer.width / 2,
+        y: this.mapContainer.top + this.mapContainer.height / 2,
+    });
+    let pointOfInterestPxl = convertSpToPxl(spPoint);
+    let distance = {
+        x: centerPxls.x - pointOfInterestPxl.x,
+        y: centerPxls.y - pointOfInterestPxl.y,
+    };
 
-        panByPixels(distance, panTime);
+    this.panByPixels(distance, panTime);
 
-        return thisMap;
-    }
+    return this;
+}
 
-    function panByPixels(spPoint, panTime) {
-        let mainCont = thisMap.mainContainer;
-        let vectorLen = Math.sqrt(
-            spPoint.x * spPoint.x + spPoint.y * spPoint.y,
-        );
+function panByPixels(spPoint, panTime) {
+    let mainCont = this.mainContainer;
+    let vectorLen = Math.sqrt(spPoint.x * spPoint.x + spPoint.y * spPoint.y);
 
-        // Played around with this on a graphing website, might want to revisit in the future.
-        let max = Math.max(
-            200,
-            vectorLen * (500 * (0.45 / vectorLen ** 0.9) + 0.06),
-        );
-        let time = panTime || Math.min(1000, max);
+    // Played around with this on a graphing website, might want to revisit in the future.
+    let max = Math.max(
+        200,
+        vectorLen * (500 * (0.45 / vectorLen ** 0.9) + 0.06),
+    );
+    let time = panTime || Math.min(1000, max);
 
-        mainCont.left += Math.round(spPoint.x);
-        mainCont.top += Math.round(spPoint.y);
+    mainCont.left += Math.round(spPoint.x);
+    mainCont.top += Math.round(spPoint.y);
 
-        thisMap.updateStatePlaneCoordsByDistance(spPoint.x, spPoint.y);
+    this.updateStatePlaneCoordsByDistance(spPoint.x, spPoint.y);
 
-        // prettier-ignore
-        {
+    // prettier-ignore
+    {
             // Block for prettier-ignore
             mainCont.element.style[utils.CSS_TRANSITION] =
                 "all " + time + "ms cubic-bezier(0, 0, 0.25, 1)";
@@ -210,146 +237,136 @@ export function panning_module(thisMap) {
                 "translate3d(" + mainCont.left + "px," + mainCont.top + "px,0px)";
         }
 
-        setTimeout(() => {
-            mainCont.element.style[utils.CSS_TRANSITION] = null;
-        }, time);
+    setTimeout(() => {
+        mainCont.element.style[utils.CSS_TRANSITION] = null;
+    }, time);
 
-        thisMap.event.fire('pan end', {panEndTime: time});
+    this.event.fire('pan end', {panEndTime: time});
+}
+
+function panStartAnimation(e) {
+    let transistionDurationMS = 2200;
+
+    let points = this.pan.points;
+
+    if (
+        points.length < 3 ||
+        Date.now() - points[points.length - 1].time > 150
+    ) {
+        return;
     }
 
-    function panningFinishedAnimation(e) {
-        let transistionDurationMS = 2200;
+    let startPoint = points[points.length - 1];
+    let offsetPoint = points[points.length - 3];
 
-        let points = thisMap.pan.points;
+    let deltaA = points[points.length - 2],
+        deltaB = points[points.length - 3],
+        deltaX = deltaA.x - deltaB.x,
+        deltaY = deltaA.y - deltaB.y,
+        angle = Math.atan2(deltaY, deltaX);
 
-        if (
-            points.length < 3 ||
-            Date.now() - points[points.length - 1].time > 150
-        ) {
-            return;
-        }
-
-        let startPoint = points[points.length - 1];
-        let offsetPoint = points[points.length - 3];
-
-        let deltaA = points[points.length - 2],
-            deltaB = points[points.length - 3],
-            deltaX = deltaA.x - deltaB.x,
-            deltaY = deltaA.y - deltaB.y,
-            angle = Math.atan2(deltaY, deltaX);
-
-        let pLen = points.length;
-        // prettier-ignore
-        let time = (
+    let pLen = points.length;
+    // prettier-ignore
+    let time = (
                        (points[pLen-1].time - points[pLen-2].time) 
                      + (points[pLen-2].time - points[pLen-3].time)
                    ) / 2;
 
-        let offsetX = startPoint.x - offsetPoint.x,
-            offsetY = startPoint.y - offsetPoint.y;
+    let offsetX = startPoint.x - offsetPoint.x,
+        offsetY = startPoint.y - offsetPoint.y;
 
-        let dist = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
-        let speed = dist / time;
+    let dist = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
+    let speed = dist / time;
 
-        if (dist <= 2 || time === 0) {
-            clearTimeout(transitionResetTimeout);
-            return;
-        }
+    if (dist <= 2 || time === 0) {
+        clearTimeout(this.pan.transitionResetTimeout);
+        return;
+    }
 
-        // Calculate distance needed to travel.
-        // graph -> https://www.desmos.com/calculator/wopqdbru4y
-        let dampen =
-            Math.sqrt(Math.log10(Math.log10(speed ** 3 + 1) ** 15 + 1)) **
-                0.07 /
-            4;
+    // Calculate distance needed to travel.
+    // graph -> https://www.desmos.com/calculator/wopqdbru4y
+    let dampen =
+        Math.sqrt(Math.log10(Math.log10(speed ** 3 + 1) ** 15 + 1)) ** 0.07 / 4;
 
-        let vectorLength = speed ** 1.09 * 400 * dampen;
-        //speed**0.6 * (40 * Math.sqrt(speed**1.6));
-        //speed * (20 * Math.sqrt(speed));
-        //speed * 150 - 60; // Found this magic number through trial and error.
+    let vectorLength = speed ** 1.09 * 400 * dampen;
+    //speed**0.6 * (40 * Math.sqrt(speed**1.6));
+    //speed * (20 * Math.sqrt(speed));
+    //speed * 150 - 60; // Found this magic number through trial and error.
 
-        transistionDurationMS *= dampen;
+    transistionDurationMS *= dampen;
 
-        // New vector.
-        let vector = {
-            rise: vectorLength * Math.sin(angle),
-            run: vectorLength * Math.cos(angle),
-        };
+    // New vector.
+    let vector = {
+        rise: vectorLength * Math.sin(angle),
+        run: vectorLength * Math.cos(angle),
+    };
 
-        // Calculate the final x and y positions for the animation.
-        // Rounding the coordinates so that the text on the markers in chrome is not blurry.
-        let finishPoint = {
-            x: Math.round(vector.run + startPoint.x),
-            y: Math.round(vector.rise + startPoint.y),
-        };
+    // Calculate the final x and y positions for the animation.
+    // Rounding the coordinates so that the text on the markers in chrome is not blurry.
+    let finishPoint = {
+        x: Math.round(vector.run + startPoint.x),
+        y: Math.round(vector.rise + startPoint.y),
+    };
 
-        thisMap.mainContainer.left = finishPoint.x;
-        thisMap.mainContainer.top = finishPoint.y;
+    this.mainContainer.left = finishPoint.x;
+    this.mainContainer.top = finishPoint.y;
 
-        // prettier-ignore
-        thisMap.mainContainer.element
+    // prettier-ignore
+    this.mainContainer.element
             .style[utils.CSS_TRANSITION] = "transform " + transistionDurationMS +
             "ms cubic-bezier(0, 0, 0.3, 1)";
 
-        // prettier-ignore
-        thisMap.mainContainer.element
+    // prettier-ignore
+    this.mainContainer.element
             .style[utils.CSS_TRANSFORM] = "translate3d(" + finishPoint.x + "px," +
             finishPoint.y + "px, 0px)";
 
-        // Reset transition.
-        clearTimeout(transitionResetTimeout);
+    // Reset transition.
+    clearTimeout(this.pan.transitionResetTimeout);
 
-        transitionResetTimeout = setTimeout(
-            function() {
-                this.mainContainer.element.style[utils.CSS_TRANSITION] = '';
-            }.bind(thisMap),
-            transistionDurationMS,
-        );
-    }
+    this.pan.transitionResetTimeout = setTimeout(
+        function() {
+            this.mainContainer.element.style[utils.CSS_TRANSITION] = '';
+        }.bind(this),
+        transistionDurationMS,
+    );
+}
 
-    function stopPanAnimation(e) {
-        // prettier-ignore
-        let posOnBezierCurve = document.defaultView
-            .getComputedStyle(thisMap.mainContainer.element)
+function panStopAnimation(e) {
+    // prettier-ignore
+    let posOnBezierCurve = document.defaultView
+            .getComputedStyle(this.mainContainer.element)
             .transform.match(/(-?\d*.?\d*), (-?\d*.?\d*)\)$/);
 
-        if (!posOnBezierCurve) {
-            return;
-        }
-
-        let x = Math.round(posOnBezierCurve[1]), //Math.round(pan.anim.startPoint.x - ((pan.anim.startPoint.x - pan.anim.endPoint.x) * posOnBezierCurve)),
-            y = Math.round(posOnBezierCurve[2]); //Math.round(pan.anim.startPoint.y - ((pan.anim.startPoint.y - pan.anim.endPoint.y) * posOnBezierCurve));
-
-        thisMap.updateStatePlaneCoordsByDistance(
-            x - thisMap.mainContainer.left,
-            y - thisMap.mainContainer.top,
-        );
-
-        thisMap.mainContainer.element.style[utils.CSS_TRANSFORM] =
-            'translate(' + x + 'px,' + y + 'px)';
-
-        thisMap.mainContainer.top = y;
-        thisMap.mainContainer.left = x;
-
-        thisMap.event.fire('stopPanAnimation');
+    if (!posOnBezierCurve) {
+        return;
     }
 
-    function enablePanning() {
-        thisMap.event.on('mousedown', mouseDown);
-    }
+    let x = Math.round(posOnBezierCurve[1]), //Math.round(pan.anim.startPoint.x - ((pan.anim.startPoint.x - pan.anim.endPoint.x) * posOnBezierCurve)),
+        y = Math.round(posOnBezierCurve[2]); //Math.round(pan.anim.startPoint.y - ((pan.anim.startPoint.y - pan.anim.endPoint.y) * posOnBezierCurve));
 
-    function disablePanning() {
-        thisMap.event.off('mousedown', mouseDown);
-    }
+    this.updateStatePlaneCoordsByDistance(
+        x - this.mainContainer.left,
+        y - this.mainContainer.top,
+    );
 
-    return {
-        panTo: panTo,
-        panByPixels: panByPixels,
-        enablePanning: enablePanning,
-        disablePanning: disablePanning,
-        stopPanAnimation: stopPanAnimation,
-        mapDragOnly: mapDragOnly,
-        mapDragAndAnimation: mapDragAndAnimation,
-        panningFinishedAnimation: panningFinishedAnimation,
-    };
+    this.mainContainer.element.style[utils.CSS_TRANSFORM] =
+        'translate(' + x + 'px,' + y + 'px)';
+
+    this.mainContainer.top = y;
+    this.mainContainer.left = x;
+
+    this.event.fire('stopPanAnimation');
+}
+
+function enablePanning() {
+    this.event.on(utils.MOUSE_WHEEL_EVT, this.panStopAnimation, this);
+    this.event.on('mousedown', this.panMouseDown, this);
+    this.event.on('panTo', this.panTo, this);
+}
+
+function disablePanning() {
+    this.event.off(utils.MOUSE_WHEEL_EVT, this.panStopAnimation, this);
+    this.event.off('mousedown', this.panMouseDown, this);
+    this.event.off('panTo', this.panTo, this);
 }
