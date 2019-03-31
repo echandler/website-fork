@@ -12,6 +12,7 @@ Object.assign(NewMap.prototype, {
     updateStatePlaneCoordsByDistance,
     updateStatePlaneCoordsByOrigin,
     updateVisExtentByOriginAndResolution,
+    updateVisExtentByHeightAndWidth,
     getPixelPointInMapContainer,
     getPanOffsetPoint,
     distanceBetween,
@@ -55,7 +56,7 @@ function convertProjPointToPixelPoint(spPoint) {
         y: (this.extent.visible.Y - spPoint.y) * yRatio,
     };
 }
-
+   
 function convertProjPointToOffsetPixelPoint(point) {
     var screenPoint = this.convertProjPointToPixelPoint(point);
 
@@ -294,6 +295,19 @@ function updateVisExtentByOriginAndResolution(p_origin, p_scale, p_resolution) {
     vis.x = vis.X - spWidth;
     vis.Y -= spHeight * p_scale * ratioY;
     vis.y = vis.Y - spHeight;
+}
+
+function updateVisExtentByHeightAndWidth(height_pixels, width_pixels) {
+    let visibleExtent = this.extent.visible;
+    let heightRatio = height_pixels / width_pixels;
+    let resolution = width_pixels * this.getResolution(this.zoom);
+
+    this.extent.visible = {
+        x: visibleExtent.x,
+        X: visibleExtent.x + resolution,
+        y: visibleExtent.Y - resolution * heightRatio,
+        Y: visibleExtent.Y,
+    };
 }
 
 function getPixelPointInMapContainer(point) {
