@@ -15,7 +15,7 @@ function boxZoom_mouseDown(e) {
         return;
     }
 
-    this.panning_module.disablePanning();
+    this.disablePanning();
 
     e.preventDefault();
     e.stopPropagation();
@@ -111,7 +111,7 @@ function boxZoom_mouseUp(e) {
     this.boxZoom.style[this.CSS_TRANSITION] = 'opacity 0.15s ease-in-out';
     this.boxZoom.style.opacity = 0;
 
-    this.panning_module.enablePanning();
+    this.enablePanning();
 
     this.boxZoom.parentElement.removeChild(boxZoom);
 

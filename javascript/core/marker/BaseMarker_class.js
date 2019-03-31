@@ -132,7 +132,7 @@ export class BaseMarkerClass extends BasicInteractiveElement {
         }
 
         if (point.x || point.y) {
-            this.map.panning_module.panByPixels(point);
+            this.map.panByPixels(point);
         }
     }
 
