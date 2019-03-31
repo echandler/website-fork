@@ -1,5 +1,4 @@
 import {BasicEventSystem} from './BasicEventSystem_class';
-import {panning_module} from './panning_module';
 import * as utils from './utils';
 
 export class NewMap extends BasicEventSystem {
@@ -10,7 +9,7 @@ export class NewMap extends BasicEventSystem {
     }
 
     init(spPoint, p_zoom) {
-        //this.zoom = 0;
+        this.zoom = 0;
 
         let params = this.parameters;
 
@@ -54,7 +53,7 @@ export class NewMap extends BasicEventSystem {
 
     static onInitDone(fn, ctx) {
         // Testing an idea about how to extend the init function.
-        let ary = this.prototype.init.initarr;
+        let ary = this.prototype.init.initArr;
         if (!ary) {
             ary = this.prototype.init.initArr = [];
         }
@@ -88,35 +87,28 @@ export class NewMap extends BasicEventSystem {
         let visibleExtent = this.extent.visible;
         let mapContainer = this.mapContainer;
         let containerRect = mapContainer.element.getBoundingClientRect();
+        let prevMidPoint = {
+            x: (visibleExtent.X + visibleExtent.x) / 2,
+            y: (visibleExtent.Y + visibleExtent.y) / 2,
+        };
 
-        mapContainer.width = this.parameters.container.clientWidth;
         mapContainer.height = this.parameters.container.clientHeight;
-
+        mapContainer.width = this.parameters.container.clientWidth;
         mapContainer.left = containerRect.left;
         mapContainer.top = containerRect.top;
 
         mapContainer.element.style.height = mapContainer.height + 'px';
         mapContainer.element.style.width = mapContainer.width + 'px';
 
-        let midPoint = {
-            x: visibleExtent.x + (visibleExtent.x - visibleExtent.x) / 2,
-            y: visibleExtent.y + (visibleExtent.Y - visibleExtent.y) / 2,
-        };
-
-        let heightRatio = mapContainer.height / mapContainer.width;
-        let resolution = mapContainer.width * this.getResolution(this.zoom);
-
-        this.extent.visible = {
-            x: visibleExtent.x,
-            X: visibleExtent.x + resolution,
-            y: visibleExtent.Y - resolution * heightRatio,
-            Y: visibleExtent.Y,
-        };
+        this.updateVisExtentByHeightAndWidth(
+            mapContainer.height,
+            mapContainer.width,
+        );
 
         this.event.fire('updateContainerSize', this);
 
         if (doPanToMidPoint) {
-            this.panning_module.panTo(midPoint);
+            this.event.fire('panTo', prevMidPoint);
         }
     }
 
@@ -127,7 +119,7 @@ export class NewMap extends BasicEventSystem {
             'position: relative; overflow: hidden; background-color: white;';
 
         this.mainContainer = this.makeContainer(document.createElement('div'));
-        t;
+        
         this.mainContainer.element.style.cssText =
             'position: absolute; width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px) scale3d(1,1,1);';
 
@@ -170,16 +162,10 @@ export class NewMap extends BasicEventSystem {
 
     loadModules() {
         this.event = new BasicEventSystem(); // TODO: Change this in future;
-
-        this.panning_module = panning_module(this);
-        // this.boxZoom_module = boxZoom_module(this);
-        // this.Zoom_class = new Zoom_class(this);
     }
 
     createEventListeners() {
         let mapContEl = this.mapContainer.element;
-
-        this.panning_module.enablePanning();
 
         mapContEl.addEventListener(
             this.MOUSE_WHEEL_EVT,
@@ -262,12 +248,6 @@ export class NewMap extends BasicEventSystem {
             },
             false,
         );
-
-        this.event.on(
-            utils.MOUSE_WHEEL_EVT,
-            p_evt => this.zoomInOut(p_evt),
-            this,
-        );
     }
 
     eventDelgationHandler(e, type) {
@@ -316,7 +296,6 @@ export class NewMap extends BasicEventSystem {
 
         if (e.___delta) {
             // Map is zooming.
-            this.panning_module.stopPanAnimation(new_evt);
 
             new_evt.spPoint = this.screenPointToProjection(pointInContainer); // Halting panning animation changes extent..
 
@@ -367,5 +346,30 @@ export class NewMap extends BasicEventSystem {
         }
 
         return this;
+    }
+    
+    getCenterCoords(){
+        
+        return {
+            x: (this.extent.visible.x + this.extent.visible.X)/2,
+
+            y: (this.extent.visible.y + this.extent.visible.Y)/2,
+        };
+
+    }
+    calcZoomDelta(zoomLvl, zoomDelta, minZoom, maxZoom) {
+        let zoomInLvl = zoomLvl + zoomDelta;
+        let zoomOutLvl = zoomLvl - zoomDelta;
+
+        return {
+            maxDelta:
+                zoomInLvl > maxZoom
+                    ? zoomDelta - (zoomInLvl - maxZoom)
+                    : zoomDelta,
+            minDelta:
+                zoomOutLvl < minZoom
+                    ? zoomDelta + (zoomOutLvl - minZoom)
+                    : zoomDelta,
+        };
     }
 }
