@@ -2,6 +2,7 @@ export * from './Main_class';
 export * from './BasicEventSystem_class';
 export * from './BasicInteractiveElement_class';
 export * from './Zoom_class.js';
+export * from './ZoomCntrl_svg_class.js';
 
 export * from './layers/BasicLayer_class';
 export * from './layers/ArcRenderLayer_class';

@@ -49,7 +49,7 @@ export let CSS_TRANSITION = testProp([
     'msTransition',
 ]);
 
- //https://developer.mozilla.org/en-US/docs/Web/Events/wheel#Browser_compatibility
+//https://developer.mozilla.org/en-US/docs/Web/Events/wheel#Browser_compatibility
 export let MOUSE_WHEEL_EVT =
     'onwheel' in document.createElement('div')
         ? 'wheel' // Modern browsers support "wheel"
