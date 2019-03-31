@@ -1,32 +1,36 @@
 export class Zoom_btn {
     constructor(elem) {
         let ns = 'http://www.w3.org/2000/svg';
-        this.group = this.makeGroup(); 
+        this.element = this.makeGroup();
+
+        this.element.addEventListener('mousedown', this.mousedown.bind(this));
+        this.element.addEventListener("mouseup", this.mouseup.bind(this));
+        document.body.addEventListener("mouseup", this.mouseup.bind(this));
+
+        this.mousedown_color = "blue";
+        this.mouseup_color = "black"
     }
 
-    makeGroup(){
+    makeGroup() {
         let ns = 'http://www.w3.org/2000/svg';
 
         let group = document.createElementNS(ns, 'g');
 
         group._instance = this;
 
-        group.addEventListener('mousedown', this.mousedown.bind(this));
-        group.addEventListener("mouseup", this.mouseup.bind(this));
-
         return group;
     }
-    
+
     setPos(x, y) {
-        this.group.setAttribute('transform', `translate(${x}, ${y})`);
+        this.element.setAttribute('transform', `translate(${x}, ${y})`);
     }
 
-    mousedown(color) {
-        this.group.setAttribute('fill', 'blue');
+    mousedown() {
+        this.element.setAttribute('fill', this.mousedown_color);
     }
 
-    mouseup(color) {
-        this.group.setAttribute('fill', 'black');
+    mouseup() {
+        this.element.setAttribute('fill', this.mouseup_color);
     }
 }
 
@@ -36,10 +40,10 @@ export class Zoom_in_btn extends Zoom_btn {
 
         this.ns = 'http://www.w3.org/2000/svg';
         this.rect = document.createElementNS(this.ns, 'rect');
-        this.group.appendChild(this.rect);
+        this.element.appendChild(this.rect);
         this.makeGraphic();
-        this.group.appendChild(this.ns_line);
-        this.group.appendChild(this.ew_line);
+        this.element.appendChild(this.ns_line);
+        this.element.appendChild(this.ew_line);
     }
 
     makeGraphic() {
@@ -79,11 +83,11 @@ export class Zoom_out_btn extends Zoom_btn {
 
         this.ns = 'http://www.w3.org/2000/svg';
         this.rect = document.createElementNS(this.ns, 'rect');
-        this.group.appendChild(this.rect);
+        this.element.appendChild(this.rect);
 
         this.makeGraphic();
 
-        this.group.appendChild(this.ew_line);
+        this.element.appendChild(this.ew_line);
 
         this.setPos(0, 110);
     }
@@ -109,18 +113,17 @@ export class Zoom_out_btn extends Zoom_btn {
     }
 }
 
-export class zoom_svg {
+export class ZoomCntrl_svg {
     constructor(x, y, height, width, map) {
-
-        this.container = this.makeContainer(height, width);
+        this.container = this.makeSVGContainer(height, width);
         this.zoomInBtn = new this.Zoom_in_btn();
         this.zoomOutBtn = new this.Zoom_out_btn();
 
-        this.zoomInBtn.group._zoom_dir = 'in';
-        this.zoomOutBtn.group._zoom_dir = 'out';
+        this.zoomInBtn.element._zoom_dir = 'in';
+        this.zoomOutBtn.element._zoom_dir = 'out';
 
-        this.container.appendChild(this.zoomInBtn.group);
-        this.container.appendChild(this.zoomOutBtn.group);
+        this.container.appendChild(this.zoomInBtn.element);
+        this.container.appendChild(this.zoomOutBtn.element);
 
         this.container.addEventListener('mousedown', this);
         this.container.addEventListener('mouseup', this);
@@ -133,13 +136,20 @@ export class zoom_svg {
     addToMap(map) {
         this.map = map;
 
-        map.addTo(this.container, map.mapContainer.element, function() {});
+        map.addTo(this.container, map.mapContainer.element, () => {
+            this.map.event.on('updateContainerSize', this.update);
+        });
 
         return this;
     }
 
-    makeContainer(height, width) {
-        let el = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    update(map) {
+        console.log('[Zoom control] Update method needs to be implimented');
+    }
+
+    makeSVGContainer(height, width) {
+        let ns = 'http://www.w3.org/2000/svg';
+        let el = document.createElementNS(ns, 'svg');
 
         el.style.width = width + 'px';
         el.style.height = height + 'px';
@@ -172,29 +182,36 @@ export class zoom_svg {
 
     handleEvent(evt) {
         let el = evt.target;
-
+      
         evt.stopImmediatePropagation();
         evt.stopPropagation();
         evt.preventDefault();
 
         for (var i = 0; ; i++) {
             if (el._zoom_dir) {
-                let center = this.map.getCenterCoords();
-
-                if (el._zoom_dir == 'in') {
-                    this.map.zoomTo(center, this.map.zoom + 1);
-                    return;
-                }
-
-                this.map.zoomTo(center, this.map.zoom - 1);
+                break;
             }
 
             if (el === this.container) break;
 
             el = el.parentElement;
         }
+        if (el === this.container){
+            return;
+        }
+
+        if (evt.type === 'mousedown'){
+            let center = this.map.getCenterCoords();
+
+            if (el._zoom_dir == 'in') {
+                this.map.zoomTo(center, this.map.zoom + (evt.shiftKey? 2:1));
+                return;
+            }
+
+            this.map.zoomTo(center, this.map.zoom - (evt.shiftKey? 2:1));
+        } 
     }
 }
 
-zoom_svg.prototype.Zoom_in_btn = Zoom_in_btn;
-zoom_svg.prototype.Zoom_out_btn = Zoom_out_btn;
+ZoomCntrl_svg.prototype.Zoom_in_btn = Zoom_in_btn;
+ZoomCntrl_svg.prototype.Zoom_out_btn = Zoom_out_btn;
