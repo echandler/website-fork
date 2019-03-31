@@ -2,29 +2,16 @@ import * as utils from './utils';
 import {NewMap} from './Main_class';
 
 Object.assign(NewMap.prototype, {
-    calcZoomDelta,
     zoomTo,
     zoomInOut,
+    enableZooming,
+    disableZooming,
 });
 
 NewMap.onInitDone(function() {
     // Testing an idea about how to exend the init function.
-    this.zoom = 0;
+    this.enableZooming();
 });
-
-function calcZoomDelta(zoomLvl, zoomDelta, minZoom, maxZoom) {
-    let zoomInLvl = zoomLvl + zoomDelta;
-    let zoomOutLvl = zoomLvl - zoomDelta;
-
-    return {
-        maxDelta:
-            zoomInLvl > maxZoom ? zoomDelta - (zoomInLvl - maxZoom) : zoomDelta,
-        minDelta:
-            zoomOutLvl < minZoom
-                ? zoomDelta + (zoomOutLvl - minZoom)
-                : zoomDelta,
-    };
-}
 
 function zoomTo(projPoint, zoom, projOrigin) {
     let convertPoint = this.convertProjPointToPixelPoint.bind(this);
@@ -45,7 +32,6 @@ function zoomTo(projPoint, zoom, projOrigin) {
     let simMouseY = _origin.y + distanceY * scale;
 
     if (zoom === this.zoom) {
-        //this.map.panning_module.panTo(origin || projPoint, 500);
         return;
     }
 
@@ -62,7 +48,7 @@ function zoomTo(projPoint, zoom, projOrigin) {
         },
         utils.MOUSE_WHEEL_EVT,
     );
-};
+}
 
 function zoomInOut(p_evt) {
     if (p_evt.scale === 1) {
@@ -78,4 +64,12 @@ function zoomInOut(p_evt) {
 
     this.event.fire('prezoom', p_evt);
     this.event.fire('zoom end', p_evt);
-};
+}
+
+function enableZooming() {
+    this.event.on(utils.MOUSE_WHEEL_EVT, p_evt => this.zoomInOut(p_evt), this);
+}
+
+function disableZooming() {
+    this.event.off(utils.MOUSE_WHEEL_EVT, p_evt => this.zoomInOut(p_evt), this);
+}
