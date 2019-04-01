@@ -1,20 +1,26 @@
-export class Zoom_btn {
+export class Zoom_btn_base {
     constructor(elem) {
-        let ns = 'http://www.w3.org/2000/svg';
+        this.ns = 'http://www.w3.org/2000/svg';
+
         this.element = this.makeGroup();
 
-        this.element.addEventListener('mousedown', this.mousedown.bind(this));
-        this.element.addEventListener("mouseup", this.mouseup.bind(this));
-        document.body.addEventListener("mouseup", this.mouseup.bind(this));
+        this.active_color = 'blue';
+        this.inactive_color = 'black';
 
-        this.mousedown_color = "blue";
-        this.mouseup_color = "black"
+        this.element.setAttribute('fill', this.inactive_color);
+
+        this.addEventListeners();
+    }
+
+    addEventListeners() {
+        this.element.addEventListener('mouseover', this.mousedown.bind(this));
+        this.element.addEventListener('mouseout', this.mouseup.bind(this));
+        // document.body.addEventListener('mouseup', this.mouseup.bind(this));
+        return this;
     }
 
     makeGroup() {
-        let ns = 'http://www.w3.org/2000/svg';
-
-        let group = document.createElementNS(ns, 'g');
+        let group = document.createElementNS(this.ns, 'g');
 
         group._instance = this;
 
@@ -23,27 +29,35 @@ export class Zoom_btn {
 
     setPos(x, y) {
         this.element.setAttribute('transform', `translate(${x}, ${y})`);
+        return this;
     }
 
     mousedown() {
-        this.element.setAttribute('fill', this.mousedown_color);
+        this.element.setAttribute('fill', this.active_color);
+        return this;
     }
 
     mouseup() {
-        this.element.setAttribute('fill', this.mouseup_color);
+        this.element.setAttribute('fill', this.inactive_color);
+        return this;
     }
 }
 
-export class Zoom_in_btn extends Zoom_btn {
-    constructor(width = 100, height = 100) {
+class Zoom_in_btn extends Zoom_btn_base {
+    constructor() {
         super();
+        this.makeBtn();
+    }
 
-        this.ns = 'http://www.w3.org/2000/svg';
+    makeBtn() {
         this.rect = document.createElementNS(this.ns, 'rect');
         this.element.appendChild(this.rect);
+
         this.makeGraphic();
+
         this.element.appendChild(this.ns_line);
         this.element.appendChild(this.ew_line);
+        return this;
     }
 
     makeGraphic() {
@@ -52,6 +66,7 @@ export class Zoom_in_btn extends Zoom_btn {
 
         this.ns_line.setAttribute('stroke', 'white');
         this.ew_line.setAttribute('stroke', 'white');
+        return this;
     }
 
     setSize(height, width) {
@@ -74,27 +89,30 @@ export class Zoom_in_btn extends Zoom_btn {
         this.ew_line.setAttribute('y1', height / 2);
         this.ew_line.setAttribute('x2', box.right);
         this.ew_line.setAttribute('y2', height / 2);
+        return this;
     }
 }
 
-export class Zoom_out_btn extends Zoom_btn {
-    constructor(width = 100, height = 100) {
+class Zoom_out_btn extends Zoom_btn_base {
+    constructor() {
         super();
+        this.makeBtn();
+    }
 
-        this.ns = 'http://www.w3.org/2000/svg';
+    makeBtn() {
         this.rect = document.createElementNS(this.ns, 'rect');
         this.element.appendChild(this.rect);
 
         this.makeGraphic();
 
         this.element.appendChild(this.ew_line);
-
-        this.setPos(0, 110);
+        return this;
     }
 
     makeGraphic() {
         this.ew_line = document.createElementNS(this.ns, 'line');
         this.ew_line.setAttribute('stroke', 'white');
+        return this;
     }
 
     setSize(height, width) {
@@ -110,6 +128,7 @@ export class Zoom_out_btn extends Zoom_btn {
         this.ew_line.setAttribute('y1', height / 2);
         this.ew_line.setAttribute('x2', box.right);
         this.ew_line.setAttribute('y2', height / 2);
+        return this;
     }
 }
 
@@ -134,9 +153,20 @@ export class ZoomCntrl_svg {
     }
 
     addToMap(map) {
+        if (
+            map.zoomCtrl &&
+            map.zoomCtrl instanceof this.__proto__.constructor
+        ) {
+            console.error(
+                '[Zoom SVG Control] Zoom control exists on this map.',
+            );
+            return this;
+        }
+
         this.map = map;
 
         map.addTo(this.container, map.mapContainer.element, () => {
+            this.map.zoomCtrl = this;
             this.map.event.on('updateContainerSize', this.update);
         });
 
@@ -145,6 +175,7 @@ export class ZoomCntrl_svg {
 
     update(map) {
         console.log('[Zoom control] Update method needs to be implimented');
+        return this;
     }
 
     makeSVGContainer(height, width) {
@@ -160,7 +191,7 @@ export class ZoomCntrl_svg {
 
     setSize(height, width) {
         this.height = height || this.height || 0;
-        this.width = width || this.height || 0;
+        this.width = width || this.width || 0;
 
         this.container.style.width = this.width + 'px';
         this.container.style.height = this.height + 2 + 'px';
@@ -178,38 +209,35 @@ export class ZoomCntrl_svg {
 
         this.container.style.left = this.x + 'px';
         this.container.style.top = this.y + 'px';
+        return this;
     }
 
     handleEvent(evt) {
         let el = evt.target;
-      
+
         evt.stopImmediatePropagation();
         evt.stopPropagation();
         evt.preventDefault();
 
         for (var i = 0; ; i++) {
-            if (el._zoom_dir) {
-                break;
-            }
-
+            if (el._zoom_dir) break;
             if (el === this.container) break;
 
             el = el.parentElement;
         }
-        if (el === this.container){
-            return;
-        }
 
-        if (evt.type === 'mousedown'){
+        if (el === this.container) return;
+
+        if (evt.type === 'mouseup' && evt.button == 0) {
             let center = this.map.getCenterCoords();
 
             if (el._zoom_dir == 'in') {
-                this.map.zoomTo(center, this.map.zoom + (evt.shiftKey? 2:1));
+                this.map.zoomTo(center, this.map.zoom + (evt.shiftKey ? 2 : 1));
                 return;
             }
 
-            this.map.zoomTo(center, this.map.zoom - (evt.shiftKey? 2:1));
-        } 
+            this.map.zoomTo(center, this.map.zoom - (evt.shiftKey ? 2 : 1));
+        }
     }
 }
 
