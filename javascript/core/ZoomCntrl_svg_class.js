@@ -1,3 +1,16 @@
+import {NewMap} from './Main_class';
+
+NewMap.onInitDone(function() {
+    // Testing an idea about how to exend the init function.
+    let o = this.parameters.SVGZoom;
+
+    if (o === undefined || o === true) {
+        new ZoomCntrl_SVG(this);
+    } else if (o !== false) {
+        new ZoomCntrl_SVG(this, o.x, o.y, o.height, o.width);
+    }
+});
+
 export class Zoom_btn_base {
     constructor(elem) {
         this.ns = 'http://www.w3.org/2000/svg';
@@ -132,8 +145,8 @@ class Zoom_out_btn extends Zoom_btn_base {
     }
 }
 
-export class ZoomCntrl_svg {
-    constructor(x, y, height, width, map) {
+export class ZoomCntrl_SVG {
+    constructor(map, x = 10, y = 10, height = 61, width = 31) {
         this.container = this.makeSVGContainer(height, width);
         this.zoomInBtn = new this.Zoom_in_btn();
         this.zoomOutBtn = new this.Zoom_out_btn();
@@ -147,19 +160,25 @@ export class ZoomCntrl_svg {
         this.container.addEventListener('mousedown', this);
         this.container.addEventListener('mouseup', this);
 
+        this.x = x;
+        this.y = y;
+        this.height = height;
+        this.width = width;
+
         if (height && width) this.setSize(height, width);
-        if (x && y) this.setPos(x, y);
+
+        console.log(
+            '[Zoom SVG Cntrl] TODO: Fix this.setPos. Currently zoom cntrl position is fixed.',
+        );
+        // TODO: Make setPos work.
+        //if (x && y) this.setPos(x, y);
+
         if (map) this.addToMap(map);
     }
 
     addToMap(map) {
-        if (
-            map.zoomCtrl &&
-            map.zoomCtrl instanceof this.__proto__.constructor
-        ) {
-            console.error(
-                '[Zoom SVG Control] Zoom control exists on this map.',
-            );
+        if (map.zoomCtrl && map.zoomCtrl instanceof this.__proto__.constructor) {
+            console.error('[Zoom SVG Control] Zoom control exists on this map.');
             return this;
         }
 
@@ -167,14 +186,22 @@ export class ZoomCntrl_svg {
 
         map.addTo(this.container, map.mapContainer.element, () => {
             this.map.zoomCtrl = this;
-            this.map.event.on('updateContainerSize', this.update);
+            this.map.event.on('updateContainerSize', () => {
+                this.update(this.map);
+            });
+            this.update(this.map);
         });
 
         return this;
     }
 
     update(map) {
-        console.log('[Zoom control] Update method needs to be implimented');
+        let cont = map.mapContainer;
+        let x = cont.width - this.width - 10;
+        let y = cont.height - this.height - 20;
+
+        this.setPos(x, y);
+
         return this;
     }
 
@@ -199,6 +226,10 @@ export class ZoomCntrl_svg {
         this.zoomInBtn.setSize(this.height / 2, this.width);
         this.zoomOutBtn.setSize(this.height / 2, this.width);
         this.zoomOutBtn.setPos(0, this.height / 2 + 2);
+
+        if (this.map) {
+            this.update(this.map);
+        }
 
         return this;
     }
@@ -241,5 +272,5 @@ export class ZoomCntrl_svg {
     }
 }
 
-ZoomCntrl_svg.prototype.Zoom_in_btn = Zoom_in_btn;
-ZoomCntrl_svg.prototype.Zoom_out_btn = Zoom_out_btn;
+ZoomCntrl_SVG.prototype.Zoom_in_btn = Zoom_in_btn;
+ZoomCntrl_SVG.prototype.Zoom_out_btn = Zoom_out_btn;

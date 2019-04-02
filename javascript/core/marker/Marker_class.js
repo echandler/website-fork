@@ -66,8 +66,7 @@ export class MakeMarker extends BaseMarkerClass {
     makeMarkerElement() {
         let marker = document.createElement('img');
         marker.className = 'markerParent3';
-        marker.src =
-            'https://unpkg.com/leaflet@1.3.1/dist/images/marker-icon.png';
+        marker.src = 'https://unpkg.com/leaflet@1.3.1/dist/images/marker-icon.png';
 
         marker.id = 'marker_' + _markerCounter++;
 

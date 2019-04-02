@@ -14,8 +14,7 @@ export class NewMap extends BasicEventSystem {
         let params = this.parameters;
 
         this.zoomIndex = params.zoomIndex;
-        this.maxZoom =
-            params.maxZoom || (this.zoomIndex && this.zoomIndex.length) || 24;
+        this.maxZoom = params.maxZoom || (this.zoomIndex && this.zoomIndex.length) || 24;
         this.minZoom = params.minZoom || 0;
         this.zoomDelta = params.zoomDelta || 1;
 
@@ -100,10 +99,7 @@ export class NewMap extends BasicEventSystem {
         mapContainer.element.style.height = mapContainer.height + 'px';
         mapContainer.element.style.width = mapContainer.width + 'px';
 
-        this.updateVisExtentByHeightAndWidth(
-            mapContainer.height,
-            mapContainer.width,
-        );
+        this.updateVisExtentByHeightAndWidth(mapContainer.height, mapContainer.width);
 
         this.event.fire('updateContainerSize', this);
 
@@ -119,7 +115,7 @@ export class NewMap extends BasicEventSystem {
             'position: relative; overflow: hidden; background-color: white;';
 
         this.mainContainer = this.makeContainer(document.createElement('div'));
-        
+
         this.mainContainer.element.style.cssText =
             'position: absolute; width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px) scale3d(1,1,1);';
 
@@ -133,11 +129,8 @@ export class NewMap extends BasicEventSystem {
         this.svgContainer.element.style.cssText =
             'position: absolute; top: 0px; left: 0px; width: 10000000px; height: 100000px; overflow: hidden;';
 
-        this.markerContainer = this.makeContainer(
-            document.createElement('div'),
-        );
-        this.markerContainer.element.style.cssText =
-            'position: relative; z-index: 1000;';
+        this.markerContainer = this.makeContainer(document.createElement('div'));
+        this.markerContainer.element.style.cssText = 'position: relative; z-index: 1000;';
         this.markerContainer.element.className = '_markerContainer_';
 
         this.mainContainer.element.appendChild(this.svgContainer.element);
@@ -212,21 +205,9 @@ export class NewMap extends BasicEventSystem {
             false,
         );
 
-        mapContEl.addEventListener(
-            'mouseup',
-            e => this.eventDelgationHandler,
-            false,
-        );
-        mapContEl.addEventListener(
-            'mouseover',
-            e => this.eventDelgationHandler,
-            false,
-        );
-        mapContEl.addEventListener(
-            'mouseout',
-            e => this.eventDelgationHandler,
-            false,
-        );
+        mapContEl.addEventListener('mouseup', e => this.eventDelgationHandler, false);
+        mapContEl.addEventListener('mouseover', e => this.eventDelgationHandler, false);
+        mapContEl.addEventListener('mouseout', e => this.eventDelgationHandler, false);
         mapContEl.addEventListener(
             'mousemove',
             e => {
@@ -274,9 +255,7 @@ export class NewMap extends BasicEventSystem {
         };
 
         while (parentElement && parentElement !== this.mapContainer.element) {
-            if (
-                !(parentElement._marker_obj && parentElement._marker_obj.fire)
-            ) {
+            if (!(parentElement._marker_obj && parentElement._marker_obj.fire)) {
                 parentElement = parentElement.parentElement;
                 continue;
             }
@@ -313,8 +292,7 @@ export class NewMap extends BasicEventSystem {
 
             let _resolution = this.getResolution(this.zoom);
 
-            new_evt.scale =
-                this.getResolution(this.zoom - _zoomAdder) / _resolution;
+            new_evt.scale = this.getResolution(this.zoom - _zoomAdder) / _resolution;
 
             this.updateVisExtentByOriginAndResolution(
                 new_evt.spPoint,
@@ -347,29 +325,22 @@ export class NewMap extends BasicEventSystem {
 
         return this;
     }
-    
-    getCenterCoords(){
-        
+
+    getCenterCoords() {
         return {
-            x: (this.extent.visible.x + this.extent.visible.X)/2,
+            x: (this.extent.visible.x + this.extent.visible.X) / 2,
 
-            y: (this.extent.visible.y + this.extent.visible.Y)/2,
+            y: (this.extent.visible.y + this.extent.visible.Y) / 2,
         };
-
     }
     calcZoomDelta(zoomLvl, zoomDelta, minZoom, maxZoom) {
         let zoomInLvl = zoomLvl + zoomDelta;
         let zoomOutLvl = zoomLvl - zoomDelta;
 
         return {
-            maxDelta:
-                zoomInLvl > maxZoom
-                    ? zoomDelta - (zoomInLvl - maxZoom)
-                    : zoomDelta,
+            maxDelta: zoomInLvl > maxZoom ? zoomDelta - (zoomInLvl - maxZoom) : zoomDelta,
             minDelta:
-                zoomOutLvl < minZoom
-                    ? zoomDelta + (zoomOutLvl - minZoom)
-                    : zoomDelta,
+                zoomOutLvl < minZoom ? zoomDelta + (zoomOutLvl - minZoom) : zoomDelta,
         };
     }
 }

@@ -38,9 +38,7 @@ NewMap.onInitDone(function() {
         },
     };
 
-    this.pan.boundEventListeners.panningFunction = this.pan.panningFunction.bind(
-        this,
-    );
+    this.pan.boundEventListeners.panningFunction = this.pan.panningFunction.bind(this);
 }, null);
 
 function panMouseDown(e) {
@@ -100,10 +98,7 @@ function _panMouseUp(e) {
     let evt = e.__event__ || e;
     let pan = this.pan;
 
-    if (
-        evt.clientY - pan.mouseDownY !== 0 ||
-        evt.clientX - pan.mouseDownX !== 0
-    ) {
+    if (evt.clientY - pan.mouseDownY !== 0 || evt.clientX - pan.mouseDownX !== 0) {
         this.panStartAnimation(evt);
 
         // prettier-ignore
@@ -137,10 +132,7 @@ function panRemoveEventListeners(e) {
 function panInitialTasks(e) {
     // This function is called once and immediately removed just to make the
     // panning feel smoother.
-    if (
-        e.clientY - this.pan.mouseDownY === 0 &&
-        e.clientX - this.pan.mouseDownX === 0
-    ) {
+    if (e.clientY - this.pan.mouseDownY === 0 && e.clientX - this.pan.mouseDownX === 0) {
         // A bug in chrome will call this function if a mousedown event happens.
         // Bug hasn't been fixed in atleast chrome version 51.0.2704.103
         // and earlier.
@@ -216,10 +208,7 @@ function panByPixels(spPoint, panTime) {
     let vectorLen = Math.sqrt(spPoint.x * spPoint.x + spPoint.y * spPoint.y);
 
     // Played around with this on a graphing website, might want to revisit in the future.
-    let max = Math.max(
-        200,
-        vectorLen * (500 * (0.45 / vectorLen ** 0.9) + 0.06),
-    );
+    let max = Math.max(200, vectorLen * (500 * (0.45 / vectorLen ** 0.9) + 0.06));
     let time = panTime || Math.min(1000, max);
 
     mainCont.left += Math.round(spPoint.x);
@@ -249,10 +238,7 @@ function panStartAnimation(e) {
 
     let points = this.pan.points;
 
-    if (
-        points.length < 3 ||
-        Date.now() - points[points.length - 1].time > 150
-    ) {
+    if (points.length < 3 || Date.now() - points[points.length - 1].time > 150) {
         return;
     }
 
@@ -285,8 +271,7 @@ function panStartAnimation(e) {
 
     // Calculate distance needed to travel.
     // graph -> https://www.desmos.com/calculator/wopqdbru4y
-    let dampen =
-        Math.sqrt(Math.log10(Math.log10(speed ** 3 + 1) ** 15 + 1)) ** 0.07 / 4;
+    let dampen = Math.sqrt(Math.log10(Math.log10(speed ** 3 + 1) ** 15 + 1)) ** 0.07 / 4;
 
     let vectorLength = speed ** 1.09 * 400 * dampen;
     //speed**0.6 * (40 * Math.sqrt(speed**1.6));

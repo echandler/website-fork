@@ -14,17 +14,17 @@ https://rollupjs.org/guide/en#tools
 */
 
 export default {
-    input: "./javascript/core/rollup_exports.js",
+    input: './javascript/core/rollup_exports.js',
     output: {
         //globals: 'newMap',
-        format: "umd",
-        name: "NewMap", // TODO: Change this name.
-        sourcemap: "inline",
+        format: 'umd',
+        name: 'NewMap', // TODO: Change this name.
+        sourcemap: 'inline',
         // extend : true,
-        file: "./dist/bundle.js",
+        file: './dist/bundle.js',
         //intro: "/* Fancy new Intdro! "+ ttd.version +" */",
         outro: '/* Fancy new Rollup.js outro! */ window.NewMap = exports;',
         banner: '/* Fancy new Rollup.js banner! */\n',
         // footer: '\n /* Fancy new Footer! */',
-    }
+    },
 };
